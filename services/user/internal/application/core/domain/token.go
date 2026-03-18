@@ -26,13 +26,3 @@ type Token struct {
 	Use         TokenUse
 	TokenType   TokenType
 }
-
-func NewToken(use TokenUse, tokenType TokenType, userID uint, tokenString string, expires time.Time) *Token {
-	return &Token{
-		Use:         use,
-		TokenType:   tokenType,
-		TokenString: tokenString,
-		Expires:     expires,
-		UserID:      userID,
-	}
-}
