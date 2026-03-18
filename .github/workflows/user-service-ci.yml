@@ -1,0 +1,39 @@
+name: User CI
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - "services/user/**"
+    pull_request:
+        branches: [main]
+        paths:
+            - "services/user/**"
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: checktout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "1.26"
+
+            - name: Install golangci-lint
+              run: |
+                  cd services/user
+                  curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s latest
+
+            - name: Lint code
+              run: |
+                  cd services/user
+                  ./bin/golangci-lint run
+
+            - name: Run tests
+              run: |
+                  cd services/user
+                  go test ./...
