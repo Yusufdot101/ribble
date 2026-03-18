@@ -7,74 +7,27 @@ import (
 	"time"
 
 	"github.com/Yusufdot101/ribble/services/user/internal/application/core/domain"
-	"github.com/stretchr/testify/mock"
+	"github.com/Yusufdot101/ribble/services/user/internal/ports"
 )
-
-type mockRepo struct {
-	mock.Mock
-}
-
-func (r *mockRepo) InsertUser(user *domain.User) error {
-	args := r.Called(user)
-	return args.Error(0)
-}
-
-func (r *mockRepo) FindUserByProviderAndSub(provider, sub string) (*domain.User, error) {
-	args := r.Called(provider, sub)
-	return args.Get(0).(*domain.User), args.Error(1)
-}
-
-func (r *mockRepo) InsertToken(token *domain.Token) error {
-	args := r.Called(token)
-	return args.Error(0)
-}
-
-type mockProvider struct {
-	mock.Mock
-}
-
-func (p *mockProvider) GetAuthURL(state, nonce string) string {
-	args := p.Called(state, nonce)
-	return args.Get(0).(string)
-}
-
-func (p *mockProvider) GetUserInfo(ctx context.Context, code, nonce string) (*domain.User, error) {
-	args := p.Called(ctx, code, nonce)
-	return args.Get(0).(*domain.User), args.Error(1)
-}
-
-type mockTokenService struct {
-	mock.Mock
-}
-
-func (tsv *mockTokenService) New(tokenType domain.TokenType, tokenUse domain.TokenUse, userID uint) (*domain.Token, error) {
-	args := tsv.Called(tokenType, tokenUse, userID)
-	return args.Get(0).(*domain.Token), args.Error(1)
-}
-
-func (tsv *mockTokenService) Save(token *domain.Token) error {
-	args := tsv.Called(token)
-	return args.Error(0)
-}
 
 func TestHandleCallback(t *testing.T) {
 	tests := []struct {
 		name       string
 		wantErr    bool
 		err        error
-		setupMocks func(r *mockRepo, tsvc *mockTokenService, pr *mockProvider)
+		setupMocks func(r *ports.MockRepository, tsvc *ports.MockTokenService, pr *ports.MockOAuthProvider)
 	}{
 		{
 			name: "valid flow",
-			setupMocks: func(r *mockRepo, tsvc *mockTokenService, pr *mockProvider) {
-				pr.On("GetUserInfo", context.Background(), "code", "nonce").Return(&domain.User{
+			setupMocks: func(r *ports.MockRepository, tsvc *ports.MockTokenService, pr *ports.MockOAuthProvider) {
+				pr.EXPECT().GetUserInfo(context.Background(), "code", "nonce").Return(&domain.User{
 					Sub:      "1",
 					Provider: "google",
 					Name:     "yusuf",
 					Email:    "ym@gmail.com",
 				}, nil)
 
-				r.On("FindUserByProviderAndSub", "google", "1").Return(&domain.User{
+				r.EXPECT().FindUserByProviderAndSub("google", "1").Return(&domain.User{
 					Sub:      "1",
 					ID:       1,
 					Provider: "google",
@@ -82,19 +35,19 @@ func TestHandleCallback(t *testing.T) {
 					Email:    "ym@gmail.com",
 				}, nil)
 
-				tsvc.On("New", domain.UUID, domain.REFRESH, uint(1)).Return(&domain.Token{
+				tsvc.EXPECT().New(domain.UUID, domain.REFRESH, uint(1)).Return(&domain.Token{
 					TokenString: "tokenString",
 					UserID:      1,
 					Expires:     time.Date(2000, 1, 1, 1, 0, 0, 0, time.Local),
 				}, nil)
 
-				tsvc.On("New", domain.JWT, domain.ACCESS, uint(1)).Return(&domain.Token{
+				tsvc.EXPECT().New(domain.JWT, domain.ACCESS, uint(1)).Return(&domain.Token{
 					TokenString: "tokenString",
 					UserID:      1,
 					Expires:     time.Date(2000, 1, 1, 1, 0, 0, 0, time.Local),
 				}, nil)
 
-				tsvc.On("Save", &domain.Token{
+				tsvc.EXPECT().Save(&domain.Token{
 					TokenString: "tokenString",
 					UserID:      1,
 					Expires:     time.Date(2000, 1, 1, 1, 0, 0, 0, time.Local),
@@ -103,36 +56,36 @@ func TestHandleCallback(t *testing.T) {
 		},
 		{
 			name: "user not found",
-			setupMocks: func(r *mockRepo, tsvc *mockTokenService, pr *mockProvider) {
-				pr.On("GetUserInfo", context.Background(), "code", "nonce").Return(&domain.User{
+			setupMocks: func(r *ports.MockRepository, tsvc *ports.MockTokenService, pr *ports.MockOAuthProvider) {
+				pr.EXPECT().GetUserInfo(context.Background(), "code", "nonce").Return(&domain.User{
 					Sub:      "1",
 					Provider: "google",
 					Name:     "yusuf",
 					Email:    "ym@gmail.com",
 				}, nil)
 
-				r.On("FindUserByProviderAndSub", "google", "1").Return(&domain.User{}, domain.ErrUserNotFound)
+				r.EXPECT().FindUserByProviderAndSub("google", "1").Return(&domain.User{}, domain.ErrUserNotFound)
 
-				r.On("InsertUser", &domain.User{
+				r.EXPECT().InsertUser(&domain.User{
 					Sub:      "1",
 					Provider: "google",
 					Name:     "yusuf",
 					Email:    "ym@gmail.com",
 				}).Return(nil)
 
-				tsvc.On("New", domain.UUID, domain.REFRESH, uint(0)).Return(&domain.Token{
+				tsvc.EXPECT().New(domain.UUID, domain.REFRESH, uint(0)).Return(&domain.Token{
 					TokenString: "tokenString",
 					UserID:      0,
 					Expires:     time.Date(2000, 1, 1, 1, 0, 0, 0, time.Local),
 				}, nil)
 
-				tsvc.On("New", domain.JWT, domain.ACCESS, uint(0)).Return(&domain.Token{
+				tsvc.EXPECT().New(domain.JWT, domain.ACCESS, uint(0)).Return(&domain.Token{
 					TokenString: "tokenString",
 					UserID:      0,
 					Expires:     time.Date(2000, 1, 1, 1, 0, 0, 0, time.Local),
 				}, nil)
 
-				tsvc.On("Save", &domain.Token{
+				tsvc.EXPECT().Save(&domain.Token{
 					TokenString: "tokenString",
 					UserID:      0,
 					Expires:     time.Date(2000, 1, 1, 1, 0, 0, 0, time.Local),
@@ -143,9 +96,9 @@ func TestHandleCallback(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := &mockRepo{}
-			provider := &mockProvider{}
-			tsvc := &mockTokenService{}
+			repo := ports.NewMockRepository(t)
+			provider := ports.NewMockOAuthProvider(t)
+			tsvc := ports.NewMockTokenService(t)
 
 			tt.setupMocks(repo, tsvc, provider)
 

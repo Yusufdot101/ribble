@@ -7,6 +7,7 @@ import (
 
 	"github.com/Yusufdot101/ribble/services/user/config"
 	"github.com/Yusufdot101/ribble/services/user/internal/application/core/domain"
+	"github.com/Yusufdot101/ribble/services/user/internal/ports"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
@@ -79,7 +80,7 @@ func TestNew(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repo := &mockRepo{}
+			repo := ports.NewMockRepository(t)
 			tsvc := NewTokenService(repo)
 			_, err := tsvc.New(tt.tokenType, tt.tokenUse, tt.userID)
 			if err != nil {
