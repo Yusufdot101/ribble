@@ -10,15 +10,7 @@ import (
 	"github.com/Yusufdot101/ribble/services/user/internal/adapters/secondary/google"
 	"github.com/Yusufdot101/ribble/services/user/internal/adapters/secondary/postgresql"
 	"github.com/Yusufdot101/ribble/services/user/internal/application/core/services"
-	"github.com/joho/godotenv"
 )
-
-func init() {
-	err := godotenv.Load("config/.env")
-	if err != nil {
-		log.Fatalf("error loading env vars: %v\n", err)
-	}
-}
 
 func main() {
 	// get repo

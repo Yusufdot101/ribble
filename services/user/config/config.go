@@ -1,10 +1,21 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
+
+func init() {
+	home, _ := os.UserHomeDir()
+	err := godotenv.Load(fmt.Sprintf("%s/Documents/projects/ribble/services/user/config/.env", home))
+	if err != nil {
+		log.Fatalf("error loading env vars: %v\n", err)
+	}
+}
 
 func GetDatabaseURL() string {
 	return getEnvVariable("DATABASE_URL")
