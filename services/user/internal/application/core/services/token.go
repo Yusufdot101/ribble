@@ -22,9 +22,6 @@ func NewTokenService(repo ports.Repository) *TokenService {
 	}
 }
 
-// New() (*domain.Token, error)
-// Save(token *domain.Token) error
-
 func (tsvc *TokenService) New(tokenType domain.TokenType, tokenUse domain.TokenUse, userID uint) (*domain.Token, error) {
 	var ttl time.Duration
 	switch tokenUse {
@@ -45,7 +42,7 @@ func (tsvc *TokenService) New(tokenType domain.TokenType, tokenUse domain.TokenU
 	var tokenString string
 	switch tokenType {
 	case domain.RANDOMSTRING:
-		tokenString = generateRandomString()
+		tokenString = generateUUID()
 	case domain.JWT:
 		tokenString = genenerateJWT(userID)
 	default:
@@ -55,7 +52,7 @@ func (tsvc *TokenService) New(tokenType domain.TokenType, tokenUse domain.TokenU
 	return token, nil
 }
 
-func generateRandomString() string {
+func generateUUID() string {
 	return uuid.New().String()
 }
 
