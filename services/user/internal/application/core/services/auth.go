@@ -64,8 +64,8 @@ func (asvc *AuthService) HandleCallback(ctx context.Context, code, nonce string)
 }
 
 func (asvc *AuthService) BeginAuth() (string, string, string) {
-	state := "abc" // token.GenerateRandomTokenString()
-	nonce := "def" // token.GenerateRandomTokenString()
+	state := generateUUID()
+	nonce := generateUUID()
 
 	url := asvc.provider.GetAuthURL(state, nonce)
 	return url, state, nonce
