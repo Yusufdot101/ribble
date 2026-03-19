@@ -34,6 +34,16 @@ jobs:
                   ./bin/golangci-lint run
 
             - name: Run tests
+              env:
+                  REFRESH_TOKEN_TTL: ${{ secrets.REFRESH_TOKEN_TTL }}
+                  JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+                  JWT_SECRET: ${{ secrets.JWT_SECRET }}
+                  FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+                  GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+                  GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+                  REFRESH_TOKEN_COOKIE_SECURE: ${{ secrets.REFRESH_TOKEN_COOKIE_SECURE }}
+                  ACCESS_TOKEN_TTL: ${{ secrets.ACCESS_TOKEN_TTL }}
               run: |
                   cd services/user
                   go test ./...
