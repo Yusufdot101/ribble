@@ -4,6 +4,7 @@ import "gorm.io/gorm"
 
 type Message struct {
 	gorm.Model
-	ChatID uint
-	UserID uint
+	ChatID   uint
+	SenderID uint
+	Content  string
 }
