@@ -6,3 +6,11 @@ type Message struct {
 	SenderID uint
 	Content  string
 }
+
+func NewMessage(chatID, senderID uint, content string) *Message {
+	return &Message{
+		ChatID:   chatID,
+		SenderID: senderID,
+		Content:  content,
+	}
+}
