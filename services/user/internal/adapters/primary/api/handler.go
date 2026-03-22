@@ -56,13 +56,12 @@ func (h *handler) googleCallback(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	refreshToken, accessToken, err := h.svc.HandleCallback(ctx, c.Query("code"), nonce)
+	refreshToken, _, err := h.svc.HandleCallback(ctx, c.Query("code"), nonce)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.SetCookie("refreshToken", refreshToken, int(config.GetRefreshTokenTTL().Seconds()), "/", "", config.RefreshTokenIsSecure(), true)
-	c.String(http.StatusOK, accessToken)
 	c.Redirect(http.StatusFound, config.GetFrontendURL())
 }
