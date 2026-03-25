@@ -19,7 +19,7 @@ const Header = () => {
                         title="site name"
                         className="text-text font-semibold max-[619px]:text-[16px]  min-[620px]:text-[24px] hover:text-accent duration-300"
                     >
-                        RIBBLE
+                        RIPPLE
                     </span>
                 </div>
             </Link>
