@@ -15,7 +15,10 @@ const Header = () => {
             <Link href={"/"}>
                 <div className="flex items-center gap-[12px] cursor-pointer">
                     {/* TODO: Add logo */}
-                    <span className="text-text font-semibold max-[619px]:text-[16px]  min-[620px]:text-[24px] hover:text-accent duration-300">
+                    <span
+                        title="site name"
+                        className="text-text font-semibold max-[619px]:text-[16px]  min-[620px]:text-[24px] hover:text-accent duration-300"
+                    >
                         RIBBLE
                     </span>
                 </div>
