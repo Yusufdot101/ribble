@@ -1,4 +1,4 @@
-module github.com/Yusufdot101/ribble/shared/middleware
+module github.com/Yusufdot101/ripple/shared/middleware
 
 go 1.26.1
 
