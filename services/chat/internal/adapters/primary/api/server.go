@@ -26,7 +26,7 @@ func NewServer(csvc ports.ChatService) *Server {
 	}
 }
 
-const PORT = ":8080"
+const PORT = ":8081"
 
 func (s *Server) ListenAndServe() error {
 	log.Printf("server listening on port %v\n", PORT)

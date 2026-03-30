@@ -43,7 +43,7 @@ func (csvc *ChatService) NewChatWithParticipants(userIDs []uint) (uint, error) {
 		chatID = chat.ID
 
 		for _, userID := range userIDs {
-			participant := domain.NewChatParticipant(userID, chat.ID)
+			participant := domain.NewChatParticipant(uint(userID), chat.ID)
 			err = repo.InsertChatParticipant(participant)
 			if err != nil {
 				return err

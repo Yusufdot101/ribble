@@ -1,13 +1,13 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-// will add jwt later to verify the user is actually there as well because you cant be creating a chat that you are not a part of
 var createChatWithParticipantsRequests struct {
 	UserIDs []uint `json:"userIDs"`
 }
@@ -30,6 +30,7 @@ func (h *handler) NewChatWithParticipants(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, "userIDs cannot be less than 2")
 		return
 	}
+	log.Println("here: ", createChatWithParticipantsRequests.UserIDs)
 	chatID, err := h.csvc.NewChatWithParticipants(createChatWithParticipantsRequests.UserIDs)
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, err.Error())
