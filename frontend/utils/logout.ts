@@ -7,7 +7,6 @@ export const logout = async () => {
             method: "POST",
             credentials: "include",
         });
-        console.log(res);
         useAuthStore.getState().clearAccessToken();
     } catch (error) {
         console.error(error);

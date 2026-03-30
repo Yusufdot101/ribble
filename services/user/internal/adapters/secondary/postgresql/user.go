@@ -3,7 +3,6 @@ package postgresql
 import (
 	"context"
 	"errors"
-	"log"
 	"time"
 
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
@@ -59,7 +58,6 @@ func (a *Adapter) FindUserByProviderAndSub(provider, sub string) (*domain.User, 
 }
 
 func (a *Adapter) FindUsersByID(ctx context.Context, userIDs []uint32) ([]*domain.User, error) {
-	log.Println("here: ", userIDs)
 	var usersModel []User
 	res := a.DB.WithContext(ctx).Where("id IN ?", userIDs).Find(&usersModel)
 	var users []*domain.User

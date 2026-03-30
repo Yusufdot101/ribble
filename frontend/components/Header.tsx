@@ -7,8 +7,6 @@ import { useAuthStore } from "@/store/useAuthStore";
 const Header = () => {
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
     const accessToken = useAuthStore((state) => state.accessToken);
-    console.log("here: ", isLoggedIn);
-    console.log("here: ", accessToken);
 
     return (
         <header className="flex justify-between items-center w-full min-w-[300px] border-[1px] border-solid border-[#ffffff] rounded-[8px] py-[12px] px-[24px]">

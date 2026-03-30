@@ -20,7 +20,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("error initiating user grpc client: %v", err)
 	}
-	defer grpcClient.Close()
+	defer func() {
+		if err := grpcClient.Close(); err != nil {
+			log.Printf("error closing client connection: %v\n", err)
+		}
+	}()
 
 	csvc := services.NewChatService(repo, grpcClient)
 	srv := api.NewServer(csvc)
