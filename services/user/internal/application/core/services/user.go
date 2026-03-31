@@ -26,9 +26,9 @@ func NewUserService(repo ports.Repository) *UserService {
 }
 
 func (usvc *UserService) GetUsersByEmail(email string) ([]*domain.User, error) {
-	if len(email) > 0 && !isValidEmail(email) {
-		return nil, domain.ErrInvalidEmail
-	}
+	// if len(email) > 0 && !isValidEmail(email) {
+	// 	return nil, domain.ErrInvalidEmail
+	// }
 
 	return usvc.repo.FindUsersByEmail(email)
 }

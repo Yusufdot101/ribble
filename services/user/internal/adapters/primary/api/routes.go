@@ -21,5 +21,8 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	group.GET("/google/callback", h.googleCallback)
 	group.GET("/refreshtoken", h.RefreshToken)
 	group.Match([]string{http.MethodPost, http.MethodOptions}, "/logout", h.logout)
+
+	userGroup := r.Group("/user")
+	userGroup.GET("", h.getUsersByEmail)
 	return r
 }

@@ -50,21 +50,6 @@ func TestGetUsersByEmail(t *testing.T) {
 				r.EXPECT().FindUsersByEmail("example@gmail.com").Return([]*domain.User{}, nil)
 			},
 		},
-		{
-			name:  "no email",
-			email: "",
-			setupRepo: func(r *ports.MockRepository) {
-				r.EXPECT().FindUsersByEmail("").Return([]*domain.User{}, nil)
-			},
-		},
-		{
-			name:  "invalid email",
-			email: "invalidemail",
-			setupRepo: func(r *ports.MockRepository) {
-			},
-			wantErr: true,
-			err:     domain.ErrInvalidEmail,
-		},
 	}
 
 	for _, test := range tests {

@@ -55,7 +55,7 @@ func TestGoogleCallbackHandler(t *testing.T) {
 		Sub:      "1",
 	}, nil)
 	svc := services.NewAuthService(repo, provider, tsvc)
-	h := NewHandler(svc, tsvc)
+	h := NewHandler(svc, tsvc, nil)
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/auth/callback?code=fake-code&state=fake-state", nil)

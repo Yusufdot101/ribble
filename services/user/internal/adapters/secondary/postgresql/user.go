@@ -73,3 +73,32 @@ func (a *Adapter) FindUsersByID(ctx context.Context, userIDs []uint32) ([]*domai
 	}
 	return users, res.Error
 }
+
+func (a *Adapter) FindUsersByEmail(email string) ([]*domain.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var usersModel []User
+	var res *gorm.DB
+	if email == "" {
+		res = a.DB.WithContext(ctx).Find(&usersModel)
+	} else {
+		// to_tsvector('simple', email) @@ plainto_tsquery('simple', ?)
+		res = a.DB.WithContext(ctx).Where(`
+			email ILIKE ?
+			`, "%"+email+"%").Find(&usersModel)
+	}
+
+	var users []*domain.User
+	for _, userModel := range usersModel {
+		users = append(users, &domain.User{
+			ID:        userModel.ID,
+			Sub:       userModel.Sub,
+			Provider:  userModel.Provider,
+			Name:      userModel.Name,
+			Email:     userModel.Email,
+			CreatedAt: userModel.CreatedAt,
+		})
+	}
+	return users, res.Error
+}

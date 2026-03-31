@@ -23,7 +23,7 @@ func TestRefreshToken(t *testing.T) {
 
 	tsvc := services.NewTokenService(repo)
 	asvc := ports.NewMockAuthService(t)
-	h := NewHandler(asvc, tsvc)
+	h := NewHandler(asvc, tsvc, nil)
 
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/auth/refreshtoken", nil)

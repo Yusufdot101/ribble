@@ -65,7 +65,7 @@ func TestLogout(t *testing.T) {
 		t.Fatalf("unexpected error inserting token: %v", err)
 	}
 
-	h := NewHandler(svc, tsvc)
+	h := NewHandler(svc, tsvc, nil)
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/auth/logout", nil)
 	c, _ := gin.CreateTestContext(resp)
