@@ -1,7 +1,7 @@
 import { api } from "./api";
 
 export type UserType = {
-    ID: Number;
+    ID: number;
     Sub: string;
     Provider: string;
     Name: string;

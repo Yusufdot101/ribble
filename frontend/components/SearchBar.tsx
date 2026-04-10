@@ -2,13 +2,13 @@
 import Image from "next/image";
 import searchIcon from "../assets/searchIcon.svg";
 import { useState } from "react";
-import { getUsersByEmail, UserType } from "@/utils/users";
+// import { getUsersByEmail, UserType } from "@/utils/users";
 
 const SearchBar = () => {
     const [email, setEmail] = useState("");
-    const [users, setUsers] = useState<UserType[]>([]);
+    // const [users, setUsers] = useState<UserType[]>([]);
     const handleEnter = async () => {
-        const users = await getUsersByEmail(email);
+        // const users = await getUsersByEmail(email);
     };
     return (
         <div
