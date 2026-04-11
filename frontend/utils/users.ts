@@ -1,12 +1,12 @@
 import { api } from "./api";
 
 export type UserType = {
-    ID: number;
-    Sub: string;
-    Provider: string;
-    Name: string;
-    Email: string;
-    CreatedAt: string;
+    id: number;
+    sub: string;
+    provider: string;
+    name: string;
+    email: string;
+    createdAt: string;
 };
 
 export const getUsersByEmail = async (email: string): Promise<UserType[]> => {
