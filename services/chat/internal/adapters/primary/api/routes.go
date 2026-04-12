@@ -9,6 +9,6 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	r := gin.New()
 	group := r.Group("/chat")
 	group.POST("", middleware.RequireAuthentication(h.NewChatWithParticipants))
-	group.POST("/getbyuserids", middleware.RequireAuthentication(h.GetByUserIDs))
+	group.POST("/find", middleware.RequireAuthentication(h.GetByUserIDs))
 	return r
 }
