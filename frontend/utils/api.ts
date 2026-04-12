@@ -1,11 +1,16 @@
 import { useAuthStore } from "@/store/useAuthStore";
 import { refreshAccessToken } from "./refreshAccessToken";
 
-export const BASE_API_URL = process.env.NEXT_PUBLIC_BASE_API_URL;
+export const BASE_USER_SERVICE_API_URL =
+    process.env.NEXT_PUBLIC_BASE_USER_SERVICE_API_URL;
+export const BASE_CHAT_SERVICE_API_URL =
+    process.env.NEXT_PUBLIC_BASE_CHAT_SERVICE_API_URL;
 
 export const api = async (path: string, options: RequestInit = {}) => {
     const { accessToken } = useAuthStore.getState();
-    const url = path.startsWith("http") ? path : `${BASE_API_URL}${path}`;
+    const url = path.startsWith("http")
+        ? path
+        : `${BASE_USER_SERVICE_API_URL}${path}`;
 
     try {
         let res = await fetch(url, {
