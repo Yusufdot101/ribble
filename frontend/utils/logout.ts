@@ -1,9 +1,9 @@
 import { useAuthStore } from "@/store/useAuthStore";
-import { BASE_API_URL } from "./api";
+import { BASE_USER_SERVICE_API_URL } from "./api";
 
 export const logout = async () => {
     try {
-        const res = await fetch(`${BASE_API_URL}/auth/logout`, {
+        const res = await fetch(`${BASE_USER_SERVICE_API_URL}/auth/logout`, {
             method: "POST",
             credentials: "include",
         });

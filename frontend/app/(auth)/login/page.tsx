@@ -2,13 +2,13 @@
 import Icon from "@/components/Icon";
 import google from "@/assets/google.svg";
 import { useRouter } from "next/navigation";
-import { BASE_API_URL } from "@/utils/api";
+import { BASE_USER_SERVICE_API_URL } from "@/utils/api";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useEffect } from "react";
 
 const googleInfo = {
     src: google,
-    href: `${BASE_API_URL}/auth/google`,
+    href: `${BASE_USER_SERVICE_API_URL}/auth/google`,
     alt: "continue with Google",
 };
 

@@ -1,9 +1,9 @@
 import { useAuthStore } from "@/store/useAuthStore";
-import { BASE_API_URL } from "./api";
+import { BASE_USER_SERVICE_API_URL } from "./api";
 import { decodeJWT } from "./userIdFromJWT";
 
 export async function refreshAccessToken() {
-    const res = await fetch(`${BASE_API_URL}/auth/refreshtoken`, {
+    const res = await fetch(`${BASE_USER_SERVICE_API_URL}/auth/refreshtoken`, {
         method: "PUT",
         credentials: "include", // important! sends cookie
     });
