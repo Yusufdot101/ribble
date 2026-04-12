@@ -5,5 +5,6 @@ import "github.com/Yusufdot101/ripple/services/chat/internal/application/core/do
 type Repository interface {
 	InsertChat(*domain.Chat) error
 	InsertChatParticipant(*domain.ChatParticipant) error
+	GetChatByParticipantIDs(participantIDs []uint) (*domain.Chat, error)
 	WithTx(fn func(repo Repository) error) error
 }

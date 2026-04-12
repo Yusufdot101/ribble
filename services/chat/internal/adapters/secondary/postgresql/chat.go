@@ -1,6 +1,9 @@
 package postgresql
 
 import (
+	"context"
+	"time"
+
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/Yusufdot101/ripple/services/chat/internal/ports"
 	"gorm.io/gorm"
@@ -20,6 +23,30 @@ func (a *Adapter) InsertChat(chat *domain.Chat) error {
 		chat.ID = chatModel.ID
 	}
 	return res.Error
+}
+
+func (a *Adapter) GetChatByParticipantIDs(participantIDs []uint) (*domain.Chat, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var chatModel Chat
+	db := a.db.WithContext(ctx)
+	subQuery := db.
+		Table("chat_participants").
+		Select("chat_id").
+		Where("user_id IN ?", participantIDs).
+		Group("chat_id").
+		Having("Count(DISTINCT user_id) = ?", len(participantIDs))
+
+	res := db.WithContext(ctx).Where("id IN (?)", subQuery).Find(&chatModel)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	chat := &domain.Chat{}
+	chat.ID = chatModel.ID
+
+	return chat, nil
 }
 
 func (a *Adapter) WithTx(fn func(repo ports.Repository) error) error {
