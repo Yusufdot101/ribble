@@ -20,27 +20,26 @@ func NewChatService(repo ports.Repository, userVerifier ports.UserVerifier) *Cha
 	}
 }
 
-func (csvc *ChatService) NewChatWithParticipants(userIDs []uint) (uint, error) {
+func (csvc *ChatService) NewChatWithParticipants(userIDs []uint) (*domain.Chat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// verify the users actually exist
 	valid, err := csvc.userVerifier.VerifyUsers(ctx, userIDs)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	if !valid {
-		return 0, domain.ErrInvalidUserIDs
+		return nil, domain.ErrInvalidUserIDs
 	}
 
-	chatID := uint(0)
+	chat := &domain.Chat{}
 	err = csvc.repo.WithTx(func(repo ports.Repository) error {
-		chat := domain.NewChat()
+		chat = domain.NewChat()
 		err := repo.InsertChat(chat)
 		if err != nil {
 			return err
 		}
-		chatID = chat.ID
 
 		for _, userID := range userIDs {
 			participant := domain.NewChatParticipant(uint(userID), chat.ID)
@@ -52,10 +51,10 @@ func (csvc *ChatService) NewChatWithParticipants(userIDs []uint) (uint, error) {
 		return nil
 	})
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return chatID, nil
+	return chat, nil
 }
 
 func (csvc *ChatService) GetChatByUserIDs(userIDs []uint) (*domain.Chat, error) {
