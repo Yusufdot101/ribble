@@ -10,7 +10,7 @@ const Home = () => {
         if (isLoggedIn) {
             router.push("/chats");
         }
-    }, [isLoggedIn]);
+    }, [isLoggedIn, router]);
     return <div className="flex flex-col gap-y-[8px] text-center">Home</div>;
 };
 
