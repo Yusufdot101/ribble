@@ -31,9 +31,9 @@ const Contacts = () => {
 
     const loggedInUserID = useAuthStore((state) => state.userID);
     return (
-        <div className="flex flex-col gap-y-[8px]">
+        <div className="flex-1 flex flex-col gap-y-[8px] rounded-[4px] ">
             <div
-                className={`${!isLoading ? "hidden" : ""} flex flex-col border-1 border-foreground rounded-[4px] transition-all duration-300`}
+                className={`${!isLoading ? "hidden" : ""} flex flex-col transition-all duration-300`}
             >
                 {[...Array(4).keys()].map((el) => (
                     <UserCardSkeleton key={el} index={el} />
@@ -45,7 +45,7 @@ const Contacts = () => {
             )}
 
             <div
-                className={`${users.length === 0 ? "opacity-0 blur-sm" : ""} flex flex-col border-1 border-foreground rounded-[4px] transition-all duration-300`}
+                className={`${users.length === 0 ? "opacity-0 blur-sm" : ""} flex flex-col transition-all duration-300`}
             >
                 {users
                     .filter((elem) => elem.id != loggedInUserID)

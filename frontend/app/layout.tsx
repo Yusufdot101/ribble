@@ -31,10 +31,10 @@ export default function RootLayout({
         >
             <body
                 suppressHydrationWarning
-                className="min-h-full flex flex-col px-[24px] py-[16px] gap-y-[12px]"
+                className="min-h-screen flex flex-col px-[24px] py-[16px] gap-y-[12px]"
             >
                 <Header />
-                <div className="flex-1">{children}</div>
+                <div className="flex-1 flex flex-col">{children}</div>
                 <Footer />
             </body>
         </html>
