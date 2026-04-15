@@ -1,6 +1,3 @@
-"use client";
-import { useParams } from "next/navigation";
-
 const ChatPage = () => {
     // we have;
     //  the chat id
@@ -8,10 +5,15 @@ const ChatPage = () => {
     // we need to;
     //  fetch messages in that chat
     //
-
-    const params = useParams();
-    const id = params.id;
-    return <div>chat: {id}</div>;
+    return (
+        <div className="flex flex-col h-full">
+            <input
+                type="text"
+                placeholder="Type a message here..."
+                className="bg-foreground w-full text-background mt-auto outline-none border-none p-[4px] rounded-[4px]"
+            />
+        </div>
+    );
 };
 
 export default ChatPage;

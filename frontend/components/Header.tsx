@@ -1,9 +1,15 @@
 "use client";
 import Link from "next/link";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useEffect } from "react";
+import { initAuth } from "@/utils/initAuth";
 
 const Header = () => {
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+
+    useEffect(() => {
+        initAuth();
+    }, []);
 
     return (
         <header className="flex justify-between items-center w-full min-w-[300px]">
