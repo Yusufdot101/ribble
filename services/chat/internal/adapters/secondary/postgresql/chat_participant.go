@@ -30,3 +30,29 @@ func (a *Adapter) InsertChatParticipant(chatParticipant *domain.ChatParticipant)
 
 	return res.Error
 }
+
+func (a *Adapter) GetChatUsers(chatID uint) ([]*domain.ChatParticipant, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var chatParticipantModels []*ChatParticipant
+	res := a.db.WithContext(ctx).
+		Where("chat_id = ?", chatID).
+		Find(&chatParticipantModels)
+
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	chatParticipants := []*domain.ChatParticipant{}
+	for _, chatParticipantModel := range chatParticipantModels {
+		chatParticipant := &domain.ChatParticipant{
+			ID:     chatParticipantModel.ID,
+			UserID: chatParticipantModel.UserID,
+			ChatID: chatParticipantModel.ChatID,
+		}
+		chatParticipants = append(chatParticipants, chatParticipant)
+	}
+
+	return chatParticipants, nil
+}
