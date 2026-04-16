@@ -60,3 +60,7 @@ func (csvc *ChatService) NewChatWithParticipants(userIDs []uint) (*domain.Chat, 
 func (csvc *ChatService) GetChatByUserIDs(userIDs []uint) (*domain.Chat, error) {
 	return csvc.repo.GetChatByParticipantIDs(userIDs)
 }
+
+func (csvc *ChatService) GetChatParticipants(chatID uint) ([]*domain.ChatParticipant, error) {
+	return csvc.repo.GetChatUsers(chatID)
+}

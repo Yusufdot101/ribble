@@ -5,4 +5,5 @@ import "github.com/Yusufdot101/ripple/services/chat/internal/application/core/do
 type ChatService interface {
 	NewChatWithParticipants(userIDs []uint) (*domain.Chat, error)
 	GetChatByUserIDs(userIDs []uint) (*domain.Chat, error)
+	GetChatParticipants(chatID uint) ([]*domain.ChatParticipant, error)
 }
