@@ -38,6 +38,7 @@ func (a *Adapter) GetChatUsers(chatID uint) ([]*domain.ChatParticipant, error) {
 	var chatParticipantModels []*ChatParticipant
 	res := a.db.WithContext(ctx).
 		Where("chat_id = ?", chatID).
+		Order("id ASC").
 		Find(&chatParticipantModels)
 
 	if res.Error != nil {
