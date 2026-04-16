@@ -57,23 +57,12 @@ func (csvc *ChatService) NewChatWithParticipants(userIDs []uint) (*domain.Chat, 
 	return chat, nil
 }
 
+func (csvc *ChatService) GetChatByUserIDs(userIDs []uint) (*domain.Chat, error) {
+	return csvc.repo.GetChatByParticipantIDs(userIDs)
+}
+
 func (csvc *ChatService) GetChatParticipants(chatID uint) ([]*domain.ChatParticipant, error) {
 	return csvc.repo.GetChatUsers(chatID)
-}
-
-func (csvc *ChatService) NewMessage(userID, chatID uint, content string) error {
-	message := domain.NewMessage(chatID, userID, content)
-	return csvc.repo.InsertMessage(message)
-}
-
-func (csvc *ChatService) NewMessage(userID, chatID uint, content string) error {
-	message := domain.NewMessage(chatID, userID, content)
-	return csvc.repo.InsertMessage(message)
-}
-
-func (csvc *ChatService) NewMessage(userID, chatID uint, content string) error {
-	message := domain.NewMessage(chatID, userID, content)
-	return csvc.repo.InsertMessage(message)
 }
 
 func (csvc *ChatService) NewMessage(userID, chatID uint, content string) error {
