@@ -69,3 +69,7 @@ func (csvc *ChatService) NewMessage(userID, chatID uint, content string) error {
 	message := domain.NewMessage(chatID, userID, content)
 	return csvc.repo.InsertMessage(message)
 }
+
+func (csvc *ChatService) GetMessages(chatID uint) ([]*domain.Message, error) {
+	return csvc.repo.GetMessages(chatID)
+}

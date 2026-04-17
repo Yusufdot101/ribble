@@ -1,10 +1,13 @@
 package api
 
 import (
+	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/Yusufdot101/ripple/shared/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
@@ -118,4 +121,58 @@ func (h *handler) newMessage(ctx *gin.Context) {
 			}
 		}
 	}
+}
+
+var GetMessagesRequest struct {
+	ChatID uint `json:"chatID"`
+}
+
+func (h *handler) getMessages(ctx *gin.Context) {
+	if err := ctx.ShouldBind(&GetMessagesRequest); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// make sure the user is in the chat
+	currentUserID := userIDFromContext(ctx)
+	participants, err := h.csvc.GetChatParticipants(GetMessagesRequest.ChatID)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	log.Println("here: ", participants)
+	if !userIsInChat(currentUserID, participants) {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error": "chat not found",
+		})
+		return
+	}
+
+	messages, err := h.csvc.GetMessages(GetMessagesRequest.ChatID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"messages": messages,
+	})
+}
+
+func userIsInChat(userID uint, participants []*domain.ChatParticipant) bool {
+	userInChat := false
+	for _, p := range participants {
+		if p.UserID == uint(userID) {
+			userInChat = true
+			break
+		}
+	}
+	return userInChat
 }

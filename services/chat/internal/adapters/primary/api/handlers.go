@@ -18,15 +18,8 @@ func (h *handler) NewChatWithParticipants(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	currentUserID, ok := ctx.MustGet("userID").(string)
-	if !ok {
-		panic("user id missing")
-	}
-	currentUserIDint, err := strconv.Atoi(currentUserID)
-	if err != nil {
-		panic("invalid user id type")
-	}
-	createChatWithParticipantsRequests.UserIDs = append(createChatWithParticipantsRequests.UserIDs, uint(currentUserIDint))
+	currentUserID := userIDFromContext(ctx)
+	createChatWithParticipantsRequests.UserIDs = append(createChatWithParticipantsRequests.UserIDs, currentUserID)
 	if len(createChatWithParticipantsRequests.UserIDs) < 2 {
 		ctx.String(http.StatusBadRequest, "userIDs cannot be less than 2")
 		return
@@ -50,16 +43,9 @@ func (h *handler) GetByUserIDs(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	currentUserID, ok := ctx.MustGet("userID").(string)
-	if !ok {
-		panic("user id missing")
-	}
-	currentUserIDint, err := strconv.Atoi(currentUserID)
-	if err != nil {
-		panic("invalid user id type")
-	}
+	currentUserID := userIDFromContext(ctx)
 
-	GetChatRequest.UserIDs = append(GetChatRequest.UserIDs, uint(currentUserIDint))
+	GetChatRequest.UserIDs = append(GetChatRequest.UserIDs, currentUserID)
 	if len(GetChatRequest.UserIDs) < 2 {
 		ctx.String(http.StatusBadRequest, "userIDs cannot be less than 2")
 		return
@@ -87,4 +73,16 @@ func (h *handler) GetByUserIDs(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"chat": chat,
 	})
+}
+
+func userIDFromContext(ctx *gin.Context) uint {
+	currentUserID, ok := ctx.MustGet("userID").(string)
+	if !ok {
+		panic("user id missing")
+	}
+	currentUserIDint, err := strconv.Atoi(currentUserID)
+	if err != nil {
+		panic("invalid user id type")
+	}
+	return uint(currentUserIDint)
 }
