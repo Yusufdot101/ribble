@@ -1,7 +1,6 @@
 package api
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -123,11 +122,10 @@ func (h *handler) newMessage(ctx *gin.Context) {
 	}
 }
 
-var GetMessagesRequest struct {
-	ChatID uint `json:"chatID"`
-}
-
 func (h *handler) getMessages(ctx *gin.Context) {
+	var GetMessagesRequest struct {
+		ChatID uint `json:"chatID"`
+	}
 	if err := ctx.ShouldBind(&GetMessagesRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -139,13 +137,12 @@ func (h *handler) getMessages(ctx *gin.Context) {
 	currentUserID := userIDFromContext(ctx)
 	participants, err := h.csvc.GetChatParticipants(GetMessagesRequest.ChatID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	log.Println("here: ", participants)
 	if !userIsInChat(currentUserID, participants) {
 		ctx.JSON(http.StatusNotFound, gin.H{
 			"error": "chat not found",

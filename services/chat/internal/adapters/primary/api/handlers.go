@@ -9,11 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var createChatWithParticipantsRequests struct {
-	UserIDs []uint `json:"userIDs"`
-}
-
 func (h *handler) NewChatWithParticipants(ctx *gin.Context) {
+	var createChatWithParticipantsRequests struct {
+		UserIDs []uint `json:"userIDs"`
+	}
 	if err := ctx.ShouldBind(&createChatWithParticipantsRequests); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
@@ -34,11 +33,11 @@ func (h *handler) NewChatWithParticipants(ctx *gin.Context) {
 	})
 }
 
-var GetChatRequest struct {
-	UserIDs []uint `json:"userIDs"`
-}
-
 func (h *handler) GetByUserIDs(ctx *gin.Context) {
+	var GetChatRequest struct {
+		UserIDs []uint `json:"userIDs"`
+	}
+
 	if err := ctx.ShouldBind(&GetChatRequest); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
