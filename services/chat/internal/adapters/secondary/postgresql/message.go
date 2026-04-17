@@ -31,3 +31,32 @@ func (a *Adapter) InsertMessage(message *domain.Message) error {
 	}
 	return res.Error
 }
+
+func (a *Adapter) GetMessages(chatID uint) ([]*domain.Message, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var messageModels []*Message
+	res := a.db.WithContext(ctx).
+		Where("chat_id = ?", chatID).
+		Order("created_at ASC").
+		Find(&messageModels)
+
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	messages := []*domain.Message{}
+	for _, messageModel := range messageModels {
+		message := &domain.Message{
+			ID:        messageModel.ID,
+			ChatID:    messageModel.ChatID,
+			CreatedAt: messageModel.CreatedAt,
+			SenderID:  messageModel.SenderID,
+			Content:   messageModel.Content,
+		}
+		messages = append(messages, message)
+	}
+
+	return messages, nil
+}
