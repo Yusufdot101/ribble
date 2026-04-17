@@ -44,7 +44,7 @@ func (a *Adapter) GetTokenByStringAndUse(tokenString string, tokenUse domain.Tok
 	defer cancel()
 
 	tokenModel := &Token{}
-	res := a.DB.WithContext(ctx).First(tokenModel, "expires > ?", time.Now())
+	res := a.DB.WithContext(ctx).First(tokenModel, "token_string = ? AND use = ? AND expires > ?", tokenString, tokenUse, time.Now())
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrRecordNotFound
