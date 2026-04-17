@@ -8,4 +8,5 @@ type Repository interface {
 	GetChatByParticipantIDs(participantIDs []uint) (*domain.Chat, error)
 	GetChatUsers(chatID uint) ([]*domain.ChatParticipant, error)
 	WithTx(fn func(repo Repository) error) error
+	InsertMessage(message *domain.Message) error
 }

@@ -27,6 +27,7 @@ func (a *Adapter) InsertMessage(message *domain.Message) error {
 	res := a.db.WithContext(ctx).Save(messageModel)
 	if res.Error == nil {
 		message.ID = messageModel.ID
+		message.CreatedAt = messageModel.CreatedAt
 	}
 	return res.Error
 }

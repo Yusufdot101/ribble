@@ -7,6 +7,7 @@ require (
 	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260326163139-30f3819d4169
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.41.0
