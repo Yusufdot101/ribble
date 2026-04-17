@@ -10,6 +10,7 @@ import (
 
 type handler struct {
 	csvc ports.ChatService
+	hub  *hub
 }
 
 type Server struct {
@@ -18,6 +19,7 @@ type Server struct {
 
 func NewServer(csvc ports.ChatService) *Server {
 	h := handler{
+		hub:  newHub(),
 		csvc: csvc,
 	}
 	r := h.RegisterRoutes()
