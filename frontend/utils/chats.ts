@@ -4,13 +4,6 @@ interface ChatType {
     ID: number;
 }
 
-export interface MessageType {
-    ID: number;
-    ChatID: number;
-    SenderID: number;
-    Content: string;
-}
-
 export const getChatByUserIDs = async (
     userIDs: number[],
 ): Promise<ChatType | undefined> => {
@@ -24,7 +17,6 @@ export const getChatByUserIDs = async (
         });
         if (!res) return;
         const data = await res.json();
-        console.log(data);
         const chat = data.chat;
         return chat;
     } catch (error) {

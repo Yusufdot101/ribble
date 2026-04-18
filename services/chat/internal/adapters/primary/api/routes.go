@@ -14,7 +14,7 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	r.Use(cors.New(cors.Config{
 		AllowCredentials: true,
 		AllowOrigins:     []string{config.GetFrontendURL()},
-		AllowMethods:     []string{http.MethodPost, http.MethodOptions},
+		AllowMethods:     []string{http.MethodPost, http.MethodGet},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 	}))
 	group := r.Group("/chats")

@@ -43,7 +43,6 @@ export const api = async (path: string, options: RequestInit = {}) => {
         }
         return res;
     } catch (error) {
-        useAuthStore.getState().clearAccessToken();
         console.error(error);
         return undefined;
     }

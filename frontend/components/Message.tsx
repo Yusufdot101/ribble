@@ -1,6 +1,6 @@
 "use client";
 import { useAuthStore } from "@/store/useAuthStore";
-import { MessageType } from "@/utils/chats";
+import { MessageType } from "@/utils/messages";
 
 interface Props {
     message: MessageType;
