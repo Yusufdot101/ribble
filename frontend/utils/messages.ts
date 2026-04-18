@@ -19,10 +19,14 @@ export const getChatMessages = async (
             },
             body: JSON.stringify({ chatID }),
         });
-        if (!res) return [];
+        if (!res || !res.ok) return [];
         const data = await res.json();
+        if (data.error) {
+            console.error(data.error);
+            return [];
+        }
         const messages = data.messages;
-        return messages;
+        return Array.isArray(messages) ? messages : [];
     } catch (error) {
         console.error(error);
         return [];

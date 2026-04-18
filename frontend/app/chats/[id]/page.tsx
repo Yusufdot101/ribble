@@ -15,7 +15,7 @@ const ChatPage = () => {
             const messages = await getChatMessages(+chatID);
             setMessages(messages);
         })();
-    }, []);
+    }, [chatID]);
 
     return (
         <div className="flex flex-col h-full gap-y-[8px]">
