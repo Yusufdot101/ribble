@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 const googleInfo = {
     src: google,
-    href: `http://${BASE_USER_SERVICE_API_URL}/auth/google`,
+    href: `${BASE_USER_SERVICE_API_URL}/auth/google`,
     alt: "continue with Google",
 };
 

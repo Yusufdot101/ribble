@@ -3,12 +3,9 @@ import { BASE_USER_SERVICE_API_URL } from "./api";
 import { decodeJWT } from "./userIdFromJWT";
 
 export async function refreshAccessToken() {
-    const res = await fetch(
-        `http://${BASE_USER_SERVICE_API_URL}/auth/refreshtoken`,
-        {
-            credentials: "include",
-        },
-    );
+    const res = await fetch(`${BASE_USER_SERVICE_API_URL}/auth/refreshtoken`, {
+        credentials: "include",
+    });
 
     if (!res.ok) {
         console.error(

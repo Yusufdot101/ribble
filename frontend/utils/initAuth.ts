@@ -5,7 +5,7 @@ import { decodeJWT } from "./userIdFromJWT";
 export const initAuth = async () => {
     try {
         const res = await fetch(
-            `http://${BASE_USER_SERVICE_API_URL}/auth/refreshtoken`,
+            `${BASE_USER_SERVICE_API_URL}/auth/refreshtoken`,
             {
                 method: "GET",
                 credentials: "include",

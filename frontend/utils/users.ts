@@ -12,7 +12,7 @@ export type UserType = {
 export const getUsersByEmail = async (email: string): Promise<UserType[]> => {
     try {
         const res = await api(
-            `${BASE_USER_SERVICE_API_URL}/users?email=${email}`,
+            `${BASE_USER_SERVICE_API_URL}/users?email=${encodeURIComponent(email)}`,
         );
         if (!res) {
             return [];

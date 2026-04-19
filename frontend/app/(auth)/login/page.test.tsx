@@ -43,6 +43,6 @@ it("navigates to google auth on click", async () => {
     render(<Login />);
     await userEvent.click(screen.getByText(/continue with/i));
     expect(mockPush).toHaveBeenCalledWith(
-        `http://${BASE_USER_SERVICE_API_URL}/auth/google`,
+        `${BASE_USER_SERVICE_API_URL}/auth/google`,
     );
 });

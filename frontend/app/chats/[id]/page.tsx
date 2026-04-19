@@ -23,8 +23,15 @@ const ChatPage = () => {
 
     const accessToken = useAuthStore((state) => state.accessToken);
     useEffect(() => {
+        if (!accessToken || !chatID || !BASE_CHAT_SERVICE_API_URL) return;
+
+        const wsUrl = new URL(BASE_CHAT_SERVICE_API_URL);
+        wsUrl.protocol = wsUrl.protocol === "https:" ? "wss:" : "ws:";
+        wsUrl.pathname = `${wsUrl.pathname.replace(/\/$/, "")}/messages/new`;
+
         const socket = new WebSocket(
-            `ws://${BASE_CHAT_SERVICE_API_URL}/messages/new`,
+            // `ws://${BASE_CHAT_SERVICE_API_URL}/messages/new`,
+            wsUrl.toString(),
         );
         socketRef.current = socket;
 

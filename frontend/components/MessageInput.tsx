@@ -1,19 +1,23 @@
 "use client";
 
-import { ParamValue } from "next/dist/server/request/params";
-import { InputEvent, RefObject, useRef, useState } from "react";
+import { RefObject, useState } from "react";
 
+type ChatIDParam = string | string[] | undefined;
 interface Props {
     socketRef: RefObject<WebSocket | null>;
-    chatID: ParamValue;
+    chatID: ChatIDParam;
 }
 
 const MessageInput = ({ socketRef, chatID }: Props) => {
     const [message, setMessage] = useState("");
 
     const sendMessage = () => {
-        if (!chatID) return;
-        socketRef.current?.send(
+        if (!chatID || message.trim() === "") return;
+
+        const socket = socketRef.current;
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+        socket.send(
             JSON.stringify({
                 type: "message",
                 chatID: +chatID,
@@ -36,7 +40,6 @@ const MessageInput = ({ socketRef, chatID }: Props) => {
                     el.style.height = Math.min(el.scrollHeight, 128) + "px";
                 }}
                 onChange={(e) => {
-                    e;
                     setMessage(e.target.value);
                 }}
                 onKeyDown={(e) => {
