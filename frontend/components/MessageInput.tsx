@@ -39,6 +39,12 @@ const MessageInput = ({ socketRef, chatID }: Props) => {
                     e;
                     setMessage(e.target.value);
                 }}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault(); // prevents newline
+                        sendMessage();
+                    }
+                }}
             />
             <svg
                 viewBox="0 0 24 24"
