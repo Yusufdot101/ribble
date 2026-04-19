@@ -82,16 +82,25 @@ const ChatPage = () => {
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [selectedMessageID, setSelectedMessageID] = useState<number>();
 
+    const containerRef = useRef<HTMLDivElement>(null);
+
     return (
         <div
+            ref={containerRef}
             className="flex-1 min-h-0 flex flex-col gap-y-[8px]"
             onClick={() => setMenuIsOpen(false)}
+            onKeyDown={(e) => {
+                if (e.key !== "Escape") return;
+                e.preventDefault();
+                setMenuIsOpen(false);
+            }}
         >
             <div className="flex justify-center shrink-0">Username/email</div>
 
             <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-y-[8px] p-[4px]">
                 {messages?.map((message) => (
                     <Message
+                        containerRef={containerRef}
                         menuIsOpen={menuIsOpen}
                         selectedMessageID={selectedMessageID ?? -1}
                         handleRightClick={(messageID: number) => {

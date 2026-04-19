@@ -37,9 +37,17 @@ export const getChatMessages = async (
 
 export const deleteMessage = async (messageID: number) => {
     try {
-        await api(`${baseURL}/${messageID}`, {
+        const res = await api(`${baseURL}/${messageID}`, {
             method: "DELETE",
         });
+        if (!res) {
+            alert("an error occured deleting message");
+            return;
+        }
+        const data = await res.json();
+        if (data.error) {
+            alert("an error occured deleting message");
+        }
     } catch (error) {
         console.error(error);
     }
