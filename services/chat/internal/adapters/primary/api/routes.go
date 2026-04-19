@@ -23,6 +23,7 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 
 	messageGroup := r.Group("/messages")
 	messageGroup.POST("", middleware.RequireAuthentication(h.getMessages))
+	messageGroup.DELETE(":id", middleware.RequireAuthentication(h.deleteMessage))
 	messageGroup.GET("/new", h.newMessage)
 	return r
 }

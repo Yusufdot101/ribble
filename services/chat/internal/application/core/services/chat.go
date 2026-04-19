@@ -73,3 +73,7 @@ func (csvc *ChatService) NewMessage(userID, chatID uint, content string) (*domai
 func (csvc *ChatService) GetMessages(chatID uint) ([]*domain.Message, error) {
 	return csvc.repo.GetMessages(chatID)
 }
+
+func (csvc *ChatService) DeleteMessage(userID, messageID uint) (uint, error) {
+	return csvc.repo.DeleteMessage(userID, messageID)
+}

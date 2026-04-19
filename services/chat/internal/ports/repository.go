@@ -10,5 +10,5 @@ type Repository interface {
 	WithTx(fn func(repo Repository) error) error
 	InsertMessage(message *domain.Message) error
 	GetMessages(chatID uint) ([]*domain.Message, error)
-	DeleteMessage(userID, messageID uint) error
+	DeleteMessage(userID, messageID uint) (uint, error)
 }

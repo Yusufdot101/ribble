@@ -61,13 +61,28 @@ func (a *Adapter) GetMessages(chatID uint) ([]*domain.Message, error) {
 	return messages, nil
 }
 
-func (a *Adapter) DeleteMessage(userID, messageID uint) error {
+func (a *Adapter) DeleteMessage(userID, messageID uint) (uint, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	messageModel := &Message{
 		ChatID: messageID,
 	}
-	res := a.db.WithContext(ctx).Where("id = ? AND sender_id = ?", messageID, userID).Delete(messageModel)
-	return res.Error
+
+	err := a.db.WithContext(ctx).
+		Select("chat_id").
+		Where("id = ? AND sender_id = ?", messageID, userID).
+		First(&messageModel).Error
+	if err != nil {
+		return 0, err
+	}
+
+	err = a.db.WithContext(ctx).
+		Where("id = ? AND sender_id = ?", messageID, userID).
+		Delete(&Message{}).Error
+	if err != nil {
+		return 0, err
+	}
+
+	return messageModel.ChatID, nil
 }

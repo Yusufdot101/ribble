@@ -8,4 +8,5 @@ type ChatService interface {
 	GetChatByUserIDs(userIDs []uint) (*domain.Chat, error)
 	NewMessage(userID, chatID uint, content string) (*domain.Message, error)
 	GetMessages(chatID uint) ([]*domain.Message, error)
+	DeleteMessage(userID, messageID uint) (uint, error)
 }
