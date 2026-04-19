@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -9,7 +10,7 @@ import (
 
 func (h *handler) deleteMessage(ctx *gin.Context) {
 	currentUserID := userIDFromContext(ctx)
-	messageID, err := strconv.Atoi(ctx.Param("id"))
+	messageID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid message id",
@@ -32,9 +33,9 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 	// broadcast to all the connections
 	participants, err := h.csvc.GetChatParticipants(chatID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		// deletion succeeded; log and continue without broadcast
+		log.Printf("deleteMessage: get participants for chat %d failed: %v", chatID, err)
+		ctx.JSON(http.StatusOK, gin.H{"message": "message deleted successfully"})
 		return
 	}
 

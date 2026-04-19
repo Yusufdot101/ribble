@@ -65,9 +65,7 @@ func (a *Adapter) DeleteMessage(userID, messageID uint) (uint, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	messageModel := &Message{
-		ChatID: messageID,
-	}
+	var messageModel Message
 
 	err := a.db.WithContext(ctx).
 		Select("chat_id").
@@ -77,11 +75,15 @@ func (a *Adapter) DeleteMessage(userID, messageID uint) (uint, error) {
 		return 0, err
 	}
 
-	err = a.db.WithContext(ctx).
+	res := a.db.WithContext(ctx).
 		Where("id = ? AND sender_id = ?", messageID, userID).
-		Delete(&Message{}).Error
-	if err != nil {
+		Delete(&Message{})
+	if res.Error != nil {
 		return 0, err
+	}
+
+	if res.RowsAffected == 0 {
+		return 0, domain.ErrRecordNotFound
 	}
 
 	return messageModel.ChatID, nil

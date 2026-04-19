@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/Yusufdot101/ripple/services/chat/config"
 	"github.com/gorilla/websocket"
 )
 
@@ -64,7 +65,6 @@ func (h *hub) SendToUser(userID uint, msg any) {
 var upgrader = websocket.Upgrader{
 	// tighten it later
 	CheckOrigin: func(r *http.Request) bool {
-		return true
-		// return r.Header.Get("Origin") == config.GetFrontendURL()
+		return r.Header.Get("Origin") == config.GetFrontendURL()
 	},
 }
