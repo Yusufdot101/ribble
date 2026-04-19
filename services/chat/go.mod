@@ -4,9 +4,10 @@ go 1.26.1
 
 require (
 	github.com/Yusufdot101/ripple-proto/golang/user v1.0.0
-	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260326163139-30f3819d4169
+	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260418035455-f4b4fe473426
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.11.1
@@ -16,6 +17,8 @@ require (
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
 )
+
+replace github.com/Yusufdot101/ripple/shared/middleware => ../../shared/middleware/
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
@@ -49,7 +52,6 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
