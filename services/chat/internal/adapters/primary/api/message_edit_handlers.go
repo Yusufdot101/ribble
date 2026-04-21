@@ -18,6 +18,13 @@ func (h *handler) editMessage(ctx *gin.Context) {
 		})
 		return
 	}
+	if messageID > uint64(^uint(0)) {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid message id",
+		})
+		return
+	}
+	messageIDUint := uint(messageID)
 
 	var editMessageRequest struct {
 		NewContent string `json:"newContent"`
@@ -29,7 +36,7 @@ func (h *handler) editMessage(ctx *gin.Context) {
 		return
 	}
 
-	chatID, err := h.csvc.EditMessage(currentUserID, uint(messageID), editMessageRequest.NewContent)
+	chatID, err := h.csvc.EditMessage(currentUserID, messageIDUint, editMessageRequest.NewContent)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -56,7 +63,7 @@ func (h *handler) editMessage(ctx *gin.Context) {
 		NewContent string `json:"newContent"`
 	}{
 		Type:       "messageEdited",
-		MessageID:  uint(messageID),
+		MessageID:  messageIDUint,
 		NewContent: editMessageRequest.NewContent,
 	}
 	for _, p := range participants {
