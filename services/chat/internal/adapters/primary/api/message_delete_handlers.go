@@ -10,15 +10,22 @@ import (
 
 func (h *handler) deleteMessage(ctx *gin.Context) {
 	currentUserID := userIDFromContext(ctx)
-	messageID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	messageID, err := strconv.ParseUint(ctx.Param("id"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid message id",
 		})
 		return
 	}
+	if messageID > uint64(^uint(0)) {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid message id",
+		})
+		return
+	}
+	messageIDUint := uint(messageID)
 
-	chatID, err := h.csvc.DeleteMessage(currentUserID, uint(messageID))
+	chatID, err := h.csvc.DeleteMessage(currentUserID, messageIDUint)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -35,7 +42,6 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 	if err != nil {
 		// deletion succeeded; log and continue without broadcast
 		log.Printf("deleteMessage: get participants for chat %d failed: %v", chatID, err)
-		ctx.JSON(http.StatusOK, gin.H{"message": "message deleted successfully"})
 		return
 	}
 
@@ -44,7 +50,7 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 		MessageID uint   `json:"messageID"`
 	}{
 		Type:      "messageDeleted",
-		MessageID: uint(messageID),
+		MessageID: messageIDUint,
 	}
 	for _, p := range participants {
 		h.hub.SendToUser(p.UserID, msg)

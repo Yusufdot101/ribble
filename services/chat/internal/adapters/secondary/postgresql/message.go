@@ -92,7 +92,7 @@ func (a *Adapter) DeleteMessage(userID, messageID uint) (uint, error) {
 }
 
 func (a *Adapter) EditMessage(userID, messageID uint, newContent string) (uint, error) {
-	if strings.Trim(newContent, " ") == "" {
+	if strings.TrimSpace(newContent) == "" {
 		return 0, domain.ErrInvalidMessageContent
 	}
 
@@ -120,5 +120,9 @@ func (a *Adapter) EditMessage(userID, messageID uint, newContent string) (uint, 
 		Model(&Message{}).
 		Where("id = ? AND sender_id = ?", messageID, userID).
 		Update("content", newContent).Error
+	if err != nil {
+		return 0, err
+	}
+
 	return messageModel.ChatID, err
 }

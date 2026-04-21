@@ -1,17 +1,19 @@
 package api
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) editMessage(ctx *gin.Context) {
 	currentUserID := userIDFromContext(ctx)
 
-	messageID, err := strconv.ParseUint(ctx.Param("id"), 10, 64)
+	messageID, err := strconv.ParseUint(ctx.Param("id"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid message id",
@@ -38,8 +40,21 @@ func (h *handler) editMessage(ctx *gin.Context) {
 
 	chatID, err := h.csvc.EditMessage(currentUserID, messageIDUint, editMessageRequest.NewContent)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+		statusCode := http.StatusInternalServerError
+		error := "error editing message"
+		switch {
+		case errors.Is(err, domain.ErrRecordNotFound):
+			statusCode = http.StatusNotFound
+			error = err.Error()
+		case errors.Is(err, domain.ErrInvalidMessageContent):
+			statusCode = http.StatusBadRequest
+			error = err.Error()
+		case errors.Is(err, domain.ErrUpdateWindowOver):
+			statusCode = http.StatusForbidden
+			error = err.Error()
+		}
+		ctx.JSON(statusCode, gin.H{
+			"error": error,
 		})
 		return
 	}
@@ -53,7 +68,6 @@ func (h *handler) editMessage(ctx *gin.Context) {
 	if err != nil {
 		// deletion succeeded; log and continue without broadcast
 		log.Printf("deleteMessage: get participants for chat %d failed: %v", chatID, err)
-		ctx.JSON(http.StatusOK, gin.H{"message": "message deleted successfully"})
 		return
 	}
 

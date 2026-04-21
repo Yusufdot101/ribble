@@ -100,8 +100,8 @@ func (rts *RepositoryTestSuite) TestEditMessageFail() {
 	rts.Require().Nil(err)
 
 	chatID, err := adapater.EditMessage(2, message.ID, "new content")
-	rts.NotNil(err)
-	rts.Require().Equal(chat.ID, chatID)
+	rts.Require().Error(err)
+	rts.Require().Zero(chatID)
 
 	messages, err := adapater.GetMessages(chat.ID)
 	rts.Require().Nil(err)
