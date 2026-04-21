@@ -76,9 +76,9 @@ func (rts *RepositoryTestSuite) TestEditMessage() {
 	err = adapater.InsertMessage(message)
 	rts.Require().Nil(err)
 
-	chatID, err := adapater.EditMessage(userID, message.ID, "new content")
+	message, err = adapater.EditMessage(userID, message.ID, "new content")
 	rts.Require().Nil(err)
-	rts.Require().Equal(chat.ID, chatID)
+	rts.Require().Equal(chat.ID, message.ChatID)
 
 	messages, err := adapater.GetMessages(chat.ID)
 	rts.Require().Nil(err)
@@ -99,9 +99,9 @@ func (rts *RepositoryTestSuite) TestEditMessageFail() {
 	err = adapater.InsertMessage(message)
 	rts.Require().Nil(err)
 
-	chatID, err := adapater.EditMessage(2, message.ID, "new content")
+	message, err = adapater.EditMessage(2, message.ID, "new content")
 	rts.Require().Error(err)
-	rts.Require().Zero(chatID)
+	rts.Require().Nil(message)
 
 	messages, err := adapater.GetMessages(chat.ID)
 	rts.Require().Nil(err)

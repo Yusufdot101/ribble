@@ -8,6 +8,7 @@ type Message struct {
 	SenderID  uint
 	Content   string
 	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 func NewMessage(chatID, senderID uint, content string) *Message {

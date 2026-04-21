@@ -1,8 +1,8 @@
 "use client";
 import { useAuthStore } from "@/store/useAuthStore";
-import { deleteMessage, MessageType } from "@/utils/messages";
+import { deleteMessage, editMessage, MessageType } from "@/utils/messages";
 import { flip, offset, shift, useFloating } from "@floating-ui/react";
-import { RefObject } from "react";
+import { RefObject, useEffect, useState } from "react";
 
 interface Props {
     message: MessageType;
@@ -10,6 +10,10 @@ interface Props {
     selectedMessageID: number;
     handleRightClick: (messageID: number) => void;
     containerRef: RefObject<HTMLDivElement | null>;
+    isEditing: boolean;
+    editingMessageID: number | undefined;
+    handleClickEdit: (messageID: number) => void;
+    handleCancelMessageEdit: () => void;
 }
 
 const Message = ({
@@ -18,9 +22,16 @@ const Message = ({
     selectedMessageID,
     handleRightClick,
     containerRef,
+    isEditing,
+    handleClickEdit,
+    editingMessageID,
+    handleCancelMessageEdit,
 }: Props) => {
     const userID = useAuthStore((state) => state.userID);
-    const date = new Date(message.CreatedAt);
+    const messageIsEdited = message.CreatedAt !== message.UpdatedAt;
+    const date = new Date(
+        messageIsEdited ? message.UpdatedAt : message.CreatedAt,
+    );
     const formattedDate = new Intl.DateTimeFormat("en-GB", {
         year: "numeric",
         month: "long",
@@ -41,11 +52,28 @@ const Message = ({
         deleteMessage(message.ID);
     };
 
+    const [newContent, setNewContent] = useState(message.Content);
+    useEffect(() => {
+        if (isEditing) {
+            (() => setNewContent(message.Content))();
+        }
+    }, [isEditing, message.Content]);
+    const isEditingCurrentMessage =
+        isEditing && editingMessageID === message.ID;
+
+    const createdDate = new Date(message.CreatedAt);
+    const currentDate = new Date();
+    const diff = currentDate.getTime() - createdDate.getTime();
+    const ONE_HOUR = 60 * 60 * 1000;
+    const createdlessThanHourAgo = diff < ONE_HOUR;
     return (
         <div
-            tabIndex={0}
-            className={`${message.SenderID === userID ? "bg-accent/80 ml-auto" : "bg-foreground/20 mr-auto"} py-[4px] px-[8px] rounded-[4px] w-fit flex flex-col`}
+            className={`${isEditingCurrentMessage ? "w-full" : ""} ${message.SenderID === userID ? "ml-auto" : "mr-auto"} flex flex-col rounded-[4px]`}
             onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                    handleCancelMessageEdit();
+                    return;
+                }
                 if (e.key !== "Delete") return;
                 e.preventDefault();
 
@@ -93,26 +121,98 @@ const Message = ({
                 });
             }}
         >
-            {message.Content}
-            <span className="text-[12px] opacity-75 text-right">
-                {formattedDate}
-            </span>
+            <div
+                tabIndex={0}
+                hidden={isEditingCurrentMessage}
+                className={`${message.SenderID === userID ? "bg-accent/80" : "bg-foreground/20"} flex flex-col w-fit py-[4px] px-[8px] rounded-[4px]`}
+            >
+                {message.Content}
+                <span className="text-[12px] opacity-75 text-right">
+                    {messageIsEdited ? "Edited " : ""}
+                    {formattedDate}
+                </span>
 
-            {menuIsOpen && selectedMessageID === message.ID && (
-                <div
-                    ref={refs.setFloating ?? undefined}
-                    style={{
-                        ...floatingStyles,
-                    }}
-                    className="absolute bg-foreground p-[4px] rounded-[4px] text-background shadow-lg z-1"
-                >
-                    <button
-                        aria-label="delete message"
-                        className="hover:bg-red-500 hover:text-foreground cursor-pointer duration-300 rounded-[2px] p-[4px]"
-                        onClick={handleDelete}
+                {menuIsOpen && selectedMessageID === message.ID && (
+                    <div
+                        ref={refs.setFloating ?? undefined}
+                        style={{
+                            ...floatingStyles,
+                        }}
+                        className="absolute bg-foreground p-[4px] rounded-[4px] text-background shadow-lg z-1 flex flex-col"
                     >
-                        Delete
-                    </button>
+                        <button
+                            aria-label="delete message"
+                            className="hover:bg-red-500 hover:text-foreground cursor-pointer duration-300 rounded-[2px] p-[4px]"
+                            onClick={handleDelete}
+                        >
+                            Delete
+                        </button>
+
+                        {new Date(message.CreatedAt) -
+                            new Date(message.CreatedAt) <
+                        60 * 60 * 60
+                            ? ""
+                            : ""}
+                        {createdlessThanHourAgo ? (
+                            <button
+                                aria-label="edit message"
+                                className="hover:bg-blue-500 hover:text-foreground cursor-pointer duration-300 rounded-[2px] p-[4px]"
+                                onClick={() => {
+                                    handleClickEdit(message.ID);
+                                }}
+                            >
+                                EDIT
+                            </button>
+                        ) : undefined}
+                    </div>
+                )}
+            </div>
+
+            {isEditingCurrentMessage && (
+                <div className="w-full flex flex-col gap-y-[4px]">
+                    <textarea
+                        className="bg-foreground/90 w-full text-background outline-none border-none p-2 rounded-[4px] min-h-[32px] max-h-[128px] resize-none overflow-hidden leading-tight"
+                        value={newContent}
+                        onInput={(e) => {
+                            const el = e.currentTarget;
+
+                            el.style.height = "auto";
+                            el.style.height =
+                                Math.min(el.scrollHeight, 128) + "px";
+                        }}
+                        onChange={(e) => {
+                            setNewContent(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault(); // prevents newline
+                                handleCancelMessageEdit();
+                                if (!createdlessThanHourAgo) return;
+                                editMessage(message.ID, newContent);
+                            }
+                        }}
+                    />
+
+                    <div className="flex justify-end gap-x-[4px]">
+                        <button
+                            aria-label="cancel edit"
+                            className="hover:bg-red-500 hover:text-foreground cursor-pointer duration-300 rounded-[2px] p-[4px]"
+                            onClick={handleCancelMessageEdit}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            aria-label="send edited message"
+                            className="hover:bg-accent hover:text-foreground cursor-pointer duration-300 rounded-[2px] p-[4px]"
+                            onClick={() => {
+                                handleCancelMessageEdit();
+                                if (!createdlessThanHourAgo) return;
+                                editMessage(message.ID, newContent);
+                            }}
+                        >
+                            Send
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

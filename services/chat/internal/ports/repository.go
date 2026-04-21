@@ -11,5 +11,5 @@ type Repository interface {
 	InsertMessage(message *domain.Message) error
 	GetMessages(chatID uint) ([]*domain.Message, error)
 	DeleteMessage(userID, messageID uint) (uint, error)
-	EditMessage(userID, messageID uint, newContent string) (uint, error)
+	EditMessage(userID, messageID uint, newContent string) (*domain.Message, error)
 }

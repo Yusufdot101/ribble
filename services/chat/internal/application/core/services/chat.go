@@ -79,9 +79,9 @@ func (csvc *ChatService) DeleteMessage(userID, messageID uint) (uint, error) {
 	return csvc.repo.DeleteMessage(userID, messageID)
 }
 
-func (csvc *ChatService) EditMessage(userID, messageID uint, newContent string) (uint, error) {
+func (csvc *ChatService) EditMessage(userID, messageID uint, newContent string) (*domain.Message, error) {
 	if strings.TrimSpace(newContent) == "" {
-		return 0, domain.ErrInvalidMessageContent
+		return nil, domain.ErrInvalidMessageContent
 	}
 	return csvc.repo.EditMessage(userID, messageID, newContent)
 }

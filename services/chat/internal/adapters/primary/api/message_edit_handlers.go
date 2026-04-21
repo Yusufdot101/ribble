@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/gin-gonic/gin"
@@ -38,7 +39,7 @@ func (h *handler) editMessage(ctx *gin.Context) {
 		return
 	}
 
-	chatID, err := h.csvc.EditMessage(currentUserID, messageIDUint, editMessageRequest.NewContent)
+	message, err := h.csvc.EditMessage(currentUserID, messageIDUint, editMessageRequest.NewContent)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
 		error := "error editing message"
@@ -64,21 +65,23 @@ func (h *handler) editMessage(ctx *gin.Context) {
 	})
 
 	// broadcast to all the connections
-	participants, err := h.csvc.GetChatParticipants(chatID)
+	participants, err := h.csvc.GetChatParticipants(message.ChatID)
 	if err != nil {
 		// deletion succeeded; log and continue without broadcast
-		log.Printf("deleteMessage: get participants for chat %d failed: %v", chatID, err)
+		log.Printf("deleteMessage: get participants for chat %d failed: %v", message.ChatID, err)
 		return
 	}
 
 	msg := &struct {
-		Type       string `json:"type"`
-		MessageID  uint   `json:"messageID"`
-		NewContent string `json:"newContent"`
+		Type       string    `json:"type"`
+		MessageID  uint      `json:"messageID"`
+		NewContent string    `json:"newContent"`
+		UpdatedAt  time.Time `json:"updatedAt"`
 	}{
 		Type:       "messageEdited",
-		MessageID:  messageIDUint,
-		NewContent: editMessageRequest.NewContent,
+		MessageID:  message.ID,
+		NewContent: message.Content,
+		UpdatedAt:  message.UpdatedAt,
 	}
 	for _, p := range participants {
 		h.hub.SendToUser(p.UserID, msg)

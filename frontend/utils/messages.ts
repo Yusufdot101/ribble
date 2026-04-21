@@ -8,6 +8,7 @@ export interface MessageType {
     SenderID: number;
     Content: string;
     CreatedAt: string;
+    UpdatedAt: string;
 }
 
 export const getChatMessages = async (
@@ -47,6 +48,28 @@ export const deleteMessage = async (messageID: number) => {
         const data = await res.json();
         if (data.error) {
             alert("an error occured deleting message");
+        }
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+export const editMessage = async (messageID: number, newContent: string) => {
+    try {
+        const res = await api(`${baseURL}/${messageID}`, {
+            method: "PATCH",
+            body: JSON.stringify({ newContent }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        if (!res) {
+            alert("an error occured editing message");
+            return;
+        }
+        const data = await res.json();
+        if (data.error) {
+            alert("an error occured editing message: " + data.error);
         }
     } catch (error) {
         console.error(error);

@@ -46,6 +46,12 @@ const ChatPage = () => {
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            console.log("received: ", data);
+            if (data.type === "error") {
+                console.error(data.message);
+                return;
+            }
+
             if (data.type === "messageDeleted") {
                 setMessages((prev) => {
                     return prev.filter((msg) => {
@@ -54,11 +60,21 @@ const ChatPage = () => {
                 });
                 return;
             }
-            console.log("received: ", data);
-            if (data.type === "error") {
-                console.error(data.message);
-                return;
+
+            if (data.type === "messageEdited") {
+                setMessages((prev) => {
+                    return prev.map((msg) =>
+                        msg.ID === data.messageID
+                            ? {
+                                  ...msg,
+                                  Content: data.newContent,
+                                  UpdatedAt: data.updatedAt,
+                              }
+                            : msg,
+                    );
+                });
             }
+
             setMessages((prev) => {
                 if (!chatID) return prev;
                 if ((data as MessageType).ChatID !== +chatID) return prev;
@@ -84,15 +100,21 @@ const ChatPage = () => {
 
     const containerRef = useRef<HTMLDivElement>(null);
 
+    const [isEditingMessage, setIsEditingMessage] = useState(false);
+    const [editingMessageID, setEditingMessageID] = useState<number>();
+
     return (
         <div
             ref={containerRef}
             className="flex-1 min-h-0 flex flex-col gap-y-[8px]"
-            onClick={() => setMenuIsOpen(false)}
+            onClick={() => {
+                setMenuIsOpen(false);
+            }}
             onKeyDown={(e) => {
                 if (e.key !== "Escape") return;
                 e.preventDefault();
                 setMenuIsOpen(false);
+                setIsEditingMessage(false);
             }}
         >
             <div className="flex justify-center shrink-0">Username/email</div>
@@ -109,6 +131,15 @@ const ChatPage = () => {
                         }}
                         key={message.ID}
                         message={message}
+                        editingMessageID={editingMessageID}
+                        isEditing={isEditingMessage}
+                        handleClickEdit={(messageID: number) => {
+                            setIsEditingMessage(true);
+                            setEditingMessageID(messageID);
+                        }}
+                        handleCancelMessageEdit={() =>
+                            setIsEditingMessage(false)
+                        }
                     />
                 ))}
             </div>

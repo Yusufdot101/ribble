@@ -30,6 +30,7 @@ func (a *Adapter) InsertMessage(message *domain.Message) error {
 	if res.Error == nil {
 		message.ID = messageModel.ID
 		message.CreatedAt = messageModel.CreatedAt
+		message.UpdatedAt = messageModel.UpdatedAt
 	}
 	return res.Error
 }
@@ -54,6 +55,7 @@ func (a *Adapter) GetMessages(chatID uint) ([]*domain.Message, error) {
 			ID:        messageModel.ID,
 			ChatID:    messageModel.ChatID,
 			CreatedAt: messageModel.CreatedAt,
+			UpdatedAt: messageModel.UpdatedAt,
 			SenderID:  messageModel.SenderID,
 			Content:   messageModel.Content,
 		}
@@ -91,9 +93,9 @@ func (a *Adapter) DeleteMessage(userID, messageID uint) (uint, error) {
 	return messageModel.ChatID, nil
 }
 
-func (a *Adapter) EditMessage(userID, messageID uint, newContent string) (uint, error) {
+func (a *Adapter) EditMessage(userID, messageID uint, newContent string) (*domain.Message, error) {
 	if strings.TrimSpace(newContent) == "" {
-		return 0, domain.ErrInvalidMessageContent
+		return nil, domain.ErrInvalidMessageContent
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -104,15 +106,15 @@ func (a *Adapter) EditMessage(userID, messageID uint, newContent string) (uint, 
 	err := a.db.WithContext(ctx).Where("id = ? AND sender_id = ?", messageID, userID).First(messageModel).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, domain.ErrRecordNotFound
+			return nil, domain.ErrRecordNotFound
 		}
-		return 0, err
+		return nil, err
 	}
 
 	// verify updateablity
 	updateWindow := time.Hour
 	if time.Since(messageModel.CreatedAt) > updateWindow {
-		return 0, domain.ErrUpdateWindowOver
+		return nil, domain.ErrUpdateWindowOver
 	}
 
 	// update
@@ -121,8 +123,23 @@ func (a *Adapter) EditMessage(userID, messageID uint, newContent string) (uint, 
 		Where("id = ? AND sender_id = ?", messageID, userID).
 		Update("content", newContent).Error
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return messageModel.ChatID, err
+	// fetch the updated message
+	err = a.db.WithContext(ctx).Where("id = ? AND sender_id = ?", messageID, userID).First(messageModel).Error
+	if err != nil {
+		return nil, err
+	}
+
+	message := &domain.Message{
+		ID:        messageModel.ID,
+		Content:   messageModel.Content,
+		CreatedAt: messageModel.CreatedAt,
+		UpdatedAt: messageModel.UpdatedAt,
+		ChatID:    messageModel.ChatID,
+		SenderID:  messageModel.SenderID,
+	}
+
+	return message, err
 }
