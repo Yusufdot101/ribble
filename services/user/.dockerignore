@@ -1,0 +1,4 @@
+config/.env
+coverage.out
+tmp/*
+bin/*

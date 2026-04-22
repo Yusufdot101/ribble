@@ -1,18 +1,40 @@
-# FROM golang:1.26.1-alpine AS BUILDER
+######################
+# dependencies layer #
+######################
+FROM golang:1.26.2-alpine AS deps
 
-FROM golang:1.26.1-alpine AS builder
-
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY go.mod go.sum ./
+
 RUN go mod download
 
+
+###############
+# build layer #
+###############
+FROM golang:1.26.2-alpine AS builder
+
+WORKDIR /app
+
+COPY --from=deps /go/pkg /go/pkg
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/api
 
-FROM alpine
+# choose binary: api or grpc
+ARG APP=api
 
-COPY --from=builder /usr/src/app/server /server
+RUN CGO_ENABLED=0 GOOS=linux go build -o $APP ./cmd/$APP
 
-EXPOSE 8080
-CMD [ "/server" ]
+
+#################
+# runtime layer #
+#################
+FROM alpine:3.22
+
+WORKDIR /app
+
+ARG APP=api  # re-declare it here
+
+COPY --from=builder /app/$APP ./server
+
+CMD ["./server"]
