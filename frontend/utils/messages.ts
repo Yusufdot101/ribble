@@ -9,7 +9,7 @@ export interface MessageType {
     Content: string;
     CreatedAt: string;
     UpdatedAt: string;
-    DeletedAt: string;
+    DeletedAt: string | null;
     Deleted: boolean;
 }
 

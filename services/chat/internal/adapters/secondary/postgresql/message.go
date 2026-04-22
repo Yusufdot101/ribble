@@ -90,11 +90,15 @@ func (a *Adapter) DeleteMessage(userID, messageID uint) (uint, error) {
 		Where("id = ? AND sender_id = ?", messageID, userID).
 		Updates(map[string]any{
 			"content":    "",
-			"deleted_at": "Now()",
+			"deleted_at": gorm.Expr("Now()"),
 			"deleted":    true,
 		})
 	if res.Error != nil {
-		return 0, err
+		return 0, res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return 0, domain.ErrRecordNotFound
 	}
 
 	return messageModel.ChatID, nil
