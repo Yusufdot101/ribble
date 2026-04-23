@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) deleteMessage(ctx *gin.Context) {
-	currentUserID := userIDFromContext(ctx)
+	currentUserID := context.UserIDFromContext(ctx)
 	messageID, err := strconv.ParseUint(ctx.Param("id"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{

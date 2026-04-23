@@ -3,8 +3,8 @@ package api
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +17,7 @@ func (h *handler) NewChatWithParticipants(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	currentUserID := userIDFromContext(ctx)
+	currentUserID := context.UserIDFromContext(ctx)
 	createChatWithParticipantsRequests.UserIDs = append(createChatWithParticipantsRequests.UserIDs, currentUserID)
 	if len(createChatWithParticipantsRequests.UserIDs) < 2 {
 		ctx.String(http.StatusBadRequest, "userIDs cannot be less than 2")
@@ -42,7 +42,7 @@ func (h *handler) GetByUserIDs(ctx *gin.Context) {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
-	currentUserID := userIDFromContext(ctx)
+	currentUserID := context.UserIDFromContext(ctx)
 
 	GetChatRequest.UserIDs = append(GetChatRequest.UserIDs, currentUserID)
 	if len(GetChatRequest.UserIDs) < 2 {
@@ -72,16 +72,4 @@ func (h *handler) GetByUserIDs(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"chat": chat,
 	})
-}
-
-func userIDFromContext(ctx *gin.Context) uint {
-	currentUserID, ok := ctx.MustGet("userID").(string)
-	if !ok {
-		panic("user id missing")
-	}
-	currentUserIDint, err := strconv.Atoi(currentUserID)
-	if err != nil {
-		panic("invalid user id type")
-	}
-	return uint(currentUserIDint)
 }

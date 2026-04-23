@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/Yusufdot101/ripple/shared/middleware"
 	"github.com/gin-gonic/gin"
@@ -160,7 +161,7 @@ func (h *handler) getMessages(ctx *gin.Context) {
 	}
 
 	// make sure the user is in the chat
-	currentUserID := userIDFromContext(ctx)
+	currentUserID := context.UserIDFromContext(ctx)
 	participants, err := h.csvc.GetChatParticipants(GetMessagesRequest.ChatID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
