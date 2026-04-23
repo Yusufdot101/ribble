@@ -85,3 +85,13 @@ func (csvc *ChatService) EditMessage(userID, messageID uint, newContent string) 
 	}
 	return csvc.repo.EditMessage(userID, messageID, newContent)
 }
+
+func (csvc *ChatService) UserHasPermission(userID uint, permissionName domain.PermissionType) (bool, error) {
+	userPermissions, err := csvc.repo.GetUserPermissions(userID)
+	if err != nil {
+		return false, err
+	}
+
+	p := domain.NewPermission(permissionName)
+	return p.IncludedIn(userPermissions), nil
+}

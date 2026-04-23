@@ -62,7 +62,22 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
 		return nil
 	}
 
-	// TODO: add permission check
+	userHasPermission, err := h.csvc.UserHasPermission(userID, domain.WriteMessage)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":    "error",
+			"message": err.Error(),
+		})
+		return nil
+	}
+
+	if !userHasPermission {
+		_ = conn.WriteJSON(map[string]string{
+			"type":    "error",
+			"message": "not allowed to write messages",
+		})
+		return nil
+	}
 
 	participants, err := h.csvc.GetChatParticipants(msg.ChatID)
 	if err != nil {

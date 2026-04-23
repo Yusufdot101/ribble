@@ -39,3 +39,12 @@ func NewPermission(name PermissionType) *Permission {
 		Name: name,
 	}
 }
+
+func (p *Permission) IncludedIn(permissions []*Permission) bool {
+	for _, permission := range permissions {
+		if p.Name == permission.Name {
+			return true
+		}
+	}
+	return false
+}

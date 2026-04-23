@@ -19,4 +19,5 @@ type Repository interface {
 	GrantRolePermission(roleID uint, permissionName domain.PermissionType) error
 	GrantUserRole(userID uint, roleName domain.RoleType) error
 	GetUserRole(userID uint) (*domain.Role, error)
+	GetUserPermissions(userID uint) ([]*domain.Permission, error)
 }
