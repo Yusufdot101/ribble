@@ -11,3 +11,13 @@ func (rts *RepositoryTestSuite) TestNewRole() {
 	err = adapater.NewRole(role)
 	rts.Require().Nil(err)
 }
+
+func (rts *RepositoryTestSuite) TestNewPermission() {
+	adapater, err := NewAdapter(rts.dataSourceURL)
+	rts.Require().Nil(err)
+
+	permission := domain.NewPermission(domain.ReadMessage)
+
+	err = adapater.NewPermission(permission)
+	rts.Require().Nil(err)
+}
