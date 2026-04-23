@@ -7,12 +7,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/gin-gonic/gin"
 )
 
 func (h *handler) editMessage(ctx *gin.Context) {
-	currentUserID := userIDFromContext(ctx)
+	currentUserID := context.UserIDFromContext(ctx)
 
 	messageID, err := strconv.ParseUint(ctx.Param("id"), 10, strconv.IntSize)
 	if err != nil {
