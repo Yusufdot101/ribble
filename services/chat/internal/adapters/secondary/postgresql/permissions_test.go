@@ -92,3 +92,34 @@ func (rts *RepositoryTestSuite) TestGrantUserRoleFail() {
 	err = adapater.GrantUserRole(chatParticipant.ID, domain.Admin)
 	rts.Require().Equal(domain.ErrInvalidRole, err)
 }
+
+func (rts *RepositoryTestSuite) TestGetUserRole() {
+	adapater, err := NewAdapter(rts.dataSourceURL)
+	rts.Require().Nil(err)
+
+	// create chat
+	chat := domain.NewChat()
+	err = adapater.InsertChat(chat)
+	rts.Require().Nil(err)
+
+	// create chat participant
+	chatParticipant := domain.NewChatParticipant(1, chat.ID)
+	err = adapater.InsertChatParticipant(chatParticipant)
+	rts.Nil(err)
+
+	// create role
+	role := domain.NewRole(domain.Admin)
+	err = adapater.NewRole(role)
+	rts.Require().Nil(err)
+
+	// grant role to user
+	err = adapater.GrantUserRole(chatParticipant.ID, role.Name)
+	rts.Require().Nil(err)
+
+	// get the role
+	gotRole, err := adapater.GetUserRole(chatParticipant.UserID)
+	rts.Require().Nil(err)
+
+	rts.Require().Equal(role.ID, gotRole.ID)
+	rts.Require().Equal(role.Name, gotRole.Name)
+}

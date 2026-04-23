@@ -100,3 +100,24 @@ func (a *Adapter) GrantUserRole(userID uint, roleName domain.RoleType) error {
 		Update("role_id", roleModel.ID).Error
 	return err
 }
+
+func (a *Adapter) GetUserRole(userID uint) (*domain.Role, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	roleModel := &Role{}
+
+	err := a.db.WithContext(ctx).
+		Joins("JOIN chat_participants ON chat_participants.role_id = roles.id").
+		First(roleModel).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	role := &domain.Role{
+		ID:   roleModel.ID,
+		Name: roleModel.Name,
+	}
+
+	return role, nil
+}
