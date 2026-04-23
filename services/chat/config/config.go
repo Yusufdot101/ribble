@@ -26,6 +26,10 @@ func GetFrontendURL() string {
 	return getEnvVariable("FRONTEND_URL")
 }
 
+func GetGRPCUrl() string {
+	return getEnvVariable("GRPC_URL")
+}
+
 func getEnvVariable(key string) string {
 	val := os.Getenv(key)
 	if val == "" {

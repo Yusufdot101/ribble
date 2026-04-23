@@ -11,6 +11,7 @@ services:
                 condition: service_healthy
         networks:
             - ripple-chat-service-net
+            - ripple-net
 
     chat-postgres:
         image: postgres:18.3
@@ -35,3 +36,5 @@ volumes:
 networks:
     ripple-chat-service-net:
         driver: bridge
+    ripple-net:
+        external: true

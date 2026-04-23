@@ -28,6 +28,7 @@ services:
                 condition: service_healthy
         networks:
             - ripple-user-service-net
+            - ripple-net
 
     user-postgres:
         image: postgres:18.3
@@ -52,3 +53,5 @@ volumes:
 networks:
     ripple-user-service-net:
         driver: bridge
+    ripple-net:
+        external: true

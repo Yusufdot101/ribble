@@ -16,7 +16,7 @@ func main() {
 		log.Fatalf("error : %v", err)
 	}
 
-	grpcClient, err := grpc.NewAdapter(9001)
+	grpcClient, err := grpc.NewAdapter(config.GetGRPCUrl())
 	if err != nil {
 		log.Fatalf("error initiating user grpc client: %v", err)
 	}

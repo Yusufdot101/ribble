@@ -1,8 +1,6 @@
 package grpc
 
 import (
-	"fmt"
-
 	"github.com/Yusufdot101/ripple-proto/golang/user"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -13,9 +11,9 @@ type Adapter struct {
 	conn       *grpc.ClientConn
 }
 
-func NewAdapter(port int) (*Adapter, error) {
+func NewAdapter(url string) (*Adapter, error) {
 	conn, err := grpc.NewClient(
-		fmt.Sprintf("localhost:%d", port),
+		url,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
