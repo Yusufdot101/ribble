@@ -1,90 +1,36 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
-	"github.com/Yusufdot101/ripple/shared/middleware"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/gorilla/websocket"
 )
 
 func (h *handler) newMessage(ctx *gin.Context) {
-	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	conn, userID, err := h.authenticateWS(ctx)
 	if err != nil {
 		return
 	}
+
 	defer func() {
 		if err := conn.Close(); err != nil {
-			log.Println("error cloning connection: ", err)
+			log.Println("error closing connection:", err)
 		}
 	}()
 
-	// auth first message
-	var authMsg struct {
-		Token string `json:"token"`
-	}
+	h.hub.addClient(userID, conn)
+	defer h.hub.removeClient(userID, conn)
 
-	err = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
-	if err != nil {
-		log.Println("error setting read deadline")
-	}
-	if err := conn.ReadJSON(&authMsg); err != nil {
-		return
-	}
-	err = conn.SetReadDeadline(time.Time{}) // clear, or extend via pong handler
-	if err != nil {
-		log.Println("error setting read deadline")
-	}
-	conn.SetPongHandler(func(string) error {
-		err = conn.SetReadDeadline(time.Now().Add(60 * time.Second))
-		if err != nil {
-			log.Println("error setting read deadline")
-		}
-		return nil
-	})
+	h.readLoop(conn, userID)
+}
 
-	// validate the token
-	token, err := middleware.ValidateJWT(authMsg.Token)
-	if err != nil {
-		wsError(conn, middleware.ErrInvalidJWT.Error())
-		return
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		wsError(conn, middleware.ErrInvalidJWT.Error())
-		return
-	}
-
-	// extract the user id from it
-	userID, ok := claims["sub"].(string)
-	if !ok || userID == "" {
-		wsError(conn, middleware.ErrInvalidJWT.Error())
-		return
-	}
-
-	// register connection
-	userIDint, err := strconv.Atoi(userID)
-	if err != nil {
-		err = conn.WriteJSON(map[string]string{
-			"type":    "error",
-			"message": middleware.ErrInvalidJWT.Error(),
-		})
-		if err != nil {
-			log.Println("error writing json: ", err)
-		}
-		return
-	}
-
-	h.hub.addClient(uint(userIDint), conn)
-	defer h.hub.removeClient(uint(userIDint), conn)
-
+func (h *handler) readLoop(conn *websocket.Conn, userID uint) {
 	for {
 		var msg struct {
 			Type    string `json:"type"`
@@ -96,58 +42,201 @@ func (h *handler) newMessage(ctx *gin.Context) {
 			break
 		}
 
-		if msg.ChatID == 0 || strings.TrimSpace(msg.Content) == "" {
-			err = conn.WriteJSON(map[string]string{
-				"type":    "error",
-				"message": "invalid message",
-			})
-			if err != nil {
-				log.Println("error writing json: ", err)
-			}
-			continue
-		} else {
-			participants, err := h.csvc.GetChatParticipants(msg.ChatID)
-			if err != nil {
-				err = conn.WriteJSON(map[string]string{
-					"type":    "error",
-					"message": "chat not found",
-				})
-				if err != nil {
-					log.Println("error writing json: ", err)
-				}
-				continue
-			}
-
-			// make sure the user is in the chat
-			userInChat := false
-			for _, p := range participants {
-				if p.UserID == uint(userIDint) {
-					userInChat = true
-					break
-				}
-			}
-			if !userInChat {
-				break
-			}
-
-			message, err := h.csvc.NewMessage(uint(userIDint), msg.ChatID, msg.Content)
-			if err != nil {
-				err = conn.WriteJSON(map[string]string{
-					"type":    "error",
-					"message": "failed to send message",
-				})
-				if err != nil {
-					log.Println("error writing json: ", err)
-				}
-				continue
-			}
-
-			for _, p := range participants {
-				h.hub.SendToUser(p.UserID, message)
-			}
+		if err := h.handleMessage(conn, userID, msg); err != nil {
+			log.Println("message error:", err)
 		}
 	}
 }
+
+func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
+	Type    string `json:"type"`
+	ChatID  uint   `json:"chatID"`
+	Content string `json:"content"`
+},
+) error {
+	if msg.ChatID == 0 || strings.TrimSpace(msg.Content) == "" {
+		_ = conn.WriteJSON(map[string]string{
+			"type":    "error",
+			"message": "invalid message",
+		})
+		return nil
+	}
+
+	// TODO: add permission check
+
+	participants, err := h.csvc.GetChatParticipants(msg.ChatID)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":    "error",
+			"message": "chat not found",
+		})
+		return nil
+	}
+
+	if !isUserInChat(userID, participants) {
+		return fmt.Errorf("user not in chat")
+	}
+
+	message, err := h.csvc.NewMessage(userID, msg.ChatID, msg.Content)
+	if err != nil {
+		_ = conn.WriteJSON(map[string]string{
+			"type":    "error",
+			"message": "failed to send message",
+		})
+		return nil
+	}
+
+	for _, p := range participants {
+		// TODO: add permission check
+		h.hub.SendToUser(p.UserID, message)
+	}
+
+	return nil
+}
+
+func isUserInChat(userID uint, participants []*domain.ChatParticipant) bool {
+	for _, p := range participants {
+		if p.UserID == userID {
+			return true
+		}
+	}
+	return false
+}
+
+// func (h *handler) newMessage(ctx *gin.Context) {
+// 	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+// 	if err != nil {
+// 		return
+// 	}
+// 	defer func() {
+// 		if err := conn.Close(); err != nil {
+// 			log.Println("error cloning connection: ", err)
+// 		}
+// 	}()
+//
+// 	// auth first message
+// 	var authMsg struct {
+// 		Token string `json:"token"`
+// 	}
+//
+// 	err = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+// 	if err != nil {
+// 		log.Println("error setting read deadline")
+// 	}
+// 	if err := conn.ReadJSON(&authMsg); err != nil {
+// 		return
+// 	}
+// 	err = conn.SetReadDeadline(time.Time{}) // clear, or extend via pong handler
+// 	if err != nil {
+// 		log.Println("error setting read deadline")
+// 	}
+// 	conn.SetPongHandler(func(string) error {
+// 		err = conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+// 		if err != nil {
+// 			log.Println("error setting read deadline")
+// 		}
+// 		return nil
+// 	})
+//
+// 	// validate the token
+// 	token, err := middleware.ValidateJWT(authMsg.Token)
+// 	if err != nil {
+// 		wsError(conn, middleware.ErrInvalidJWT.Error())
+// 		return
+// 	}
+//
+// 	claims, ok := token.Claims.(jwt.MapClaims)
+// 	if !ok {
+// 		wsError(conn, middleware.ErrInvalidJWT.Error())
+// 		return
+// 	}
+//
+// 	// extract the user id from it
+// 	userID, ok := claims["sub"].(string)
+// 	if !ok || userID == "" {
+// 		wsError(conn, middleware.ErrInvalidJWT.Error())
+// 		return
+// 	}
+//
+// 	// register connection
+// 	userIDint, err := strconv.Atoi(userID)
+// 	if err != nil {
+// 		err = conn.WriteJSON(map[string]string{
+// 			"type":    "error",
+// 			"message": middleware.ErrInvalidJWT.Error(),
+// 		})
+// 		if err != nil {
+// 			log.Println("error writing json: ", err)
+// 		}
+// 		return
+// 	}
+//
+// 	h.hub.addClient(uint(userIDint), conn)
+// 	defer h.hub.removeClient(uint(userIDint), conn)
+//
+// 	for {
+// 		var msg struct {
+// 			Type    string `json:"type"`
+// 			ChatID  uint   `json:"chatID"`
+// 			Content string `json:"content"`
+// 		}
+//
+// 		if err := conn.ReadJSON(&msg); err != nil {
+// 			break
+// 		}
+//
+// 		if msg.ChatID == 0 || strings.TrimSpace(msg.Content) == "" {
+// 			err = conn.WriteJSON(map[string]string{
+// 				"type":    "error",
+// 				"message": "invalid message",
+// 			})
+// 			if err != nil {
+// 				log.Println("error writing json: ", err)
+// 			}
+// 			continue
+// 		} else {
+// 			participants, err := h.csvc.GetChatParticipants(msg.ChatID)
+// 			if err != nil {
+// 				err = conn.WriteJSON(map[string]string{
+// 					"type":    "error",
+// 					"message": "chat not found",
+// 				})
+// 				if err != nil {
+// 					log.Println("error writing json: ", err)
+// 				}
+// 				continue
+// 			}
+//
+// 			// make sure the user is in the chat
+// 			userInChat := false
+// 			for _, p := range participants {
+// 				if p.UserID == uint(userIDint) {
+// 					userInChat = true
+// 					break
+// 				}
+// 			}
+// 			if !userInChat {
+// 				break
+// 			}
+//
+// 			message, err := h.csvc.NewMessage(uint(userIDint), msg.ChatID, msg.Content)
+// 			if err != nil {
+// 				err = conn.WriteJSON(map[string]string{
+// 					"type":    "error",
+// 					"message": "failed to send message",
+// 				})
+// 				if err != nil {
+// 					log.Println("error writing json: ", err)
+// 				}
+// 				continue
+// 			}
+//
+// 			for _, p := range participants {
+// 				h.hub.SendToUser(p.UserID, message)
+// 			}
+// 		}
+// 	}
+// }
 
 func (h *handler) getMessages(ctx *gin.Context) {
 	var GetMessagesRequest struct {

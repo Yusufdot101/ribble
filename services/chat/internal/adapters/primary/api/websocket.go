@@ -3,9 +3,14 @@ package api
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
+	"time"
 
 	"github.com/Yusufdot101/ripple/services/chat/config"
+	"github.com/Yusufdot101/ripple/shared/middleware"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/websocket"
 )
 
@@ -79,4 +84,55 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return r.Header.Get("Origin") == config.GetFrontendURL()
 	},
+}
+
+func (h *handler) authenticateWS(ctx *gin.Context) (*websocket.Conn, uint, error) {
+	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var authMsg struct {
+		Token string `json:"token"`
+	}
+
+	_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+
+	if err := conn.ReadJSON(&authMsg); err != nil {
+		return nil, 0, err
+	}
+
+	_ = conn.SetReadDeadline(time.Time{})
+
+	conn.SetPongHandler(func(string) error {
+		_ = conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		return nil
+	})
+
+	// validate JWT
+	token, err := middleware.ValidateJWT(authMsg.Token)
+	if err != nil {
+		wsError(conn, middleware.ErrInvalidJWT.Error())
+		return nil, 0, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		wsError(conn, middleware.ErrInvalidJWT.Error())
+		return nil, 0, err
+	}
+
+	userIDStr, ok := claims["sub"].(string)
+	if !ok || userIDStr == "" {
+		wsError(conn, middleware.ErrInvalidJWT.Error())
+		return nil, 0, err
+	}
+
+	userIDInt, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		wsError(conn, middleware.ErrInvalidJWT.Error())
+		return nil, 0, err
+	}
+
+	return conn, uint(userIDInt), nil
 }
