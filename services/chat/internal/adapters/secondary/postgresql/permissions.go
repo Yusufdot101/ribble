@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
@@ -11,35 +10,14 @@ import (
 
 type Permission struct {
 	gorm.Model
-	Name           domain.PermissionType
-	RolePermission []RolePermission `gorm:"constraint:OnDelete:CASCADE;"`
+	Name               domain.PermissionType
+	ChatRolePermission []ChatRolePermission `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
-type Role struct {
+type ChatRolePermission struct {
 	gorm.Model
-	Name           domain.RoleType
-	RolePermission []RolePermission `gorm:"constraint:OnDelete:CASCADE;"`
-}
-
-type RolePermission struct {
-	gorm.Model
-	RoleID       uint
+	ChatRoleID   uint
 	PermissionID uint
-}
-
-func (a *Adapter) NewRole(role *domain.Role) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	roleModel := &Role{
-		Name: role.Name,
-	}
-
-	err := a.db.WithContext(ctx).Save(roleModel).Error
-	if err == nil {
-		role.ID = roleModel.ID
-	}
-	return err
 }
 
 func (a *Adapter) NewPermission(permission *domain.Permission) error {
@@ -57,72 +35,7 @@ func (a *Adapter) NewPermission(permission *domain.Permission) error {
 	return err
 }
 
-func (a *Adapter) GrantRolePermission(roleID uint, permission domain.PermissionType) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	permissionModel := &Permission{}
-	err := a.db.WithContext(ctx).Where("name = ?", permission).First(permissionModel).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.ErrInvalidPermission
-		}
-		return err
-	}
-
-	rolePermissionModel := &RolePermission{
-		RoleID:       roleID,
-		PermissionID: permissionModel.ID,
-	}
-
-	err = a.db.WithContext(ctx).Save(rolePermissionModel).Error
-	return err
-}
-
-func (a *Adapter) GrantUserRole(userID uint, roleName domain.RoleType) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	roleModel := &Role{}
-	err := a.db.WithContext(ctx).Where("name = ?", roleName).First(roleModel).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.ErrInvalidRole
-		}
-		return err
-	}
-
-	chatParticipantModel := &ChatParticipant{}
-
-	err = a.db.WithContext(ctx).
-		Model(chatParticipantModel).
-		Where("id = ?", userID).
-		Update("role_id", roleModel.ID).Error
-	return err
-}
-
-func (a *Adapter) GetUserRole(userID uint) (*domain.Role, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	roleModel := &Role{}
-
-	err := a.db.WithContext(ctx).
-		Joins("JOIN chat_participants ON chat_participants.role_id = roles.id").
-		First(roleModel).
-		Error
-	if err != nil {
-		return nil, err
-	}
-
-	role := &domain.Role{
-		ID:   roleModel.ID,
-		Name: roleModel.Name,
-	}
-
-	return role, nil
-}
-
-func (a *Adapter) GetUserPermissions(userID uint) ([]*domain.Permission, error) {
+func (a *Adapter) GetUserPermissions(userID, chatID uint) ([]*domain.Permission, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -131,9 +44,9 @@ func (a *Adapter) GetUserPermissions(userID uint) ([]*domain.Permission, error) 
 	// chat_participants: role_id -> role_permissions: permission_id -> permissions
 	err := a.db.WithContext(ctx).
 		Table("permissions").
-		Joins("JOIN role_permissions ON role_permissions.permission_id = permissions.id").
-		Joins("JOIN chat_participants ON chat_participants.role_id = role_permissions.role_id").
-		Where("chat_participants.user_id = ?", userID).
+		Joins("JOIN chat_role_permissions ON chat_role_permissions.permission_id = permissions.id").
+		Joins("JOIN chat_participants ON chat_participants.chat_role_id = chat_role_permissions.chat_role_id").
+		Where("chat_participants.user_id = ? AND chat_participants.chat_id = ?", userID, chatID).
 		Find(&permissionModels).
 		Error
 	if err != nil {

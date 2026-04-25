@@ -2,6 +2,9 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"maps"
+	"slices"
 	"strings"
 	"time"
 
@@ -21,9 +24,11 @@ func NewChatService(repo ports.Repository, userVerifier ports.UserVerifier) *Cha
 	}
 }
 
-func (csvc *ChatService) NewChatWithParticipants(userIDs []uint) (*domain.Chat, error) {
+func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.CreateChatWithParticipantsRequestType) (*domain.Chat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	userIDs := slices.Collect(maps.Keys(createChatRequest.UserRoles))
 
 	// verify the users actually exist
 	valid, err := csvc.userVerifier.VerifyUsers(ctx, userIDs)
@@ -36,15 +41,69 @@ func (csvc *ChatService) NewChatWithParticipants(userIDs []uint) (*domain.Chat, 
 
 	chat := &domain.Chat{}
 	err = csvc.repo.WithTx(func(repo ports.Repository) error {
+		// steps:
+		// 1. create chat
 		chat = domain.NewChat()
 		err := repo.InsertChat(chat)
 		if err != nil {
 			return err
 		}
 
+		// 2. create chat roles
+		for roleName, permissions := range createChatRequest.RolePermissions {
+			var chatRole *domain.ChatRole
+			switch roleName {
+			case "member":
+				chatRole = domain.NewChatRole(chat.ID)
+				err = repo.NewChatRole(chatRole, domain.Member)
+			case "admin":
+				chatRole = domain.NewChatRole(chat.ID)
+				err = repo.NewChatRole(chatRole, domain.Admin)
+			default:
+				return fmt.Errorf("%w: %s", domain.ErrInvalidRole, roleName)
+			}
+
+			if err != nil {
+				return err
+			}
+
+			// 3. grant permissions to roles
+			var permission domain.PermissionType
+			for _, permissionName := range permissions {
+				switch permissionName {
+				case "sendMessages":
+					permission = domain.SendMessage
+				default:
+					return fmt.Errorf("%w: %s", domain.ErrInvalidPermission, permissionName)
+				}
+
+				err = repo.GrantChatRolePermission(chatRole.ID, permission)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		// 4. create chat_users
 		for _, userID := range userIDs {
 			participant := domain.NewChatParticipant(uint(userID), chat.ID)
 			err = repo.InsertChatParticipant(participant)
+			if err != nil {
+				return err
+			}
+
+			// 5. grant role to users
+			var userRole domain.RoleType
+			roleName := createChatRequest.UserRoles[userID]
+			switch roleName {
+			case "member":
+				userRole = domain.Member
+			case "admin":
+				userRole = domain.Admin
+			default:
+				return fmt.Errorf("%w: %s", domain.ErrInvalidRole, roleName)
+			}
+			err = repo.GrantUserChatRole(participant.UserID, participant.ChatID, userRole)
 			if err != nil {
 				return err
 			}
@@ -86,8 +145,8 @@ func (csvc *ChatService) EditMessage(userID, messageID uint, newContent string) 
 	return csvc.repo.EditMessage(userID, messageID, newContent)
 }
 
-func (csvc *ChatService) UserHasPermission(userID uint, permissionName domain.PermissionType) (bool, error) {
-	userPermissions, err := csvc.repo.GetUserPermissions(userID)
+func (csvc *ChatService) UserHasPermission(userID, chatID uint, permissionName domain.PermissionType) (bool, error) {
+	userPermissions, err := csvc.repo.GetUserPermissions(userID, chatID)
 	if err != nil {
 		return false, err
 	}

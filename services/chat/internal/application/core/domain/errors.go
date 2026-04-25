@@ -10,4 +10,5 @@ var (
 
 	ErrInvalidPermission = errors.New("invalid permission")
 	ErrInvalidRole       = errors.New("invalid role")
+	ErrInvalidChatRole   = errors.New("invalid chat role")
 )

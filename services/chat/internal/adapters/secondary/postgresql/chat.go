@@ -14,6 +14,7 @@ type Chat struct {
 	gorm.Model
 	Participants []ChatParticipant `gorm:"constraint:OnDelete:CASCADE;"`
 	Messages     []Message         `gorm:"constraint:OnDelete:CASCADE;"`
+	ChatRoles    []ChatRole        `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 func (a *Adapter) InsertChat(chat *domain.Chat) error {

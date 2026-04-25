@@ -18,8 +18,8 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 	}))
 	group := r.Group("/chats")
-	group.POST("", middleware.RequireAuthentication(h.NewChatWithParticipants))
-	group.POST("/find", middleware.RequireAuthentication(h.GetByUserIDs))
+	// group.POST("", middleware.RequireAuthentication(h.NewChatWithParticipants))
+	group.POST("", middleware.RequireAuthentication(h.GetOrCreateChat))
 
 	messageGroup := r.Group("/messages")
 	messageGroup.POST("", middleware.RequireAuthentication(h.getMessages))

@@ -15,9 +15,10 @@ type Repository interface {
 	EditMessage(userID, messageID uint, newContent string) (*domain.Message, error)
 
 	NewRole(role *domain.Role) error
+	NewChatRole(chatRole *domain.ChatRole, roleName domain.RoleType) error
+	GrantChatRolePermission(chatRoleID uint, permission domain.PermissionType) error
+	GrantUserChatRole(userID, chatID uint, roleName domain.RoleType) error
+
 	NewPermission(permission *domain.Permission) error
-	GrantRolePermission(roleID uint, permissionName domain.PermissionType) error
-	GrantUserRole(userID uint, roleName domain.RoleType) error
-	GetUserRole(userID uint) (*domain.Role, error)
-	GetUserPermissions(userID uint) ([]*domain.Permission, error)
+	GetUserPermissions(userID, chatID uint) ([]*domain.Permission, error)
 }

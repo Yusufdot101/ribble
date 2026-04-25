@@ -15,12 +15,12 @@ func NewAdapter(databaseURL string) (*Adapter, error) {
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	db.Migrator().DropTable(&Chat{}, &Message{}, &ChatParticipant{}, &Permission{}, &Role{}, &RolePermission{})
-	err = db.AutoMigrate(&Chat{}, &Message{}, &ChatParticipant{}, &Permission{}, &Role{}, &RolePermission{})
+	_ = db.Migrator().DropTable(
+		&Chat{}, &Message{}, &ChatParticipant{}, &ChatRolePermission{}, &ChatRole{},
+	)
+	err = db.AutoMigrate(
+		&Chat{}, &Message{}, &ChatParticipant{}, &Permission{}, &Role{}, &ChatRolePermission{}, &ChatRole{},
+	)
 	if err != nil {
 		return nil, err
 	}
