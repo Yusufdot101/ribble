@@ -124,6 +124,6 @@ func (rts *RepositoryTestSuite) TestGrantUserRoleFail() {
 	rts.Nil(err)
 
 	// role not in the database, should error
-	err = adapater.GrantUserChatRole(chatParticipant.ID, chat.ID, domain.Admin)
+	err = adapater.GrantUserChatRole(chatParticipant.UserID, chat.ID, domain.Admin)
 	rts.Require().Equal(domain.ErrInvalidRole, err)
 }

@@ -88,7 +88,11 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
 		return nil
 	}
 
-	if !isUserInChat(userID, participants) {
+	if !userIsInChat(userID, participants) {
+		_ = conn.WriteJSON(map[string]string{
+			"type":    "error",
+			"message": "not a participant of this chat",
+		})
 		return fmt.Errorf("user not in chat")
 	}
 
@@ -107,15 +111,6 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
 	}
 
 	return nil
-}
-
-func isUserInChat(userID uint, participants []*domain.ChatParticipant) bool {
-	for _, p := range participants {
-		if p.UserID == userID {
-			return true
-		}
-	}
-	return false
 }
 
 func (h *handler) getMessages(ctx *gin.Context) {

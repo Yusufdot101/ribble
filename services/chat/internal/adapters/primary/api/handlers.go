@@ -18,9 +18,13 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 		return
 	}
 	currentUserID := context.UserIDFromContext(ctx)
+	if createChatRequest.UserRoles == nil {
+		createChatRequest.UserRoles = make(map[uint]string)
+	}
+
 	createChatRequest.UserRoles[currentUserID] = "admin"
 	if len(createChatRequest.UserRoles) < 2 {
-		ctx.String(http.StatusBadRequest, "userIDs cannot be less than 2")
+		ctx.String(http.StatusBadRequest, "at least 2 participants required")
 		return
 	}
 

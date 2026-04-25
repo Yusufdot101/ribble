@@ -119,19 +119,19 @@ func (h *handler) authenticateWS(ctx *gin.Context) (*websocket.Conn, uint, error
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		wsError(conn, middleware.ErrInvalidJWT.Error())
-		return nil, 0, err
+		return nil, 0, middleware.ErrInvalidJWT
 	}
 
 	userIDStr, ok := claims["sub"].(string)
 	if !ok || userIDStr == "" {
 		wsError(conn, middleware.ErrInvalidJWT.Error())
-		return nil, 0, err
+		return nil, 0, middleware.ErrInvalidJWT
 	}
 
-	userIDInt, err := strconv.Atoi(userIDStr)
+	userIDInt, err := strconv.ParseUint(userIDStr, 10, 64)
 	if err != nil {
 		wsError(conn, middleware.ErrInvalidJWT.Error())
-		return nil, 0, err
+		return nil, 0, middleware.ErrInvalidJWT
 	}
 
 	return conn, uint(userIDInt), nil

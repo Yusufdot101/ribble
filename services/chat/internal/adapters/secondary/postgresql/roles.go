@@ -48,6 +48,9 @@ func (a *Adapter) NewChatRole(chatRole *domain.ChatRole, roleName domain.RoleTyp
 		First(roleModel).
 		Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.ErrInvalidRole
+		}
 		return err
 	}
 
@@ -115,7 +118,7 @@ func (a *Adapter) GrantUserChatRole(userID, chatID uint, roleName domain.RoleTyp
 			"chat_role_id": chatRoleModel.ID,
 		})
 	if res.Error != nil {
-		return err
+		return res.Error
 	}
 
 	if res.RowsAffected == 0 {
