@@ -2,7 +2,9 @@ services:
     chat-api:
         build:
             context: .
-            target: prod
+            target: dev
+        volumes:
+            - .:/app
         ports:
             - "8081:8081"
         env_file:

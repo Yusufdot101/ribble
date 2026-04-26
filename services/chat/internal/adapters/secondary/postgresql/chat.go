@@ -12,6 +12,7 @@ import (
 
 type Chat struct {
 	gorm.Model
+	Name         string
 	Participants []ChatParticipant `gorm:"constraint:OnDelete:CASCADE;"`
 	Messages     []Message         `gorm:"constraint:OnDelete:CASCADE;"`
 	ChatRoles    []ChatRole        `gorm:"constraint:OnDelete:CASCADE;"`

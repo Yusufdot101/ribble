@@ -71,7 +71,7 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 			var permission domain.PermissionType
 			for _, permissionName := range permissions {
 				switch permissionName {
-				case "sendMessages":
+				case "send message":
 					permission = domain.SendMessage
 				default:
 					return fmt.Errorf("%w: %s", domain.ErrInvalidPermission, permissionName)

@@ -36,7 +36,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o api ./cmd/api
 #################
 # runtime layer #
 #################
-FROM alpine:3.22
+FROM alpine:3.22 AS prod
 
 WORKDIR /app
 

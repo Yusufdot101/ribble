@@ -1,10 +1,11 @@
 "use client";
+import BackArrowButton from "@/components/BackArrowButton";
 import Message from "@/components/Message";
 import MessageInput from "@/components/MessageInput";
 import { useAuthStore } from "@/store/useAuthStore";
 import { BASE_CHAT_SERVICE_API_URL } from "@/utils/api";
 import { getChatMessages, MessageType } from "@/utils/messages";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const ChatPage = () => {
@@ -105,6 +106,7 @@ const ChatPage = () => {
     const [isEditingMessage, setIsEditingMessage] = useState(false);
     const [editingMessageID, setEditingMessageID] = useState<number>();
 
+    const router = useRouter();
     return (
         <div
             ref={containerRef}
@@ -119,6 +121,12 @@ const ChatPage = () => {
                 setIsEditingMessage(false);
             }}
         >
+            <div className="flex w-full h-[32px] gap-x-[8px] items-center">
+                <BackArrowButton
+                    handleClick={() => router.back()}
+                    text="Chat"
+                />
+            </div>
             <div className="flex justify-center shrink-0">Username/email</div>
 
             <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-y-[8px] p-[4px]">

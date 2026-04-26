@@ -8,12 +8,12 @@ interface Props {
 }
 
 const SearchBar = ({ handleEnter }: Props) => {
-    const [email, setEmail] = useState("");
+    const [value, setValue] = useState("");
     return (
         <div
             onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                    handleEnter(email);
+                    handleEnter(value);
                 }
             }}
             className="shrink-0 border-[1px] border-solid border-[#ffffff] rounded-[8px] py-[12px] px-[12px] flex gap-x-[4px] h-[50px] cursor-pointer opacity-80"
@@ -24,16 +24,19 @@ const SearchBar = ({ handleEnter }: Props) => {
                 aria-label="search"
                 src={searchIcon}
                 alt="search icon"
-                className="h-full w-[40px] rounded-[8px]"
+                className="h-full w-[40px] rounded-[8px] "
+                onClick={() => {
+                    handleEnter(value);
+                }}
             />
 
             <input
                 type="text"
                 placeholder="Search or start new chat"
                 className="border-none outline-none h-full w-full"
-                value={email}
+                value={value}
                 onChange={(e) => {
-                    setEmail(e.target.value);
+                    setValue(e.target.value);
                 }}
             />
         </div>

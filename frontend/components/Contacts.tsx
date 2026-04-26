@@ -8,10 +8,11 @@ import SearchBar from "./SearchBar";
 
 interface Props {
     selectedUsers: number[];
-    handleUserClick: (userID: number) => void;
+    handleUserClick: (user: UserType) => void;
+    excludeUsers?: number[];
 }
 
-const Contacts = ({ selectedUsers, handleUserClick }: Props) => {
+const Contacts = ({ selectedUsers, handleUserClick, excludeUsers }: Props) => {
     const [users, setUsers] = useState<UserType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -26,7 +27,8 @@ const Contacts = ({ selectedUsers, handleUserClick }: Props) => {
 
     const loggedInUserID = useAuthStore((state) => state.userID);
     const visibleUsers = (users ?? []).filter(
-        (elem) => elem.id !== loggedInUserID,
+        (elem) =>
+            elem.id !== loggedInUserID && !excludeUsers?.includes(elem.id),
     );
 
     return (
@@ -60,7 +62,11 @@ const Contacts = ({ selectedUsers, handleUserClick }: Props) => {
                         activeUsers={selectedUsers}
                         key={user.id}
                         user={user}
-                        handleClick={handleUserClick}
+                        handleClick={(userID: number) =>
+                            handleUserClick(
+                                users.filter((user) => user.id === userID)[0],
+                            )
+                        }
                     />
                 ))}
             </div>

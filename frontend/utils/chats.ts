@@ -1,3 +1,4 @@
+import { use } from "react";
 import { api, BASE_CHAT_SERVICE_API_URL } from "./api";
 
 interface ChatType {
@@ -5,16 +6,25 @@ interface ChatType {
 }
 
 export const getChatByUserIDs = async (
-    userIDs: number[],
+    userIDs?: number[],
+    rolePermissions?: Map<string, string[]>,
+    userRoles?: Map<number, string>,
 ): Promise<ChatType | undefined> => {
     try {
-        const rolePermissions = new Map<string, string[]>();
-        rolePermissions.set("admin", ["sendMessages"]);
-        rolePermissions.set("member", ["sendMessages"]);
+        if (!userIDs && (!rolePermissions || !userRoles)) return;
 
-        const userRoles = new Map<number, string>();
-        for (const user of userIDs) {
-            userRoles.set(user, "member");
+        if (!rolePermissions) {
+            rolePermissions = new Map<string, string[]>();
+            rolePermissions.set("admin", ["send message"]);
+            rolePermissions.set("member", ["send message"]);
+        }
+
+        if (!userRoles) {
+            userRoles = new Map<number, string>();
+            if (!userIDs) return;
+            for (const user of userIDs) {
+                userRoles.set(user, "member");
+            }
         }
 
         const res = await api(`${BASE_CHAT_SERVICE_API_URL}/chats`, {
@@ -27,8 +37,13 @@ export const getChatByUserIDs = async (
                 userRoles: Object.fromEntries(userRoles),
             }),
         });
+
         if (!res) return;
         const data = await res.json();
+        if (data.error) {
+            console.error(data.error);
+            return;
+        }
         const chat = data.chat;
         return chat;
     } catch (error) {
