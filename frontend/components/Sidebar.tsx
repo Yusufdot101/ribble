@@ -49,8 +49,10 @@ const Sidebar = () => {
 
     useEffect(() => {
         const activeChat = window.location.pathname.split("/").at(-1);
-        setActiveChat(activeChat ? +activeChat : -1);
-        fetchData();
+        (() => {
+            setActiveChat(activeChat ? +activeChat : -1);
+            fetchData();
+        })();
     }, []);
 
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);

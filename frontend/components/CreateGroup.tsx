@@ -39,7 +39,7 @@ const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
     };
 
     useEffect(() => {
-        searchUsers();
+        (() => searchUsers())();
     }, []);
 
     const [showConfigScreen, setShowConfigScreen] = useState(false);
@@ -49,9 +49,9 @@ const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
         "send message": true,
     });
 
-    const [adminPermissions, setAdminPermissions] = useState({
+    const adminPermissions = {
         "send message": true,
-    });
+    };
 
     const router = useRouter();
     const handleCreate = async () => {
@@ -61,11 +61,11 @@ const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
         }
 
         const enabledMemberPermissions = Object.entries(memberPermissions)
-            .filter(([_, value]) => value)
+            .filter(([, value]) => value)
             .map(([key]) => key);
 
         const enabledAdminPermissions = Object.entries(adminPermissions)
-            .filter(([_, value]) => value)
+            .filter(([, value]) => value)
             .map(([key]) => key);
 
         const rolePermissions = new Map<string, string[]>();

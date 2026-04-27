@@ -23,7 +23,7 @@ const ChatCard = ({ activeChats, chat, handleClick }: Props) => {
                     : chatUsers[0],
             );
         })();
-    }, [chat]);
+    }, [chat, loggedInUserID]);
 
     return (
         <div
