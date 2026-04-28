@@ -30,10 +30,9 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 	}
 
 	userIDs := slices.Collect(maps.Keys(createChatRequest.UserRoles))
-	isGroupChat := len(userIDs) > 2
 	var chat *domain.Chat
 	var err error
-	if !isGroupChat {
+	if !createChatRequest.IsGroup {
 		chat, err = h.csvc.GetChatByUserIDs(userIDs)
 		if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -44,7 +43,7 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 	}
 
 	// create chat if not exists
-	if errors.Is(err, domain.ErrRecordNotFound) || isGroupChat {
+	if errors.Is(err, domain.ErrRecordNotFound) || createChatRequest.IsGroup {
 		chat, err = h.csvc.NewChatWithParticipants(createChatRequest)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{

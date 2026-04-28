@@ -4,7 +4,7 @@ import searchIcon from "../assets/searchIcon.svg";
 import { useState } from "react";
 
 interface Props {
-    handleEnter: (email: string) => void;
+    handleEnter: (value: string) => void;
     placeholder?: string;
 }
 

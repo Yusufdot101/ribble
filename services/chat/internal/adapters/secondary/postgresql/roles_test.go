@@ -24,7 +24,7 @@ func (rts *RepositoryTestSuite) TestNewChatRole() {
 	rts.Require().Nil(err)
 
 	// create chat
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -38,7 +38,7 @@ func (rts *RepositoryTestSuite) TestNewChatRoleFail() {
 	rts.Require().Nil(err)
 
 	// create chat
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -59,7 +59,7 @@ func (rts *RepositoryTestSuite) TestGrantChatRolePermission() {
 	rts.Require().Nil(err)
 
 	// create chat
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -93,7 +93,7 @@ func (rts *RepositoryTestSuite) TestGrantUserChatRole() {
 	rts.Require().Nil(err)
 
 	// create chat
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -116,7 +116,7 @@ func (rts *RepositoryTestSuite) TestGrantUserRoleFail() {
 	rts.Require().Nil(err)
 
 	// create chat
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 

@@ -10,7 +10,7 @@ type ChatService interface {
 	GetChatParticipants(chatID, currentUserID uint) ([]*domain.ChatParticipant, error)
 	GetParticipantsByChatIDs(chatIDs []uint) (map[uint][]domain.ChatParticipant, error)
 	GetChatUsers(chatID, currentUserID uint) ([]*userpb.User, error)
-	GetChatsByUserID(userID uint) ([]*domain.Chat, error)
+	GetChatsByUserID(userID uint, query string) ([]*domain.Chat, error)
 	SearchUsers(query string, ids []uint) ([]*userpb.User, error)
 	GetContacts(uint, []uint, string) ([]*userpb.User, error)
 

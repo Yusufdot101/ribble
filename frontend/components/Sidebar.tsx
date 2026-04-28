@@ -43,6 +43,7 @@ const Sidebar = () => {
         setIsLoading(true);
         const data = await getConversations(query);
         setIsLoading(false);
+        console.log("here: ", data);
         if (!data) return;
         setConverastionData(data);
     };
@@ -65,7 +66,7 @@ const Sidebar = () => {
                     handleClick={() => setIsCreatingGroup(true)}
                 />
 
-                <SearchBar handleEnter={fetchData} />
+                <SearchBar handleEnter={(query: string) => fetchData(query)} />
 
                 <div className="flex-1 min-[900px]:border-r-1 border-foreground flex flex-col gap-y-[8px]">
                     <GroupsSection

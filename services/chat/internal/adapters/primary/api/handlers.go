@@ -18,7 +18,7 @@ func (h *handler) getConversations(c *gin.Context) {
 	q := c.Query("q")
 
 	// 1. get all chats
-	chats, err := h.csvc.GetChatsByUserID(currentUserID)
+	chats, err := h.csvc.GetChatsByUserID(currentUserID, q)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -44,7 +44,7 @@ func (h *handler) getConversations(c *gin.Context) {
 	for _, chat := range chats {
 		members := participantsByChat[chat.ID]
 
-		if len(members) > 2 {
+		if chat.IsGroup {
 			groups = append(groups, chat)
 			continue
 		}

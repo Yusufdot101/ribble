@@ -11,6 +11,7 @@ export const getChatByUserIDs = async (
     rolePermissions?: Map<string, string[]>,
     userRoles?: Map<number, string>,
     chatName?: string,
+    isGroup?: boolean,
 ): Promise<ChatType | undefined> => {
     try {
         if (!userIDs && (!rolePermissions || !userRoles)) return;
@@ -38,6 +39,7 @@ export const getChatByUserIDs = async (
                 rolePermissions: Object.fromEntries(rolePermissions),
                 userRoles: Object.fromEntries(userRoles),
                 name: chatName,
+                isGroup: isGroup,
             }),
         });
 
@@ -105,8 +107,10 @@ export const getConversations = async (
         const res = await api(
             `${BASE_CHAT_SERVICE_API_URL}/conversations?q=${encodeURIComponent(query)}`,
         );
+        console.log(res);
         if (!res) return;
         const data = await res.json();
+        console.log(data);
         if (data.error) {
             console.error(data.error);
             return;

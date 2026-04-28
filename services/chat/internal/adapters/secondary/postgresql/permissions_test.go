@@ -17,7 +17,7 @@ func (rts *RepositoryTestSuite) TestGetUserPermissions() {
 	rts.Require().Nil(err)
 
 	// create chat
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 

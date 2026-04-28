@@ -11,7 +11,7 @@ type Repository interface {
 	GetChatByID(chatID, currentUser uint) (*domain.Chat, error)
 	WithTx(fn func(repo Repository) error) error
 
-	GetChatsByUserID(userID uint) ([]*domain.Chat, error)
+	GetChatsByUserID(userID uint, query string) ([]*domain.Chat, error)
 
 	InsertMessage(message *domain.Message) error
 	GetMessages(chatID uint, messageFilter domain.GetMessageFilter) ([]*domain.Message, error)

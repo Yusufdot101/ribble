@@ -8,7 +8,7 @@ func (rts *RepositoryTestSuite) TestInsertMessage() {
 	adapater, err := NewAdapter(rts.dataSourceURL)
 	rts.Require().Nil(err)
 
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -21,7 +21,7 @@ func (rts *RepositoryTestSuite) TestGetMessages() {
 	adapater, err := NewAdapter(rts.dataSourceURL)
 	rts.Require().Nil(err)
 
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -45,7 +45,7 @@ func (rts *RepositoryTestSuite) TestDeleteMessage() {
 	adapater, err := NewAdapter(rts.dataSourceURL)
 	rts.Require().Nil(err)
 
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -70,7 +70,7 @@ func (rts *RepositoryTestSuite) TestEditMessage() {
 	adapater, err := NewAdapter(rts.dataSourceURL)
 	rts.Require().Nil(err)
 
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -93,7 +93,7 @@ func (rts *RepositoryTestSuite) TestEditMessageFail() {
 	adapater, err := NewAdapter(rts.dataSourceURL)
 	rts.Require().Nil(err)
 
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 

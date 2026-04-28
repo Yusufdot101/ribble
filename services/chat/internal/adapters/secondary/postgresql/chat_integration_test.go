@@ -9,7 +9,7 @@ import (
 func (rts *RepositoryTestSuite) TestInsertChat() {
 	adapter, err := NewAdapter(rts.dataSourceURL)
 	rts.Require().Nil(err)
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapter.InsertChat(chat)
 	rts.Nil(err)
 }
@@ -19,7 +19,7 @@ func (rts *RepositoryTestSuite) TestGetChatByParticipantIDs() {
 	rts.Require().Nil(err)
 
 	// create chat
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapter.InsertChat(chat)
 	rts.Require().Nil(err)
 
@@ -48,11 +48,11 @@ func (rts *RepositoryTestSuite) TestGetChatsByUserID() {
 	rts.Require().Nil(err)
 
 	// create chat
-	chat := domain.NewChat("")
+	chat := domain.NewChat("", false)
 	err = adapter.InsertChat(chat)
 	rts.Require().Nil(err)
 
-	chat2 := domain.NewChat("")
+	chat2 := domain.NewChat("", false)
 	err = adapter.InsertChat(chat2)
 	rts.Require().Nil(err)
 
@@ -68,7 +68,7 @@ func (rts *RepositoryTestSuite) TestGetChatsByUserID() {
 	rts.Require().Nil(err)
 
 	// fetch the chat using those users' ids
-	chats, err := adapter.GetChatsByUserID(uint(userID))
+	chats, err := adapter.GetChatsByUserID(uint(userID), "")
 	rts.Require().Nil(err)
 	rts.Require().Equal(2, len(chats))
 }

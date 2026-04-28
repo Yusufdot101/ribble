@@ -13,6 +13,7 @@ import (
 type Chat struct {
 	gorm.Model
 	Name         string
+	IsGroup      bool
 	Participants []ChatParticipant `gorm:"constraint:OnDelete:CASCADE;"`
 	Messages     []Message         `gorm:"constraint:OnDelete:CASCADE;"`
 	ChatRoles    []ChatRole        `gorm:"constraint:OnDelete:CASCADE;"`
@@ -20,7 +21,8 @@ type Chat struct {
 
 func (a *Adapter) InsertChat(chat *domain.Chat) error {
 	chatModel := &Chat{
-		Name: chat.Name,
+		Name:    chat.Name,
+		IsGroup: chat.IsGroup,
 	}
 
 	res := a.db.Save(chatModel)
@@ -53,21 +55,22 @@ func (a *Adapter) GetChatByID(chatID, currentUserID uint) (*domain.Chat, error) 
 	}
 
 	chat := &domain.Chat{
-		ID:   chatModel.ID,
-		Name: chatModel.Name,
+		ID:      chatModel.ID,
+		Name:    chatModel.Name,
+		IsGroup: chatModel.IsGroup,
 	}
 
 	return chat, nil
 }
 
-func (a *Adapter) GetChatsByUserID(userID uint) ([]*domain.Chat, error) {
+func (a *Adapter) GetChatsByUserID(userID uint, query string) ([]*domain.Chat, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	chatModels := []*Chat{}
 	err := a.db.WithContext(ctx).
 		Joins("JOIN chat_participants ON chat_participants.chat_id = chats.id").
-		Where("chat_participants.user_id = ?", userID).
+		Where("chat_participants.user_id = ? AND chats.name ILIKE ?", userID, "%"+query+"%").
 		Find(&chatModels).
 		Error
 	if err != nil {
@@ -80,8 +83,9 @@ func (a *Adapter) GetChatsByUserID(userID uint) ([]*domain.Chat, error) {
 	chats := []*domain.Chat{}
 	for _, chatModel := range chatModels {
 		chats = append(chats, &domain.Chat{
-			ID:   chatModel.ID,
-			Name: chatModel.Name,
+			ID:      chatModel.ID,
+			Name:    chatModel.Name,
+			IsGroup: chatModel.IsGroup,
 		})
 	}
 
@@ -115,8 +119,9 @@ func (a *Adapter) GetChatByParticipantIDs(participantIDs []uint) (*domain.Chat, 
 	}
 
 	chat := &domain.Chat{
-		ID:   chatModel.ID,
-		Name: chatModel.Name,
+		ID:      chatModel.ID,
+		Name:    chatModel.Name,
+		IsGroup: chatModel.IsGroup,
 	}
 
 	return chat, nil

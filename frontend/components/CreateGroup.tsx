@@ -77,6 +77,7 @@ const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
             rolePermissions,
             userRoles,
             groupName,
+            true,
         );
         if (!chat) return;
         router.push(`/chats/${chat.id}`);
@@ -153,7 +154,7 @@ const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
                 </div>
             </div>
 
-            {/*Group permission configuration screen*/}
+            {/*Group configuration screen*/}
             <div
                 className={`${showConfigScreen ? "translate-x-0" : "translate-x-full"} w-full right-0 absolute h-full transition-transform duration-300 ease-in-out flex flex-col gap-y-[8px]`}
             >
@@ -175,6 +176,10 @@ const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
                         value={groupName}
                         onChange={(e) => {
                             setGroupName(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key !== "Enter") return;
+                            setShowConfigScreen(false);
                         }}
                         id="groupName"
                     />

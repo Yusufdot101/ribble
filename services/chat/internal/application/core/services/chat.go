@@ -44,7 +44,7 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 	err = csvc.repo.WithTx(func(repo ports.Repository) error {
 		// steps:
 		// 1. create chat
-		chat = domain.NewChat(createChatRequest.Name)
+		chat = domain.NewChat(createChatRequest.Name, createChatRequest.IsGroup)
 		err := repo.InsertChat(chat)
 		if err != nil {
 			return err
@@ -122,8 +122,8 @@ func (csvc *ChatService) GetChatByUserIDs(userIDs []uint) (*domain.Chat, error) 
 	return csvc.repo.GetChatByParticipantIDs(userIDs)
 }
 
-func (csvc *ChatService) GetChatsByUserID(userID uint) ([]*domain.Chat, error) {
-	return csvc.repo.GetChatsByUserID(userID)
+func (csvc *ChatService) GetChatsByUserID(userID uint, query string) ([]*domain.Chat, error) {
+	return csvc.repo.GetChatsByUserID(userID, query)
 }
 
 func (csvc *ChatService) GetChatByID(chatID, currentUserID uint) (*domain.Chat, error) {
