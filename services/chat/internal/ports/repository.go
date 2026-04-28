@@ -14,7 +14,7 @@ type Repository interface {
 	GetChatsByUserID(userID uint) ([]*domain.Chat, error)
 
 	InsertMessage(message *domain.Message) error
-	GetMessages(chatID uint) ([]*domain.Message, error)
+	GetMessages(chatID uint, messageFilter domain.GetMessageFilter) ([]*domain.Message, error)
 	DeleteMessage(userID, messageID uint) (uint, error)
 	EditMessage(userID, messageID uint, newContent string) (*domain.Message, error)
 

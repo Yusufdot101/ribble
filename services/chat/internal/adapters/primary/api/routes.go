@@ -19,15 +19,18 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	}))
 
 	r.GET("/conversations", middleware.RequireAuthentication(h.getConversations))
+
 	group := r.Group("/chats")
 	group.POST("", middleware.RequireAuthentication(h.GetOrCreateChat))
-	group.GET("/:id", middleware.RequireAuthentication(h.getChatByID))
-	group.GET("/:id/users", middleware.RequireAuthentication(h.getChatUsers))
+	group.GET("/:chatId", middleware.RequireAuthentication(h.getChatByID))
+	group.GET("/:chatId/users", middleware.RequireAuthentication(h.getChatUsers))
 
-	messageGroup := r.Group("/messages")
-	messageGroup.POST("", middleware.RequireAuthentication(h.getMessages))
-	messageGroup.DELETE(":id", middleware.RequireAuthentication(h.deleteMessage))
-	messageGroup.PATCH(":id", middleware.RequireAuthentication(h.editMessage))
-	messageGroup.GET("/new", h.newMessage)
+	messageGroup := group.Group("/:chatId/messages")
+	messageGroup.GET("", middleware.RequireAuthentication(h.getMessages))
+	messageGroup.GET("/sync", middleware.RequireAuthentication(h.syncMessages))
+	messageGroup.DELETE(":messageId", middleware.RequireAuthentication(h.deleteMessage))
+	messageGroup.PATCH(":messageId", middleware.RequireAuthentication(h.editMessage))
+
+	r.GET("/ws", h.newMessage)
 	return r
 }

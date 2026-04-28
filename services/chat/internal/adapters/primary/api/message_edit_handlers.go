@@ -15,7 +15,7 @@ import (
 func (h *handler) editMessage(ctx *gin.Context) {
 	currentUserID := context.UserIDFromContext(ctx)
 
-	messageID, err := strconv.ParseUint(ctx.Param("id"), 10, strconv.IntSize)
+	messageID, err := strconv.ParseUint(ctx.Param("messageId"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid message id",

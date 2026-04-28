@@ -80,7 +80,8 @@ func (h *hub) SendToUser(userID uint, msg any) {
 }
 
 var upgrader = websocket.Upgrader{
-	// tighten it later
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		return r.Header.Get("Origin") == config.GetFrontendURL()
 	},

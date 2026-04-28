@@ -2,6 +2,10 @@ package domain
 
 import "time"
 
+type GetMessageFilter struct {
+	LastMessageID uint
+}
+
 type Message struct {
 	ID        uint
 	ChatID    uint

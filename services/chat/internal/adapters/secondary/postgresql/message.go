@@ -39,13 +39,13 @@ func (a *Adapter) InsertMessage(message *domain.Message) error {
 	return res.Error
 }
 
-func (a *Adapter) GetMessages(chatID uint) ([]*domain.Message, error) {
+func (a *Adapter) GetMessages(chatID uint, messageFilter domain.GetMessageFilter) ([]*domain.Message, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	var messageModels []*Message
 	res := a.db.WithContext(ctx).
-		Where("chat_id = ?", chatID).
+		Where("chat_id = ? AND id > ?", chatID, messageFilter.LastMessageID).
 		Order("created_at ASC").
 		Find(&messageModels)
 

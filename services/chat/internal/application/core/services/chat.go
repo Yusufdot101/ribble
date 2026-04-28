@@ -184,8 +184,8 @@ func (csvc *ChatService) NewMessage(userID, chatID uint, content string) (*domai
 	return message, csvc.repo.InsertMessage(message)
 }
 
-func (csvc *ChatService) GetMessages(chatID uint) ([]*domain.Message, error) {
-	return csvc.repo.GetMessages(chatID)
+func (csvc *ChatService) GetMessages(chatID uint, messageFilter domain.GetMessageFilter) ([]*domain.Message, error) {
+	return csvc.repo.GetMessages(chatID, messageFilter)
 }
 
 func (csvc *ChatService) DeleteMessage(userID, messageID uint) (uint, error) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
@@ -106,7 +107,6 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
 	}
 
 	for _, p := range participants {
-		// TODO: add permission check
 		h.hub.SendToUser(p.UserID, message)
 	}
 
@@ -114,19 +114,17 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
 }
 
 func (h *handler) getMessages(ctx *gin.Context) {
-	var GetMessagesRequest struct {
-		ChatID uint `json:"chatID"`
-	}
-	if err := ctx.ShouldBind(&GetMessagesRequest); err != nil {
+	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"error": "invalid chat id",
 		})
 		return
 	}
 
 	// make sure the user is in the chat
 	currentUserID := context.UserIDFromContext(ctx)
-	participants, err := h.csvc.GetChatParticipants(GetMessagesRequest.ChatID, currentUserID)
+	participants, err := h.csvc.GetChatParticipants(uint(chatID), currentUserID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -141,7 +139,56 @@ func (h *handler) getMessages(ctx *gin.Context) {
 		return
 	}
 
-	messages, err := h.csvc.GetMessages(GetMessagesRequest.ChatID)
+	messages, err := h.csvc.GetMessages(uint(chatID), domain.GetMessageFilter{})
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"messages": messages,
+	})
+}
+
+func (h *handler) syncMessages(ctx *gin.Context) {
+	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid chat id",
+		})
+		return
+	}
+
+	lastMessageID, err := strconv.ParseUint(ctx.Query("lastMessageId"), 10, strconv.IntSize)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid message id",
+		})
+		return
+	}
+
+	// make sure the user is in the chat
+	currentUserID := context.UserIDFromContext(ctx)
+	participants, err := h.csvc.GetChatParticipants(uint(chatID), currentUserID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if !userIsInChat(currentUserID, participants) {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"error": "chat not found",
+		})
+		return
+	}
+
+	messages, err := h.csvc.GetMessages(uint(chatID), domain.GetMessageFilter{
+		LastMessageID: uint(lastMessageID),
+	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

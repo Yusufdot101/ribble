@@ -1,7 +1,5 @@
 import { api, BASE_CHAT_SERVICE_API_URL } from "./api";
 
-const baseURL = `${BASE_CHAT_SERVICE_API_URL}/messages`;
-
 export interface MessageType {
     ID: number;
     ChatID: number;
@@ -17,13 +15,8 @@ export const getChatMessages = async (
     chatID: number,
 ): Promise<MessageType[]> => {
     try {
-        const res = await api(baseURL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ chatID }),
-        });
+        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/messages`;
+        const res = await api(baseURL);
         if (!res || !res.ok) return [];
         const data = await res.json();
         if (data.error) {
@@ -38,8 +31,30 @@ export const getChatMessages = async (
     }
 };
 
-export const deleteMessage = async (messageID: number) => {
+export const syncChatMessages = async (
+    chatID: number,
+    lastMessageID: number,
+): Promise<MessageType[]> => {
     try {
+        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/messages/sync?lastMessageId=${lastMessageID}`;
+        const res = await api(baseURL);
+        if (!res || !res.ok) return [];
+        const data = await res.json();
+        if (data.error) {
+            console.error(data.error);
+            return [];
+        }
+        const messages = data.messages;
+        return Array.isArray(messages) ? messages : [];
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+};
+
+export const deleteMessage = async (chatID: number, messageID: number) => {
+    try {
+        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/messages`;
         const res = await api(`${baseURL}/${messageID}`, {
             method: "DELETE",
         });
@@ -57,10 +72,12 @@ export const deleteMessage = async (messageID: number) => {
 };
 
 export const editMessage = async (
+    chatID: number,
     messageID: number,
     newContent: string,
 ): Promise<boolean | undefined> => {
     try {
+        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/messages`;
         const res = await api(`${baseURL}/${messageID}`, {
             method: "PATCH",
             body: JSON.stringify({ newContent }),

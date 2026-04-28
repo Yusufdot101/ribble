@@ -62,7 +62,7 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 func (h *handler) getChatByID(ctx *gin.Context) {
 	currentUserID := context.UserIDFromContext(ctx)
 
-	chatID, err := strconv.ParseUint(ctx.Param("id"), 10, strconv.IntSize)
+	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid message id",
@@ -93,7 +93,7 @@ func (h *handler) getChatByID(ctx *gin.Context) {
 func (h *handler) getChatUsers(ctx *gin.Context) {
 	currentUserID := context.UserIDFromContext(ctx)
 
-	chatID, err := strconv.ParseUint(ctx.Param("id"), 10, strconv.IntSize)
+	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid message id",

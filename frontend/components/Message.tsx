@@ -49,7 +49,7 @@ const Message = ({
 
     const handleDelete = () => {
         if (!confirm("Do you want delete this message? ")) return;
-        deleteMessage(message.ID);
+        deleteMessage(message.ChatID, message.ID);
     };
 
     const [newContent, setNewContent] = useState(message.Content);
@@ -70,7 +70,11 @@ const Message = ({
     const handleSubmitEdit = async () => {
         if (!createdlessThanHourAgo || newContent.trim() === "") return;
 
-        const success = await editMessage(message.ID, newContent);
+        const success = await editMessage(
+            message.ChatID,
+            message.ID,
+            newContent,
+        );
         if (!success) return;
         handleCancelMessageEdit();
     };

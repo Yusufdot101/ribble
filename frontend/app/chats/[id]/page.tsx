@@ -5,18 +5,24 @@ import MessageInput from "@/components/MessageInput";
 import { useAuthStore } from "@/store/useAuthStore";
 import { BASE_CHAT_SERVICE_API_URL } from "@/utils/api";
 import { ChatType, getChatByID, getChatUsers } from "@/utils/chats";
-import { getChatMessages, MessageType } from "@/utils/messages";
+import {
+    getChatMessages,
+    MessageType,
+    syncChatMessages,
+} from "@/utils/messages";
 import { UserType } from "@/utils/users";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const ChatPage = () => {
     const params = useParams();
     const chatID = params.id;
     const [messages, setMessages] = useState<MessageType[]>([]);
+    const messagesRef = useRef(messages);
     const [chat, setChat] = useState<ChatType>();
     const [chatUsers, setChatUsers] = useState<UserType[]>([]);
     const socketRef = useRef<WebSocket | null>(null);
+    const messagesContainer = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (!chatID) return;
@@ -33,77 +39,112 @@ const ChatPage = () => {
     }, [chatID]);
 
     const accessToken = useAuthStore((state) => state.accessToken);
+
+    const manualClose = useRef(false);
+    const retry = useRef(1);
+    const closeSocket = useCallback(() => {
+        console.log("closed");
+        manualClose.current = true;
+        socketRef.current?.close();
+    }, []);
+
+    const connect = useCallback(
+        function run() {
+            if (!accessToken || !chatID || !BASE_CHAT_SERVICE_API_URL) return;
+            const wsUrl = new URL(BASE_CHAT_SERVICE_API_URL);
+            wsUrl.protocol = wsUrl.protocol === "https:" ? "wss:" : "ws:";
+            wsUrl.pathname = `${wsUrl.pathname.replace(/\/$/, "")}/ws`;
+
+            const socket = new WebSocket(wsUrl.toString());
+            socketRef.current = socket;
+
+            socket.onopen = async () => {
+                console.log("connected");
+                socket.send(
+                    JSON.stringify({
+                        token: accessToken,
+                    }),
+                );
+                const lastMessage = messagesRef.current.at(-1);
+                if (!chatID || !lastMessage) return;
+                const missedMessages = await syncChatMessages(
+                    +chatID,
+                    lastMessage.ID,
+                );
+                setMessages((prev) => [...prev, ...missedMessages]);
+            };
+
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === "error") {
+                    console.error(data.message);
+                    return;
+                }
+
+                if (data.type === "messageDeleted") {
+                    setMessages((prev) => {
+                        return prev.map((msg) =>
+                            msg.ID === data.messageID
+                                ? { ...msg, Deleted: true }
+                                : msg,
+                        );
+                    });
+                    return;
+                }
+
+                if (data.type === "messageEdited") {
+                    setMessages((prev) => {
+                        return prev.map((msg) =>
+                            msg.ID === data.messageID
+                                ? {
+                                      ...msg,
+                                      Content: data.newContent,
+                                      UpdatedAt: data.updatedAt,
+                                  }
+                                : msg,
+                        );
+                    });
+                    return;
+                }
+
+                setMessages((prev) => {
+                    if (!chatID) return prev;
+                    if ((data as MessageType).ChatID !== +chatID) return prev;
+                    return [...prev, data];
+                });
+            };
+
+            socket.onclose = () => {
+                if (manualClose.current === true) return;
+                setTimeout(() => {
+                    console.log("retrying");
+                    run();
+                }, retry.current * 1000);
+
+                retry.current = Math.min(retry.current * 2, 60);
+            };
+
+            socket.onerror = (err) => {
+                console.error("socket error", err);
+            };
+        },
+        [accessToken, chatID],
+    );
+
     useEffect(() => {
-        if (!accessToken || !chatID || !BASE_CHAT_SERVICE_API_URL) return;
-
-        const wsUrl = new URL(BASE_CHAT_SERVICE_API_URL);
-        wsUrl.protocol = wsUrl.protocol === "https:" ? "wss:" : "ws:";
-        wsUrl.pathname = `${wsUrl.pathname.replace(/\/$/, "")}/messages/new`;
-
-        const socket = new WebSocket(wsUrl.toString());
-        socketRef.current = socket;
-
-        socket.onopen = () => {
-            console.log("connected");
-            socket.send(
-                JSON.stringify({
-                    token: accessToken,
-                }),
-            );
-        };
-
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log("received: ", data);
-            if (data.type === "error") {
-                console.error(data.message);
-                return;
-            }
-
-            if (data.type === "messageDeleted") {
-                setMessages((prev) => {
-                    return prev.map((msg) =>
-                        msg.ID === data.messageID
-                            ? { ...msg, Deleted: true }
-                            : msg,
-                    );
-                });
-                return;
-            }
-
-            if (data.type === "messageEdited") {
-                setMessages((prev) => {
-                    return prev.map((msg) =>
-                        msg.ID === data.messageID
-                            ? {
-                                  ...msg,
-                                  Content: data.newContent,
-                                  UpdatedAt: data.updatedAt,
-                              }
-                            : msg,
-                    );
-                });
-            }
-
-            setMessages((prev) => {
-                if (!chatID) return prev;
-                if ((data as MessageType).ChatID !== +chatID) return prev;
-                return [...prev, data];
-            });
-        };
-
-        socket.onclose = () => {
-            console.log("socket closed");
-        };
-
-        socket.onerror = (err) => {
-            console.error("socket error", err);
-        };
-
+        connect();
         return () => {
-            socket.close();
+            closeSocket();
         };
-    }, [accessToken, chatID]);
+    }, [accessToken, chatID, closeSocket, connect]);
+
+    useEffect(() => {
+        messagesContainer.current?.scrollTo({
+            top: messagesContainer.current.scrollHeight,
+            behavior: "smooth",
+        });
+        messagesRef.current = messages;
+    }, [messages]);
 
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [selectedMessageID, setSelectedMessageID] = useState<number>();
@@ -138,8 +179,8 @@ const ChatPage = () => {
             </div>
             <div className="flex justify-center shrink-0">
                 <div className="flex gap-x-[4px]">
-                    {chat?.Name !== ""
-                        ? chat?.Name
+                    {chat?.name !== ""
+                        ? chat?.name
                         : chatUsers
                               .filter((user) => user.id !== loggedInUserID)
                               .map((user) => (
@@ -148,7 +189,10 @@ const ChatPage = () => {
                 </div>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-y-[8px] p-[4px]">
+            <div
+                ref={messagesContainer}
+                className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-y-[8px] p-[4px]"
+            >
                 {messages?.map((message) => (
                     <Message
                         containerRef={containerRef}
