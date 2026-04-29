@@ -337,6 +337,14 @@ const ChatPage = () => {
                             handleCancelMessageEdit={() =>
                                 setIsEditingMessage(false)
                             }
+                            username={
+                                chat?.isGroup
+                                    ? chatUsers.filter(
+                                          (user) =>
+                                              user.id === message.SenderID,
+                                      )[0]?.name
+                                    : undefined
+                            }
                         />
                     ))}
             </div>
