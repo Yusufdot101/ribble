@@ -1,31 +1,36 @@
 "use client";
 
-import { RefObject, useState } from "react";
+import { useState } from "react";
 
-type ChatIDParam = string | string[] | undefined;
 interface Props {
-    socketRef: RefObject<WebSocket | null>;
-    chatID: ChatIDParam;
+    handleSend: (message: string) => void;
 }
 
-const MessageInput = ({ socketRef, chatID }: Props) => {
+export type WebsocketMsg = {
+    status?: "pending" | "delivered" | "failed";
+    clientID: string;
+    senderID: number;
+    chatID: number;
+    type: string;
+    content: string;
+    CreatedAt?: string;
+};
+
+export interface MessageType {
+    ClientID?: string;
+    ID: number;
+    ChatID: number;
+    SenderID: number;
+    Content: string;
+    CreatedAt: string;
+    UpdatedAt: string;
+    DeletedAt: string | null;
+    Deleted: boolean;
+    Status: "pending" | "delivered" | "failed";
+}
+
+const MessageInput = ({ handleSend }: Props) => {
     const [message, setMessage] = useState("");
-
-    const sendMessage = () => {
-        if (!chatID || message.trim() === "") return;
-
-        const socket = socketRef.current;
-        if (!socket || socket.readyState !== WebSocket.OPEN) return;
-
-        socket.send(
-            JSON.stringify({
-                type: "message",
-                chatID: +chatID,
-                content: message,
-            }),
-        );
-        setMessage("");
-    };
 
     return (
         <div className="flex w-full mt-auto relative">
@@ -45,7 +50,8 @@ const MessageInput = ({ socketRef, chatID }: Props) => {
                 onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault(); // prevents newline
-                        sendMessage();
+                        handleSend(message);
+                        setMessage("");
                     }
                 }}
             />
@@ -57,7 +63,8 @@ const MessageInput = ({ socketRef, chatID }: Props) => {
                 role="button"
                 aria-disabled={message === ""}
                 onClick={() => {
-                    sendMessage();
+                    handleSend(message);
+                    setMessage("");
                 }}
             >
                 <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>

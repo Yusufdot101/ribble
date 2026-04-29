@@ -6,6 +6,13 @@ type GetMessageFilter struct {
 	LastMessageID uint
 }
 
+type MessageStatus string
+
+var (
+	MessageDelivered MessageStatus = "delivered"
+	MessageFailed    MessageStatus = "failed"
+)
+
 type Message struct {
 	ID        uint
 	ChatID    uint
@@ -15,6 +22,7 @@ type Message struct {
 	UpdatedAt time.Time
 	DeletedAt *time.Time
 	Deleted   bool
+	Status    MessageStatus
 }
 
 func NewMessage(chatID, senderID uint, content string) *Message {

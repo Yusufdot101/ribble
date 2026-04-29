@@ -19,6 +19,7 @@ type Message struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
+	Status    domain.MessageStatus
 }
 
 func (a *Adapter) InsertMessage(message *domain.Message) error {
@@ -26,6 +27,7 @@ func (a *Adapter) InsertMessage(message *domain.Message) error {
 		ChatID:   message.ChatID,
 		SenderID: message.SenderID,
 		Content:  message.Content,
+		Status:   domain.MessageDelivered,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -35,6 +37,7 @@ func (a *Adapter) InsertMessage(message *domain.Message) error {
 		message.ID = messageModel.ID
 		message.CreatedAt = messageModel.CreatedAt
 		message.UpdatedAt = messageModel.UpdatedAt
+		message.Status = domain.MessageDelivered
 	}
 	return res.Error
 }
@@ -55,6 +58,10 @@ func (a *Adapter) GetMessages(chatID uint, messageFilter domain.GetMessageFilter
 
 	messages := []*domain.Message{}
 	for _, messageModel := range messageModels {
+		status := messageModel.Status
+		if status == "" {
+			status = domain.MessageDelivered
+		}
 		message := &domain.Message{
 			ID:        messageModel.ID,
 			ChatID:    messageModel.ChatID,
@@ -64,6 +71,7 @@ func (a *Adapter) GetMessages(chatID uint, messageFilter domain.GetMessageFilter
 			Content:   messageModel.Content,
 			DeletedAt: messageModel.DeletedAt,
 			Deleted:   messageModel.Deleted,
+			Status:    status,
 		}
 		messages = append(messages, message)
 	}
@@ -152,6 +160,7 @@ func (a *Adapter) EditMessage(userID, messageID uint, newContent string) (*domai
 		SenderID:  messageModel.SenderID,
 		DeletedAt: messageModel.DeletedAt,
 		Deleted:   messageModel.Deleted,
+		Status:    messageModel.Status,
 	}
 
 	return message, err

@@ -31,15 +31,19 @@ func (h *handler) newMessage(ctx *gin.Context) {
 	h.readLoop(conn, userID)
 }
 
+type websocketMsg struct {
+	Type     string `json:"type"`
+	ChatID   uint   `json:"chatID"`
+	Content  string `json:"content"`
+	ClientID string `json:"clientID"`
+	SenderID uint   `json:"senderID"`
+}
+
 func (h *handler) readLoop(conn *websocket.Conn, userID uint) {
 	for {
-		var msg struct {
-			Type    string `json:"type"`
-			ChatID  uint   `json:"chatID"`
-			Content string `json:"content"`
-		}
-
+		var msg websocketMsg
 		if err := conn.ReadJSON(&msg); err != nil {
+			log.Println("error: ", err)
 			break
 		}
 
@@ -49,16 +53,12 @@ func (h *handler) readLoop(conn *websocket.Conn, userID uint) {
 	}
 }
 
-func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
-	Type    string `json:"type"`
-	ChatID  uint   `json:"chatID"`
-	Content string `json:"content"`
-},
-) error {
+func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg websocketMsg) error {
 	if msg.ChatID == 0 || strings.TrimSpace(msg.Content) == "" {
 		_ = conn.WriteJSON(map[string]string{
-			"type":    "error",
-			"message": "invalid message",
+			"type":     "nack",
+			"message":  "invalid message",
+			"clientID": msg.ClientID,
 		})
 		return nil
 	}
@@ -66,16 +66,18 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
 	userHasPermission, err := h.csvc.UserHasPermission(userID, msg.ChatID, domain.SendMessage)
 	if err != nil {
 		_ = conn.WriteJSON(map[string]string{
-			"type":    "error",
-			"message": err.Error(),
+			"type":     "nack",
+			"message":  err.Error(),
+			"clientID": msg.ClientID,
 		})
 		return nil
 	}
 
 	if !userHasPermission {
 		_ = conn.WriteJSON(map[string]string{
-			"type":    "error",
-			"message": "not allowed to write messages",
+			"type":     "nack",
+			"message":  "not allowed to write messages",
+			"clientID": msg.ClientID,
 		})
 		return nil
 	}
@@ -83,16 +85,18 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
 	participants, err := h.csvc.GetChatParticipants(msg.ChatID, userID)
 	if err != nil {
 		_ = conn.WriteJSON(map[string]string{
-			"type":    "error",
-			"message": "chat not found",
+			"type":     "nack",
+			"message":  "chat not found",
+			"clientID": msg.ClientID,
 		})
 		return nil
 	}
 
 	if !userIsInChat(userID, participants) {
 		_ = conn.WriteJSON(map[string]string{
-			"type":    "error",
-			"message": "not a participant of this chat",
+			"type":     "nack",
+			"message":  "not a participant of this chat",
+			"clientID": msg.ClientID,
 		})
 		return fmt.Errorf("user not in chat")
 	}
@@ -100,13 +104,23 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg struct {
 	message, err := h.csvc.NewMessage(userID, msg.ChatID, msg.Content)
 	if err != nil {
 		_ = conn.WriteJSON(map[string]string{
-			"type":    "error",
-			"message": "failed to send message",
+			"type":     "nack",
+			"clientID": msg.ClientID,
+			"message":  "failed to send message",
 		})
 		return nil
 	}
 
+	_ = conn.WriteJSON(map[string]string{
+		"type":     "ack",
+		"clientID": msg.ClientID,
+		"message":  "message delivered",
+	})
+
 	for _, p := range participants {
+		if p.UserID == userID {
+			continue
+		}
 		h.hub.SendToUser(p.UserID, message)
 	}
 
