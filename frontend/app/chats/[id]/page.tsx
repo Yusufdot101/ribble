@@ -296,7 +296,7 @@ const ChatPage = () => {
             }}
         >
             <div
-                className={`${isOnline ? "" : "opacity-0 invisible"} duration-300 right-1/2 translate-x-1/2 bg-red-500 p-[4px] rounded-[4px] absolute`}
+                className={`${isOnline ? "opacity-0 invisible" : ""} duration-300 right-1/2 translate-x-1/2 bg-red-500 p-[4px] rounded-[4px] absolute`}
             >
                 <span className="text-[16px]">Currently offline</span>
             </div>
