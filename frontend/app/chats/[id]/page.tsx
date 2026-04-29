@@ -1,7 +1,7 @@
 "use client";
 import BackArrowButton from "@/components/BackArrowButton";
 import Message from "@/components/Message";
-import MessageInput from "@/components/MessageInput";
+import MessageInput, { WebsocketMsg } from "@/components/MessageInput";
 import { useAuthStore } from "@/store/useAuthStore";
 import { BASE_CHAT_SERVICE_API_URL } from "@/utils/api";
 import { ChatType, getChatByID, getChatUsers } from "@/utils/chats";
@@ -19,6 +19,7 @@ const ChatPage = () => {
     const chatID = params.id;
     const [messages, setMessages] = useState<MessageType[]>([]);
     const messagesRef = useRef(messages);
+    const pendingMessages = useRef(new Map<string, WebsocketMsg>());
     const [chat, setChat] = useState<ChatType>();
     const [chatUsers, setChatUsers] = useState<UserType[]>([]);
     const socketRef = useRef<WebSocket | null>(null);
@@ -55,6 +56,7 @@ const ChatPage = () => {
 
     const connect = useCallback(
         function run() {
+            console.log("running");
             manualClose.current = false;
             if (!accessToken || !chatID || !BASE_CHAT_SERVICE_API_URL) return;
             const wsUrl = new URL(BASE_CHAT_SERVICE_API_URL);
@@ -65,6 +67,7 @@ const ChatPage = () => {
             socketRef.current = socket;
 
             socket.onopen = async () => {
+                console.log("connected");
                 retry.current = 1;
                 socket.send(
                     JSON.stringify({
@@ -84,10 +87,15 @@ const ChatPage = () => {
                     );
                     return [...prev, ...uniqueMissed];
                 });
+
+                for (const [, pendingMessage] of pendingMessages.current) {
+                    socketRef.current?.send(JSON.stringify(pendingMessage));
+                }
             };
 
             socket.onmessage = (event) => {
                 const data = JSON.parse(event.data);
+                console.log("receieved: ", data);
                 if (data.type === "error") {
                     console.error(data.message);
                     return;
@@ -119,6 +127,30 @@ const ChatPage = () => {
                     return;
                 }
 
+                if (data.type === "nack") {
+                    pendingMessages.current.get(data.clientID)!.status =
+                        "failed";
+                    setMessages((prev) =>
+                        prev.map((message) =>
+                            message.ClientID === data.clientID
+                                ? { ...message, Status: "failed" }
+                                : message,
+                        ),
+                    );
+                    return;
+                }
+
+                if (data.type === "ack") {
+                    pendingMessages.current.delete(data.clientID);
+                    setMessages((prev) =>
+                        prev.map((message) =>
+                            message.ClientID === data.clientID
+                                ? { ...message, Status: "delivered" }
+                                : message,
+                        ),
+                    );
+                    return;
+                }
                 setMessages((prev) => {
                     if (!chatID) return prev;
                     const incoming = data as MessageType;
@@ -143,6 +175,53 @@ const ChatPage = () => {
         },
         [accessToken, chatID],
     );
+
+    const newMessageID = (): string => {
+        return crypto.randomUUID();
+    };
+
+    const newNumberID = (): number => {
+        return Math.floor(Math.random() * 100_000_000) + 1;
+    };
+
+    const sendMessage = (message: string) => {
+        if (!chatID || message.trim() === "" || !loggedInUserID) return;
+
+        const socket = socketRef.current;
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+        const clientID = newMessageID();
+
+        const msg: WebsocketMsg = {
+            status: "pending",
+            chatID: +chatID,
+            senderID: loggedInUserID,
+            clientID: clientID,
+            content: message,
+            type: "message",
+        };
+
+        setMessages((prev) => {
+            if (!chatID) return prev;
+            const lastMessage = prev.at(-1);
+            const creationDate = new Date().toISOString();
+            const newMessage: MessageType = {
+                ClientID: clientID,
+                Status: "pending",
+                ChatID: +chatID,
+                ID: lastMessage ? lastMessage.ID + 1 : newNumberID(),
+                Content: message,
+                CreatedAt: creationDate,
+                Deleted: false,
+                DeletedAt: null,
+                SenderID: loggedInUserID,
+                UpdatedAt: creationDate,
+            };
+            return [...prev, newMessage];
+        });
+        pendingMessages.current.set(clientID, msg);
+        socket.send(JSON.stringify(msg));
+    };
 
     useEffect(() => {
         connect();
@@ -230,7 +309,11 @@ const ChatPage = () => {
                 ))}
             </div>
 
-            <MessageInput socketRef={socketRef} chatID={chatID} />
+            <MessageInput
+                handleSend={(message: string) => {
+                    sendMessage(message);
+                }}
+            />
         </div>
     );
 };

@@ -33,7 +33,7 @@ func (rts *RepositoryTestSuite) TestGetMessages() {
 	err = adapater.InsertMessage(message2)
 	rts.Require().Nil(err)
 
-	messages, err := adapater.GetMessages(chat.ID)
+	messages, err := adapater.GetMessages(chat.ID, domain.GetMessageFilter{})
 	rts.Require().Nil(err)
 
 	rts.Require().Equal(2, len(messages))
@@ -58,7 +58,7 @@ func (rts *RepositoryTestSuite) TestDeleteMessage() {
 	rts.Require().Nil(err)
 	rts.Require().Equal(chat.ID, chatID)
 
-	messages, err := adapater.GetMessages(chat.ID)
+	messages, err := adapater.GetMessages(chat.ID, domain.GetMessageFilter{})
 	rts.Require().Nil(err)
 	rts.Require().Len(messages, 1)
 	rts.Require().Equal("", messages[0].Content)
@@ -83,7 +83,7 @@ func (rts *RepositoryTestSuite) TestEditMessage() {
 	rts.Require().Nil(err)
 	rts.Require().Equal(chat.ID, message.ChatID)
 
-	messages, err := adapater.GetMessages(chat.ID)
+	messages, err := adapater.GetMessages(chat.ID, domain.GetMessageFilter{})
 	rts.Require().Nil(err)
 
 	rts.Require().Equal("new content", messages[0].Content)
@@ -106,7 +106,7 @@ func (rts *RepositoryTestSuite) TestEditMessageFail() {
 	rts.Require().Error(err)
 	rts.Require().Nil(message)
 
-	messages, err := adapater.GetMessages(chat.ID)
+	messages, err := adapater.GetMessages(chat.ID, domain.GetMessageFilter{})
 	rts.Require().Nil(err)
 
 	rts.Require().Equal("original content", messages[0].Content)

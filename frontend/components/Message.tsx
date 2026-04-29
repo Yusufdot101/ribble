@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { deleteMessage, editMessage, MessageType } from "@/utils/messages";
 import { flip, offset, shift, useFloating } from "@floating-ui/react";
 import { RefObject, useEffect, useState } from "react";
+import MessageStatus from "./MessageStatus";
 
 interface Props {
     message: MessageType;
@@ -168,10 +169,14 @@ const Message = ({
                 ) : (
                     <span>{message.Content}</span>
                 )}
-                <span className="text-[12px] opacity-75 text-right">
-                    {messageIsEdited && !message.Deleted ? "Edited " : ""}
-                    {formattedDate}
-                </span>
+                <div className="flex gap-x-[4px] items-center">
+                    <span className="text-[12px] opacity-75 text-right">
+                        {messageIsEdited && !message.Deleted ? "Edited " : ""}
+                        {formattedDate}
+                    </span>
+
+                    <MessageStatus message={message} />
+                </div>
 
                 {menuIsOpen && selectedMessageID === message.ID && (
                     <div
@@ -245,6 +250,9 @@ const Message = ({
                         </button>
                     </div>
                 </div>
+            )}
+            {message.Status === "failed" && (
+                <span className="text-red-500 text-right">Not delivered</span>
             )}
         </div>
     );

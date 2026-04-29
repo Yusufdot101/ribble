@@ -1,6 +1,7 @@
 import { api, BASE_CHAT_SERVICE_API_URL } from "./api";
 
 export interface MessageType {
+    ClientID?: string;
     ID: number;
     ChatID: number;
     SenderID: number;
@@ -9,6 +10,7 @@ export interface MessageType {
     UpdatedAt: string;
     DeletedAt: string | null;
     Deleted: boolean;
+    Status: "pending" | "delivered" | "failed";
 }
 
 export const getChatMessages = async (
