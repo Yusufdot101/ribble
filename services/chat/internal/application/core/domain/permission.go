@@ -2,7 +2,10 @@ package domain
 
 type PermissionType string
 
-var SendMessage PermissionType = "send message"
+var (
+	SendMessage PermissionType = "send message"
+	AddToGroup  PermissionType = "add to group"
+)
 
 type Permission struct {
 	ID   uint

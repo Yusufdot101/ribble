@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -207,4 +208,25 @@ func (csvc *ChatService) UserHasPermission(userID, chatID uint, permissionName d
 
 	p := domain.NewPermission(permissionName)
 	return p.IncludedIn(userPermissions), nil
+}
+
+func (csvc *ChatService) AddUserToGroup(chatID, userID uint) error {
+	chatParticipant := domain.NewChatParticipant(userID, chatID)
+	return csvc.repo.WithTx(func(repo ports.Repository) error {
+		ctx := context.Background()
+		isValid, err := csvc.userService.VerifyUsers(ctx, []uint{userID})
+		if err != nil {
+			return err
+		}
+
+		if !isValid {
+			return errors.New("invalid user id")
+		}
+
+		err = repo.InsertChatParticipant(chatParticipant)
+		if err != nil {
+			return err
+		}
+		return repo.GrantUserChatRole(userID, chatID, domain.Member)
+	})
 }

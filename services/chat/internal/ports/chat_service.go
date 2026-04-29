@@ -22,4 +22,6 @@ type ChatService interface {
 	EditMessage(userID, messageID uint, newContent string) (*domain.Message, error)
 
 	UserHasPermission(userID, chatID uint, permissionName domain.PermissionType) (bool, error)
+
+	AddUserToGroup(chatID, userID uint) error
 }
