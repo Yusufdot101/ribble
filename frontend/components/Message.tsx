@@ -15,6 +15,7 @@ interface Props {
     editingMessageID: number | undefined;
     handleClickEdit: (messageID: number) => void;
     handleCancelMessageEdit: () => void;
+    username?: string;
 }
 
 const Message = ({
@@ -27,6 +28,7 @@ const Message = ({
     handleClickEdit,
     editingMessageID,
     handleCancelMessageEdit,
+    username,
 }: Props) => {
     const userID = useAuthStore((state) => state.userID);
     const messageIsEdited = message.CreatedAt !== message.UpdatedAt;
@@ -140,6 +142,9 @@ const Message = ({
                 hidden={isEditingCurrentMessage}
                 className={`${message.SenderID === userID ? "bg-accent/80" : "bg-foreground/20"} flex flex-col w-fit py-[4px] px-[8px] rounded-[4px]`}
             >
+                {username && message.SenderID !== userID && (
+                    <span className="text-[12px]">{username}</span>
+                )}
                 {message.Deleted ? (
                     <div className="flex items-center gap-x-[4px]">
                         <svg

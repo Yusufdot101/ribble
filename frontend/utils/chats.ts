@@ -4,6 +4,7 @@ import { UserType } from "./users";
 export interface ChatType {
     id: number;
     name: string;
+    isGroup: boolean;
 }
 
 export const getChatByUserIDs = async (
