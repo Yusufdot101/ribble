@@ -58,6 +58,10 @@ func (a *Adapter) GetMessages(chatID uint, messageFilter domain.GetMessageFilter
 
 	messages := []*domain.Message{}
 	for _, messageModel := range messageModels {
+		status := messageModel.Status
+		if status == "" {
+			status = domain.MessageDelivered
+		}
 		message := &domain.Message{
 			ID:        messageModel.ID,
 			ChatID:    messageModel.ChatID,
@@ -67,7 +71,7 @@ func (a *Adapter) GetMessages(chatID uint, messageFilter domain.GetMessageFilter
 			Content:   messageModel.Content,
 			DeletedAt: messageModel.DeletedAt,
 			Deleted:   messageModel.Deleted,
-			Status:    messageModel.Status,
+			Status:    status,
 		}
 		messages = append(messages, message)
 	}

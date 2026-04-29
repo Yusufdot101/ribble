@@ -235,12 +235,11 @@ const ChatPage = () => {
 
         setMessages((prev) => {
             if (!chatID) return prev;
-            const lastMessage = prev.at(-1);
             const newMessage: MessageType = {
                 ClientID: clientID,
                 Status: "pending",
                 ChatID: +chatID,
-                ID: lastMessage ? lastMessage.ID + 1 : newNumberID(),
+                ID: -newNumberID(),
                 Content: msg.content,
                 CreatedAt: msg.CreatedAt ?? creationDate,
                 Deleted: false,

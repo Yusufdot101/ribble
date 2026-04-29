@@ -251,7 +251,7 @@ const Message = ({
                     </div>
                 </div>
             )}
-            {message.Status === "failed" && (
+            {message.Status === "failed" && message.SenderID === userID && (
                 <span className="text-red-500 text-right">Not delivered</span>
             )}
         </div>

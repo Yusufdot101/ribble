@@ -38,7 +38,7 @@ const MessageStatus = ({ message }: Props) => {
                     viewBox="0 -0.5 25 25"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-[20px] textRed-500"
+                    className="h-[20px] text-red-500"
                 >
                     <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                     <g
@@ -61,7 +61,7 @@ const MessageStatus = ({ message }: Props) => {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-[20px] textRed-500"
+                    className="h-[20px] text-gray-500"
                 >
                     <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                     <g
