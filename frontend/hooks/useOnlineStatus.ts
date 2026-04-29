@@ -6,10 +6,10 @@ export const useOnlineStatus = () => {
         typeof navigator !== "undefined" ? navigator.onLine : true,
     );
 
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
     useEffect(() => {
-        setOnline(navigator.onLine);
-        const on = () => setOnline(true);
-        const off = () => setOnline(false);
+        (() => setOnline(navigator.onLine))();
 
         window.addEventListener("online", on);
         window.addEventListener("offline", off);
