@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
@@ -18,7 +19,7 @@ func (h *handler) getConversations(c *gin.Context) {
 	q := c.Query("q")
 
 	// 1. get all chats
-	chats, err := h.csvc.GetChatsByUserID(currentUserID, q)
+	chats, err := h.csvc.GetChatsByUserID(currentUserID, "")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -45,7 +46,9 @@ func (h *handler) getConversations(c *gin.Context) {
 		members := participantsByChat[chat.ID]
 
 		if chat.IsGroup {
-			groups = append(groups, chat)
+			if q == "" || strings.Contains(strings.ToLower(chat.Name), strings.ToLower(q)) {
+				groups = append(groups, chat)
+			}
 			continue
 		}
 
