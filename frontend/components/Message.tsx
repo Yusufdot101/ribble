@@ -172,7 +172,7 @@ const Message = ({
                         <span>Message Deleted</span>
                     </div>
                 ) : (
-                    <span>{message.Content}</span>
+                    <p className="whitespace-pre-wrap">{message.Content}</p>
                 )}
                 <div className="flex gap-x-[4px] items-center">
                     <span className="text-[12px] opacity-75 text-right">

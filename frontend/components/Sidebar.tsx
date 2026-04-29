@@ -58,7 +58,7 @@ const Sidebar = () => {
 
     const [isCreatingGroup, setIsCreatingGroup] = useState(false);
     return (
-        <div className="flex-1 flex flex-col gap-y-[8px] relative overflow-x-hidden">
+        <div className="flex-1 flex flex-col gap-y-[8px] relative overflow-hidden">
             <div
                 className={`${isCreatingGroup ? "-translate-x-full" : "translate-x-0"} h-full transition-transform duration-300 ease-in-out flex flex-col gap-y-[8px]`}
             >
@@ -68,7 +68,7 @@ const Sidebar = () => {
 
                 <SearchBar handleEnter={(query: string) => fetchData(query)} />
 
-                <div className="flex-1 min-[900px]:border-r-1 border-foreground flex flex-col gap-y-[8px]">
+                <div className="flex-1 min-[900px]:border-r-1 border-foreground flex flex-col gap-y-[8px] overflow-auto">
                     <GroupsSection
                         isLoading={isLoading}
                         selectedChats={activeChat ? [activeChat] : []}

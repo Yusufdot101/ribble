@@ -5,6 +5,7 @@ export const useOnlineStatus = () => {
     const [online, setOnline] = useState(
         typeof navigator !== "undefined" ? navigator.onLine : true,
     );
+    console.log(online);
 
     useEffect(() => {
         const on = () => setOnline(true);
