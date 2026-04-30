@@ -2,7 +2,7 @@ package domain
 
 type PermissionType string
 
-var (
+const (
 	SendMessage PermissionType = "send message"
 	AddToGroup  PermissionType = "add users to group"
 )

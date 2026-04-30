@@ -23,7 +23,7 @@ func (h *handler) getUserPermissions(c *gin.Context) {
 	permissions, err := h.csvc.GetUserPermissions(chatIDUint, currentUserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+			"error": "error getting permissions",
 		})
 		return
 	}

@@ -309,10 +309,12 @@ const ChatPage = () => {
                     />
                 </div>
                 <div className="flex-1">
-                    <Menu
-                        chatID={chatID ? +chatID : -1}
-                        currentGroupUsers={chatUsers.map((user) => user.id)}
-                    />
+                    {chatID && (
+                        <Menu
+                            chatID={+chatID}
+                            currentGroupUsers={chatUsers.map((user) => user.id)}
+                        />
+                    )}
                 </div>
             </div>
             <div className="flex justify-center shrink-0">

@@ -124,6 +124,10 @@ func (a *Adapter) GrantUsersChatRoles(userIDs []uint, chatID uint, roleName doma
 	if res.RowsAffected == 0 {
 		return errors.New("no participant updated (invalid user/chat)")
 	}
+	if int(res.RowsAffected) != len(userIDs) {
+		return errors.New("partial role grant: some users are not chat participants")
+	}
+
 	return nil
 }
 

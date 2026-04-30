@@ -67,7 +67,7 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg websocket
 	if err != nil {
 		_ = conn.WriteJSON(map[string]string{
 			"type":     "nack",
-			"message":  err.Error(),
+			"message":  "not permitted",
 			"clientID": msg.ClientID,
 		})
 		return nil

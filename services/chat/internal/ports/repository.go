@@ -5,7 +5,7 @@ import "github.com/Yusufdot101/ripple/services/chat/internal/application/core/do
 type Repository interface {
 	InsertChat(*domain.Chat) error
 	InsertChatParticipants([]*domain.ChatParticipant) error
-	GetChatByParticipantIDs(participantIDs []uint, isGroup bool) (*domain.Chat, error)
+	GetChatByUserIDs(userIDs []uint, isGroup bool) (*domain.Chat, error)
 	GetChatUsers(chatID, currentUser uint) ([]*domain.ChatParticipant, error)
 	GetParticipantsByChatIDs(chatIDs []uint) (map[uint][]domain.ChatParticipant, error)
 	GetChatByID(chatID, currentUser uint) (*domain.Chat, error)

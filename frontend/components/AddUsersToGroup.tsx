@@ -39,9 +39,12 @@ const AddUsersToGroup = ({
     const [users, setUsers] = useState<UserType[]>([]);
     const searchUsers = async (email: string = "") => {
         setIsLoading(true);
-        const users = await getUsersByEmail(email);
-        setUsers(users);
-        setIsLoading(false);
+        try {
+            const users = await getUsersByEmail(email);
+            setUsers(users ?? []);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -49,7 +52,8 @@ const AddUsersToGroup = ({
     }, []);
 
     const addToGroup = async () => {
-        addUsersToGroup(
+        if (selectedUsers.length === 0) return;
+        await addUsersToGroup(
             chatID,
             selectedUsers.map((user) => user.id),
         );
@@ -64,7 +68,7 @@ const AddUsersToGroup = ({
                 <div className="flex w-full h-[32px] gap-x-[8px] items-center">
                     <BackArrowButton
                         handleClick={handleClose}
-                        text="Add grop members"
+                        text="Add group members"
                     />
                 </div>
 

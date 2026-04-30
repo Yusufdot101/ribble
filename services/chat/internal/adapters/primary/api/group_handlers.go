@@ -9,12 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var request struct {
-	UserIDs []uint `json:"userIDs"`
-}
-
 func (h *handler) addToGroup(c *gin.Context) {
-	if err := c.ShouldBind(&request); err != nil {
+	var req struct {
+		UserIDs []uint `json:"userIDs"`
+	}
+	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid user id",
 		})
@@ -34,19 +33,19 @@ func (h *handler) addToGroup(c *gin.Context) {
 	userHasPermission, err := h.csvc.UserHasPermission(currentUserID, chatIDUint, domain.AddToGroup)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
-
-	if !userHasPermission {
-		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "not permitted",
 		})
 		return
 	}
 
-	err = h.csvc.AddUsersToGroup(chatIDUint, request.UserIDs)
+	if !userHasPermission {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "not permitted",
+		})
+		return
+	}
+
+	err = h.csvc.AddUsersToGroup(chatIDUint, req.UserIDs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),

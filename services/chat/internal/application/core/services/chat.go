@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -132,7 +131,7 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 }
 
 func (csvc *ChatService) GetChatByUserIDs(userIDs []uint, isGroup bool) (*domain.Chat, error) {
-	return csvc.repo.GetChatByParticipantIDs(userIDs, isGroup)
+	return csvc.repo.GetChatByUserIDs(userIDs, isGroup)
 }
 
 func (csvc *ChatService) GetChatsByUserID(userID uint, query string) ([]*domain.Chat, error) {
@@ -227,19 +226,24 @@ func (csvc *ChatService) GetUserPermissions(chatID, userID uint) ([]*domain.Perm
 }
 
 func (csvc *ChatService) AddUsersToGroup(chatID uint, userIDs []uint) error {
+	if len(userIDs) == 0 {
+		return domain.ErrInvalidUserIDs
+	}
+
 	chatParticipants := []*domain.ChatParticipant{}
 	for _, userID := range userIDs {
 		chatParticipants = append(chatParticipants, domain.NewChatParticipant(userID, chatID))
 	}
 	return csvc.repo.WithTx(func(repo ports.Repository) error {
-		ctx := context.Background()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 		isValid, err := csvc.userService.VerifyUsers(ctx, userIDs)
 		if err != nil {
 			return err
 		}
 
 		if !isValid {
-			return errors.New("invalid user id")
+			return domain.ErrInvalidUserIDs
 		}
 
 		err = repo.InsertChatParticipants(chatParticipants)

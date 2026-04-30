@@ -12,10 +12,11 @@ const Menu = ({ chatID, currentGroupUsers }: Props) => {
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [permissions, setPermissions] = useState<PermissionType[]>([]);
     useEffect(() => {
+        (() => setPermissions([]))();
+        if (chatID <= 0) return;
         (async () => {
             const permissions = await getUserPermissions(chatID);
-            if (!permissions) return;
-            setPermissions(permissions);
+            setPermissions(permissions ?? []);
         })();
     }, [chatID]);
 
