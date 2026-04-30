@@ -11,7 +11,7 @@ export interface MessageType {
     DeletedAt: string | null;
     Deleted: boolean;
     Status: "pending" | "delivered" | "failed";
-    MessageType: string;
+    MessageType?: string;
 }
 
 export const getChatMessages = async (

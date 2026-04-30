@@ -93,7 +93,11 @@ const Message = ({
                 if (e.key !== "Delete") return;
                 e.preventDefault();
 
-                if (message.SenderID !== userID) return;
+                if (
+                    message.SenderID !== userID ||
+                    message.MessageType === "information message"
+                )
+                    return;
                 handleRightClick(message.ID);
 
                 const rect = containerRef.current?.getBoundingClientRect();
