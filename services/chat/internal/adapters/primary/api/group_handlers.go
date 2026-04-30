@@ -14,8 +14,7 @@ import (
 
 func (h *handler) addToGroup(c *gin.Context) {
 	var req struct {
-		UserIDs   []uint   `json:"userIDs"`
-		Usernames []string `json:"usernames"`
+		UserIDs []uint `json:"userIDs"`
 	}
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -66,9 +65,24 @@ func (h *handler) addToGroup(c *gin.Context) {
 		log.Printf("error getting current user: %v\n", err)
 		return
 	}
+	if len(users) == 0 {
+		log.Printf("current user not found: %d\n", currentUserID)
+		return
+	}
 	currentUser := users[0]
 
-	usernames := strings.Join(req.Usernames, ", ")
+	addedUsers, err := h.csvc.SearchUsers("", req.UserIDs)
+	if err != nil {
+		log.Printf("error getting added users: %v\n", err)
+		return
+	}
+
+	names := make([]string, 0, len(addedUsers))
+	for _, u := range addedUsers {
+		names = append(names, u.Name)
+	}
+	usernames := strings.Join(names, ", ")
+
 	message, err := h.csvc.NewMessage(currentUserID, chatIDUint, fmt.Sprintf("%s added %s", currentUser.Name, usernames), domain.SystemMessage)
 	if err != nil {
 		log.Printf("error sending system message: %v\n", err)

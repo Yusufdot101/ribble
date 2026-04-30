@@ -12,7 +12,7 @@ func (rts *RepositoryTestSuite) TestInsertMessage() {
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
-	message := domain.NewMessage(chat.ID, 1, "test message")
+	message := domain.NewMessage(chat.ID, 1, "test message", domain.StandardMessage)
 	err = adapater.InsertMessage(message)
 	rts.Nil(err)
 }
@@ -25,11 +25,11 @@ func (rts *RepositoryTestSuite) TestGetMessages() {
 	err = adapater.InsertChat(chat)
 	rts.Require().Nil(err)
 
-	message := domain.NewMessage(chat.ID, 1, "test message")
+	message := domain.NewMessage(chat.ID, 1, "test message", domain.StandardMessage)
 	err = adapater.InsertMessage(message)
 	rts.Require().Nil(err)
 
-	message2 := domain.NewMessage(chat.ID, 2, "test message reply")
+	message2 := domain.NewMessage(chat.ID, 2, "test message reply", domain.StandardMessage)
 	err = adapater.InsertMessage(message2)
 	rts.Require().Nil(err)
 
@@ -50,7 +50,7 @@ func (rts *RepositoryTestSuite) TestDeleteMessage() {
 	rts.Require().Nil(err)
 
 	var userID uint = 1
-	message := domain.NewMessage(chat.ID, userID, "test message")
+	message := domain.NewMessage(chat.ID, userID, "test message", domain.StandardMessage)
 	err = adapater.InsertMessage(message)
 	rts.Require().Nil(err)
 
@@ -75,7 +75,7 @@ func (rts *RepositoryTestSuite) TestEditMessage() {
 	rts.Require().Nil(err)
 
 	var userID uint = 1
-	message := domain.NewMessage(chat.ID, userID, "test message")
+	message := domain.NewMessage(chat.ID, userID, "test message", domain.StandardMessage)
 	err = adapater.InsertMessage(message)
 	rts.Require().Nil(err)
 
@@ -98,7 +98,7 @@ func (rts *RepositoryTestSuite) TestEditMessageFail() {
 	rts.Require().Nil(err)
 
 	var userID uint = 1
-	message := domain.NewMessage(chat.ID, userID, "original content")
+	message := domain.NewMessage(chat.ID, userID, "original content", domain.StandardMessage)
 	err = adapater.InsertMessage(message)
 	rts.Require().Nil(err)
 
