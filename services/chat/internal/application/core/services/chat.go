@@ -202,8 +202,17 @@ func (csvc *ChatService) GetMessages(chatID uint, messageFilter domain.GetMessag
 	return csvc.repo.GetMessages(chatID, messageFilter)
 }
 
-func (csvc *ChatService) DeleteMessage(userID, messageID uint) (uint, error) {
-	return csvc.repo.DeleteMessage(userID, messageID)
+func (csvc *ChatService) DeleteMessage(chatID, userID, messageID uint) (uint, error) {
+	hasPermission, err := csvc.UserHasPermission(userID, chatID, domain.DeleteMessages)
+	if err != nil {
+		return 0, err
+	}
+	if hasPermission {
+		_, err = csvc.repo.DeleteAnyMessage(chatID, messageID)
+	} else {
+		_, err = csvc.repo.DeleteMessage(userID, messageID)
+	}
+	return chatID, err
 }
 
 func (csvc *ChatService) EditMessage(userID, messageID uint, newContent string) (*domain.Message, error) {

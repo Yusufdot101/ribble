@@ -18,7 +18,7 @@ type ChatService interface {
 	GetChatByID(chatID, currentUserID uint) (*domain.Chat, error)
 	NewMessage(userID, chatID uint, content string, messageType domain.MessageType) (*domain.Message, error)
 	GetMessages(chatID uint, messageFilter domain.GetMessageFilter) ([]*domain.Message, error)
-	DeleteMessage(userID, messageID uint) (uint, error)
+	DeleteMessage(chatID, userID, messageID uint) (uint, error)
 	EditMessage(userID, messageID uint, newContent string) (*domain.Message, error)
 
 	UserHasPermission(userID, chatID uint, permissionName domain.PermissionType) (bool, error)

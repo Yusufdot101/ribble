@@ -11,6 +11,16 @@ import (
 
 func (h *handler) deleteMessage(ctx *gin.Context) {
 	currentUserID := context.UserIDFromContext(ctx)
+
+	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid chat id",
+		})
+		return
+	}
+	chatIDUint := uint(chatID)
+
 	messageID, err := strconv.ParseUint(ctx.Param("messageId"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -26,7 +36,8 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 	}
 	messageIDUint := uint(messageID)
 
-	chatID, err := h.csvc.DeleteMessage(currentUserID, messageIDUint)
+	// TODO: allow message deletion if user has delete permission, even if not owner
+	chatIDUint, err = h.csvc.DeleteMessage(chatIDUint, currentUserID, messageIDUint)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -39,7 +50,7 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 	})
 
 	// broadcast to all the connections
-	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
+	participants, err := h.csvc.GetChatParticipants(chatIDUint, currentUserID)
 	if err != nil {
 		// deletion succeeded; log and continue without broadcast
 		log.Printf("deleteMessage: get participants for chat %d failed: %v", chatID, err)

@@ -184,7 +184,11 @@ const ChatPage = () => {
                     setMessages((prev) =>
                         prev.map((message) =>
                             message.ClientID === data.clientID
-                                ? { ...message, Status: "delivered" }
+                                ? {
+                                      ...message,
+                                      Status: "delivered",
+                                      ID: data.id,
+                                  }
                                 : message,
                         ),
                     );

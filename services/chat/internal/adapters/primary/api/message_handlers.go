@@ -111,10 +111,11 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg websocket
 		return nil
 	}
 
-	_ = conn.WriteJSON(map[string]string{
+	_ = conn.WriteJSON(map[string]any{
 		"type":     "ack",
 		"clientID": msg.ClientID,
 		"message":  "message delivered",
+		"id":       message.ID,
 	})
 
 	for _, p := range participants {

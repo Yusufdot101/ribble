@@ -115,6 +115,39 @@ func (a *Adapter) DeleteMessage(userID, messageID uint) (uint, error) {
 	return messageModel.ChatID, nil
 }
 
+func (a *Adapter) DeleteAnyMessage(chatID, messageID uint) (uint, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var messageModel Message
+
+	err := a.db.WithContext(ctx).
+		Select("chat_id").
+		Where("id = ? AND chat_id = ?", messageID, chatID).
+		First(&messageModel).Error
+	if err != nil {
+		return 0, err
+	}
+
+	res := a.db.WithContext(ctx).
+		Model(&Message{}).
+		Where("id = ? AND chat_id = ?", messageID, chatID).
+		Updates(map[string]any{
+			"content":    "",
+			"deleted_at": gorm.Expr("Now()"),
+			"deleted":    true,
+		})
+	if res.Error != nil {
+		return 0, res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return 0, domain.ErrRecordNotFound
+	}
+
+	return messageModel.ChatID, nil
+}
+
 func (a *Adapter) EditMessage(userID, messageID uint, newContent string) (*domain.Message, error) {
 	if strings.TrimSpace(newContent) == "" {
 		return nil, domain.ErrInvalidMessageContent
