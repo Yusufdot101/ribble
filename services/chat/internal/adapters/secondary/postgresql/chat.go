@@ -15,6 +15,7 @@ type Chat struct {
 	Name         string
 	IsGroup      bool
 	Participants []ChatParticipant `gorm:"constraint:OnDelete:CASCADE;"`
+	Bans         []ChatBan         `gorm:"constraint:OnDelete:CASCADE;"`
 	Messages     []Message         `gorm:"constraint:OnDelete:CASCADE;"`
 	ChatRoles    []ChatRole        `gorm:"constraint:OnDelete:CASCADE;"`
 }
