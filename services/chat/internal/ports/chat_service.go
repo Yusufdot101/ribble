@@ -1,6 +1,8 @@
 package ports
 
 import (
+	"time"
+
 	userpb "github.com/Yusufdot101/ripple-proto/golang/user/v4"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 )
@@ -23,7 +25,9 @@ type ChatService interface {
 
 	UserHasPermission(userID, chatID uint, permissionName domain.PermissionType) (bool, error)
 
-	AddUsersToGroup(chatID uint, userID []uint) error
-	RemoveUserFromGroup(chatID, userID uint) error
+	AddUsersToGroup(chatID, currentUserID uint, userID []uint) error
+	RemoveUserFromGroup(chatID, currentUserID, userID uint) error
 	GetUserPermissions(chatID, userID uint) ([]*domain.Permission, error)
+
+	BanUser(chatIDUint, currentUserID, userID uint, reason string, ExpiresAt *time.Time) error
 }
