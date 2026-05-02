@@ -255,9 +255,18 @@ func (csvc *ChatService) GetUserPermissions(chatID, userID uint) ([]*domain.Perm
 	return csvc.repo.GetUserPermissions(userID, chatID)
 }
 
-func (csvc *ChatService) AddUsersToGroup(chatID uint, userIDs []uint) error {
+func (csvc *ChatService) AddUsersToGroup(chatID, currentUserID uint, userIDs []uint) error {
 	if len(userIDs) == 0 {
 		return domain.ErrInvalidUserIDs
+	}
+
+	userHasPermission, err := csvc.UserHasPermission(currentUserID, chatID, domain.AddToGroup)
+	if err != nil {
+		return domain.ErrNotPermitted
+	}
+
+	if !userHasPermission {
+		return domain.ErrNotPermitted
 	}
 
 	chatParticipants := []*domain.ChatParticipant{}
@@ -284,6 +293,46 @@ func (csvc *ChatService) AddUsersToGroup(chatID uint, userIDs []uint) error {
 	})
 }
 
-func (csvc *ChatService) RemoveUserFromGroup(chatID, userID uint) error {
+func (csvc *ChatService) RemoveUserFromGroup(chatID, currentUserID, userID uint) error {
+	if currentUserID != userID {
+		userHasPermission, err := csvc.UserHasPermission(currentUserID, chatID, domain.RemoveUserFromGroup)
+		if err != nil {
+			return domain.ErrNotPermitted
+		}
+
+		if !userHasPermission {
+			return domain.ErrNotPermitted
+		}
+	}
+
 	return csvc.repo.DeleteChatParticipant(chatID, userID)
+}
+
+func (csvc *ChatService) BanUser(
+	chatID, currentUserID, userID uint, reason string, expiresAt *time.Time,
+) error {
+	userHasPermission, err := csvc.UserHasPermission(currentUserID, chatID, domain.BanUsers)
+	if err != nil {
+		return domain.ErrNotPermitted
+	}
+
+	if !userHasPermission {
+		return domain.ErrNotPermitted
+	}
+
+	err = csvc.repo.WithTx(func(repo ports.Repository) error {
+		err = csvc.RemoveUserFromGroup(chatID, currentUserID, userID)
+		if err != nil {
+			return err
+		}
+
+		chatBan := domain.NewChatBan(chatID, userID, currentUserID, reason, expiresAt)
+		err = csvc.repo.InsertChatBan(chatBan)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	return err
 }
