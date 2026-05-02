@@ -7,6 +7,7 @@ const (
 	AddToGroup          PermissionType = "add users to group"
 	RemoveUserFromGroup PermissionType = "remove users from group"
 	DeleteMessages      PermissionType = "delete messages"
+	BanUsers            PermissionType = "ban users"
 )
 
 type Permission struct {
