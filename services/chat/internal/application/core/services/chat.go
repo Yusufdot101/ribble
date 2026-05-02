@@ -210,7 +210,7 @@ func (csvc *ChatService) DeleteMessage(chatID, userID, messageID uint) (uint, er
 	if hasPermission {
 		_, err = csvc.repo.DeleteAnyMessage(chatID, messageID)
 	} else {
-		_, err = csvc.repo.DeleteMessage(userID, messageID)
+		_, err = csvc.repo.DeleteMessage(chatID, userID, messageID)
 	}
 	return chatID, err
 }

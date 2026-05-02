@@ -54,7 +54,7 @@ func (rts *RepositoryTestSuite) TestDeleteMessage() {
 	err = adapater.InsertMessage(message)
 	rts.Require().Nil(err)
 
-	chatID, err := adapater.DeleteMessage(userID, message.ID)
+	chatID, err := adapater.DeleteMessage(chat.ID, userID, message.ID)
 	rts.Require().Nil(err)
 	rts.Require().Equal(chat.ID, chatID)
 

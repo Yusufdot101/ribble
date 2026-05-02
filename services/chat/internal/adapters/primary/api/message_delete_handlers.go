@@ -36,7 +36,6 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 	}
 	messageIDUint := uint(messageID)
 
-	// TODO: allow message deletion if user has delete permission, even if not owner
 	chatIDUint, err = h.csvc.DeleteMessage(chatIDUint, currentUserID, messageIDUint)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
