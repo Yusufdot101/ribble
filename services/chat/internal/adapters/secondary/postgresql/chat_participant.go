@@ -110,31 +110,3 @@ func (a *Adapter) GetParticipantsByChatIDs(chatIDs []uint) (map[uint][]domain.Ch
 
 	return chatUsers, nil
 }
-
-type ChatBan struct {
-	gorm.Model
-	UserID         uint `gorm:"uniqueIndex:user_chat_idx"`
-	ChatID         uint `gorm:"uniqueIndex:user_chat_idx"`
-	BannedByUserID uint
-	Reason         string
-	ExpiresAt      *time.Time
-}
-
-func (a *Adapter) InsertChatBan(chatBan *domain.ChatBan) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	chatBanModel := &ChatBan{
-		ChatID:         chatBan.ChatID,
-		UserID:         chatBan.UserID,
-		BannedByUserID: chatBan.BannedByUserID,
-		Reason:         chatBan.Reason,
-		ExpiresAt:      chatBan.ExpiresAt,
-	}
-	res := a.db.WithContext(ctx).Save(chatBanModel)
-	if res.Error == nil {
-		chatBan.ID = chatBanModel.ID
-	}
-
-	return res.Error
-}

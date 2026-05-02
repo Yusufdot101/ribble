@@ -1,8 +1,6 @@
 package postgresql
 
 import (
-	"time"
-
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 )
 
@@ -16,20 +14,6 @@ func (rts *RepositoryTestSuite) TestInsertChatParticipants() {
 
 	chatParticipant := domain.NewChatParticipant(1, chat.ID)
 	err = adapater.InsertChatParticipants([]*domain.ChatParticipant{chatParticipant})
-	rts.Nil(err)
-}
-
-func (rts *RepositoryTestSuite) TestInsertChatBan() {
-	adapater, err := NewAdapter(rts.dataSourceURL)
-	rts.Require().Nil(err)
-
-	chat := domain.NewChat("", false)
-	err = adapater.InsertChat(chat)
-	rts.Require().Nil(err)
-
-	expiration := time.Now().Add(time.Hour)
-	chatBan := domain.NewChatBan(chat.ID, 1, 1, "", &expiration)
-	err = adapater.InsertChatBan(chatBan)
 	rts.Nil(err)
 }
 
