@@ -13,4 +13,6 @@ var (
 	ErrInvalidChatRole   = errors.New("invalid chat role")
 
 	ErrNotPermitted = errors.New("not permitted")
+
+	ErrBannedUser = errors.New("user is banned from chat")
 )

@@ -271,8 +271,21 @@ func (csvc *ChatService) AddUsersToGroup(chatID, currentUserID uint, userIDs []u
 		return domain.ErrNotPermitted
 	}
 
+	chatBans, err := csvc.repo.GetChatBans(chatID)
+	if err != nil {
+		return err
+	}
+
+	excludedUsersID := []uint{}
+	for _, ban := range chatBans {
+		excludedUsersID = append(excludedUsersID, ban.UserID)
+	}
+
 	chatParticipants := []*domain.ChatParticipant{}
 	for _, userID := range userIDs {
+		if slices.Contains(excludedUsersID, userID) {
+			return domain.ErrBannedUser
+		}
 		chatParticipants = append(chatParticipants, domain.NewChatParticipant(userID, chatID))
 	}
 	return csvc.repo.WithTx(func(repo ports.Repository) error {
