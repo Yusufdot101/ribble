@@ -10,8 +10,8 @@ import (
 
 type ChatBan struct {
 	gorm.Model
-	UserID         uint `gorm:"uniqueIndex:user_chat_idx"`
-	ChatID         uint `gorm:"uniqueIndex:user_chat_idx"`
+	UserID         uint
+	ChatID         uint
 	BannedByUserID uint
 	Reason         string
 	ExpiresAt      *time.Time
@@ -40,7 +40,7 @@ func (a *Adapter) GetChatBans(chatID uint) ([]*domain.ChatBan, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	chatBanModels := []*domain.ChatBan{}
+	chatBanModels := []*ChatBan{}
 	err := a.db.WithContext(ctx).Where("expires_at > ?", time.Now()).Find(&chatBanModels).Error
 	if err != nil {
 		return nil, err
@@ -59,4 +59,19 @@ func (a *Adapter) GetChatBans(chatID uint) ([]*domain.ChatBan, error) {
 	}
 
 	return chatBans, nil
+}
+
+func (a *Adapter) DeleteChatBan(chatID, userID uint) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res := a.db.WithContext(ctx).Where("chat_id = ? AND user_id = ?", chatID, userID).Delete(&ChatBan{})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return domain.ErrRecordNotFound
+	}
+
+	return nil
 }
