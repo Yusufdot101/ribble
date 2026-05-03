@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/parameter"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/gin-gonic/gin"
 )
@@ -26,16 +26,15 @@ func (h *handler) addToGroup(c *gin.Context) {
 	}
 	currentUserID := context.UserIDFromContext(c)
 
-	chatID, err := strconv.ParseUint(c.Param("chatId"), 10, strconv.IntSize)
-	chatIDUint := uint(chatID)
+	chatID, err := parameter.GetParameterValueUint(c, "chatId")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid chat id",
+			"error": err.Error(),
 		})
 		return
 	}
 
-	err = h.csvc.AddUsersToGroup(chatIDUint, currentUserID, req.UserIDs)
+	err = h.csvc.AddUsersToGroup(chatID, currentUserID, req.UserIDs)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, domain.ErrNotPermitted) {
@@ -74,13 +73,13 @@ func (h *handler) addToGroup(c *gin.Context) {
 	}
 	usernames := strings.Join(names, ", ")
 
-	message, err := h.csvc.NewMessage(currentUserID, chatIDUint, fmt.Sprintf("%s added %s", currentUser.Name, usernames), domain.SystemMessage)
+	message, err := h.csvc.NewMessage(currentUserID, chatID, fmt.Sprintf("%s added %s", currentUser.Name, usernames), domain.SystemMessage)
 	if err != nil {
 		log.Printf("error sending system message: %v\n", err)
 		return
 	}
 
-	participants, err := h.csvc.GetChatParticipants(chatIDUint, currentUserID)
+	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
 	if err != nil {
 		log.Printf("error getting chat participants: %v\n", err)
 		return
@@ -94,26 +93,24 @@ func (h *handler) addToGroup(c *gin.Context) {
 func (h *handler) removeFromGroup(c *gin.Context) {
 	currentUserID := context.UserIDFromContext(c)
 
-	chatID, err := strconv.ParseUint(c.Param("chatId"), 10, strconv.IntSize)
+	chatID, err := parameter.GetParameterValueUint(c, "chatId")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid chat id",
+			"error": err.Error(),
 		})
 		return
 	}
-	chatIDUint := uint(chatID)
 
-	userID, err := strconv.ParseUint(c.Param("userId"), 10, strconv.IntSize)
+	userID, err := parameter.GetParameterValueUint(c, "userId")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid user id",
+			"error": err.Error(),
 		})
 		return
 	}
-	userIDUint := uint(userID)
 
 	// get the chat members before removing the user to avoid not found error, as the user wont be allowed if he is not in the chat
-	participants, err := h.csvc.GetChatParticipants(chatIDUint, currentUserID)
+	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to get chat participants",
@@ -122,7 +119,7 @@ func (h *handler) removeFromGroup(c *gin.Context) {
 		return
 	}
 
-	err = h.csvc.RemoveUserFromGroup(chatIDUint, currentUserID, userIDUint)
+	err = h.csvc.RemoveUserFromGroup(chatID, currentUserID, userID)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, domain.ErrNotPermitted) {
@@ -138,18 +135,18 @@ func (h *handler) removeFromGroup(c *gin.Context) {
 		"message": "user removed from group",
 	})
 
-	users, err := h.csvc.SearchUsers("", []uint{currentUserID, userIDUint})
+	users, err := h.csvc.SearchUsers("", []uint{currentUserID, userID})
 	if err != nil {
 		log.Printf("error getting current user: %v\n", err)
 		return
 	}
-	if (len(users) != 2 && currentUserID != userIDUint) || (len(users) != 1 && currentUserID == userIDUint) {
+	if (len(users) != 2 && currentUserID != userID) || (len(users) != 1 && currentUserID == userID) {
 		log.Printf("user not found: %d\n", currentUserID)
 		return
 	}
 
 	var content string
-	if currentUserID == userIDUint {
+	if currentUserID == userID {
 		content = fmt.Sprintf("%s left the group", users[0].Name)
 	} else {
 		var actorName, targetName string
@@ -157,14 +154,14 @@ func (h *handler) removeFromGroup(c *gin.Context) {
 			if user.Id == uint32(currentUserID) {
 				actorName = user.Name
 			}
-			if user.Id == uint32(userIDUint) {
+			if user.Id == uint32(userID) {
 				targetName = user.Name
 			}
 		}
 		content = fmt.Sprintf("%s removed %s", actorName, targetName)
 	}
 
-	message, err := h.csvc.NewMessage(currentUserID, chatIDUint, content, domain.SystemMessage)
+	message, err := h.csvc.NewMessage(currentUserID, userID, content, domain.SystemMessage)
 	if err != nil {
 		log.Printf("error sending system message: %v\n", err)
 		return
@@ -190,16 +187,15 @@ func (h *handler) banFromGroup(c *gin.Context) {
 
 	currentUserID := context.UserIDFromContext(c)
 
-	chatID, err := strconv.ParseUint(c.Param("chatId"), 10, strconv.IntSize)
+	chatID, err := parameter.GetParameterValueUint(c, "chatId")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid chat id",
+			"error": err.Error(),
 		})
 		return
 	}
-	chatIDUint := uint(chatID)
 
-	err = h.csvc.BanUser(chatIDUint, currentUserID, req.UserID, req.Reason, req.ExpiresAt)
+	err = h.csvc.BanUser(chatID, currentUserID, req.UserID, req.Reason, req.ExpiresAt)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, domain.ErrNotPermitted) {
@@ -236,14 +232,13 @@ func (h *handler) banFromGroup(c *gin.Context) {
 	}
 	content := fmt.Sprintf("%s banned %s for %s", actorName, targetName, req.Reason)
 
-	message, err := h.csvc.NewMessage(currentUserID, chatIDUint, content, domain.SystemMessage)
+	message, err := h.csvc.NewMessage(currentUserID, chatID, content, domain.SystemMessage)
 	if err != nil {
 		log.Printf("error sending system message: %v\n", err)
 		return
 	}
 
-	// get the chat members before removing the user to avoid not found error, as the user wont be allowed if he is not in the chat
-	participants, err := h.csvc.GetChatParticipants(chatIDUint, currentUserID)
+	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
 	if err != nil {
 		log.Printf("error getting chat participants: %v\n", err)
 		return
@@ -257,25 +252,23 @@ func (h *handler) banFromGroup(c *gin.Context) {
 func (h *handler) unbanFromGroup(c *gin.Context) {
 	currentUserID := context.UserIDFromContext(c)
 
-	chatID, err := strconv.ParseUint(c.Param("chatId"), 10, strconv.IntSize)
+	chatID, err := parameter.GetParameterValueUint(c, "chatId")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid chat id",
+			"error": err.Error(),
 		})
 		return
 	}
-	chatIDUint := uint(chatID)
 
-	userID, err := strconv.ParseUint(c.Param("userId"), 10, strconv.IntSize)
+	userID, err := parameter.GetParameterValueUint(c, "userId")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid chat id",
+			"error": err.Error(),
 		})
 		return
 	}
-	userIDUint := uint(userID)
 
-	err = h.csvc.UnbanUser(chatIDUint, currentUserID, userIDUint)
+	err = h.csvc.UnbanUser(chatID, currentUserID, userID)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, domain.ErrNotPermitted) {
@@ -291,7 +284,7 @@ func (h *handler) unbanFromGroup(c *gin.Context) {
 		"message": "user unbanned from group",
 	})
 
-	users, err := h.csvc.SearchUsers("", []uint{currentUserID, userIDUint})
+	users, err := h.csvc.SearchUsers("", []uint{currentUserID, userID})
 	if err != nil {
 		log.Printf("error getting current user: %v\n", err)
 		return
@@ -312,14 +305,13 @@ func (h *handler) unbanFromGroup(c *gin.Context) {
 	}
 	content := fmt.Sprintf("%s unbanned %s", actorName, targetName)
 
-	message, err := h.csvc.NewMessage(currentUserID, chatIDUint, content, domain.SystemMessage)
+	message, err := h.csvc.NewMessage(currentUserID, userID, content, domain.SystemMessage)
 	if err != nil {
 		log.Printf("error sending system message: %v\n", err)
 		return
 	}
 
-	// get the chat members before removing the user to avoid not found error, as the user wont be allowed if he is not in the chat
-	participants, err := h.csvc.GetChatParticipants(chatIDUint, currentUserID)
+	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
 	if err != nil {
 		log.Printf("error getting chat participants: %v\n", err)
 		return
