@@ -41,7 +41,7 @@ func (a *Adapter) GetChatBans(chatID uint) ([]*domain.ChatBan, error) {
 	defer cancel()
 
 	chatBanModels := []*domain.ChatBan{}
-	err := a.db.WithContext(ctx).Find(&chatBanModels).Error
+	err := a.db.WithContext(ctx).Where("expires_at > ?", time.Now()).Find(&chatBanModels).Error
 	if err != nil {
 		return nil, err
 	}

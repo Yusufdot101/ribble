@@ -16,7 +16,7 @@ func NewAdapter(databaseURL string) (*Adapter, error) {
 	}
 
 	err = db.AutoMigrate(
-		&Chat{}, &Message{}, &ChatParticipant{}, &Permission{}, &Role{}, &ChatRolePermission{}, &ChatRole{},
+		&Chat{}, &Message{}, &ChatParticipant{}, &ChatRolePermission{}, &ChatRole{},
 		&ChatBan{},
 	)
 	if err != nil {
