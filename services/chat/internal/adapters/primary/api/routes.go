@@ -27,8 +27,9 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	group.GET("/:chatId/addable-users", middleware.RequireAuthentication(h.getAddableChatUsers))
 	group.POST("/:chatId/addToGroup", middleware.RequireAuthentication(h.addToGroup))
 	group.DELETE("/:chatId/users/:userId", middleware.RequireAuthentication(h.removeFromGroup))
-	group.POST("/:chatId/ban", middleware.RequireAuthentication(h.banFromGroup))
 	group.GET("/:chatId/permissions", middleware.RequireAuthentication(h.getUserPermissions))
+	group.POST("/:chatId/ban", middleware.RequireAuthentication(h.banFromGroup))
+	group.DELETE("/:chatId/ban/:userId", middleware.RequireAuthentication(h.unbanFromGroup))
 
 	messageGroup := group.Group("/:chatId/messages")
 	messageGroup.GET("", middleware.RequireAuthentication(h.getMessages))

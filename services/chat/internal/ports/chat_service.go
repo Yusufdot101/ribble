@@ -29,6 +29,7 @@ type ChatService interface {
 	RemoveUserFromGroup(chatID, currentUserID, userID uint) error
 	GetUserPermissions(chatID, userID uint) ([]*domain.Permission, error)
 
-	BanUser(chatIDUint, currentUserID, userID uint, reason string, ExpiresAt *time.Time) error
+	BanUser(chatID, currentUserID, userID uint, reason string, ExpiresAt *time.Time) error
 	GetAddableChatUsers(chatID, currentUserID uint, query string) ([]*userpb.User, error)
+	UnbanUser(chatID, currentUserID, userID uint) error
 }

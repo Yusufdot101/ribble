@@ -253,3 +253,79 @@ func (h *handler) banFromGroup(c *gin.Context) {
 		h.hub.SendToUser(p.UserID, message)
 	}
 }
+
+func (h *handler) unbanFromGroup(c *gin.Context) {
+	currentUserID := context.UserIDFromContext(c)
+
+	chatID, err := strconv.ParseUint(c.Param("chatId"), 10, strconv.IntSize)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid chat id",
+		})
+		return
+	}
+	chatIDUint := uint(chatID)
+
+	userID, err := strconv.ParseUint(c.Param("userId"), 10, strconv.IntSize)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid chat id",
+		})
+		return
+	}
+	userIDUint := uint(userID)
+
+	err = h.csvc.UnbanUser(chatIDUint, currentUserID, userIDUint)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, domain.ErrNotPermitted) {
+			status = http.StatusForbidden
+		}
+		c.JSON(status, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "user unbanned from group",
+	})
+
+	users, err := h.csvc.SearchUsers("", []uint{currentUserID, userIDUint})
+	if err != nil {
+		log.Printf("error getting current user: %v\n", err)
+		return
+	}
+	if len(users) != 2 {
+		log.Printf("users not found: %d\n", currentUserID)
+		return
+	}
+
+	var actorName, targetName string
+	for _, user := range users {
+		if user.Id == uint32(currentUserID) {
+			actorName = user.Name
+		}
+		if user.Id == uint32(userID) {
+			targetName = user.Name
+		}
+	}
+	content := fmt.Sprintf("%s unbanned %s", actorName, targetName)
+
+	message, err := h.csvc.NewMessage(currentUserID, chatIDUint, content, domain.SystemMessage)
+	if err != nil {
+		log.Printf("error sending system message: %v\n", err)
+		return
+	}
+
+	// get the chat members before removing the user to avoid not found error, as the user wont be allowed if he is not in the chat
+	participants, err := h.csvc.GetChatParticipants(chatIDUint, currentUserID)
+	if err != nil {
+		log.Printf("error getting chat participants: %v\n", err)
+		return
+	}
+
+	for _, p := range participants {
+		h.hub.SendToUser(p.UserID, message)
+	}
+}

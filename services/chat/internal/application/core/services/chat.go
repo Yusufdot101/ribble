@@ -379,3 +379,16 @@ func (csvc *ChatService) GetAddableChatUsers(chatID, currentUserID uint, query s
 
 	return grpcUsers, nil
 }
+
+func (csvc *ChatService) UnbanUser(chatID, currentUserID, userID uint) error {
+	userHasPermission, err := csvc.UserHasPermission(currentUserID, chatID, domain.BanUsers)
+	if err != nil {
+		return domain.ErrNotPermitted
+	}
+
+	if !userHasPermission {
+		return domain.ErrNotPermitted
+	}
+
+	return csvc.repo.DeleteChatBan(chatID, userID)
+}
