@@ -9,7 +9,7 @@ type Props = {
     hasPermission: (permissionName: string) => boolean;
 };
 
-const Menu = ({ chatID, currentGroupUsers, hasPermission }: Props) => {
+const Menu = ({ chatID, hasPermission }: Props) => {
     const [menuIsOpen, setMenuIsOpen] = useState(false);
 
     const [addToGroupIsOpen, setAddToGroupIsOpen] = useState(false);

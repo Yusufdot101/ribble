@@ -1,7 +1,7 @@
 "use client";
 import Contacts from "@/components/Contacts";
-import { getAddableChatUsers, getUsersByEmail, UserType } from "@/utils/users";
-import { useEffect, useState } from "react";
+import { getAddableChatUsers, UserType } from "@/utils/users";
+import { useCallback, useEffect, useState } from "react";
 import BackArrowButton from "./BackArrowButton";
 import XButton from "./XButton";
 import SearchBar from "./SearchBar";
@@ -31,19 +31,22 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatID }: Props) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const [users, setUsers] = useState<UserType[]>([]);
-    const searchUsers = async (email: string = "") => {
-        setIsLoading(true);
-        try {
-            const users = await getAddableChatUsers(chatID, email);
-            setUsers(users ?? []);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const searchUsers = useCallback(
+        async (email: string = "") => {
+            setIsLoading(true);
+            try {
+                const users = await getAddableChatUsers(chatID, email);
+                setUsers(users ?? []);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [chatID],
+    );
 
     useEffect(() => {
         (() => searchUsers())();
-    }, []);
+    }, [searchUsers]);
 
     const addToGroup = async () => {
         if (selectedUsers.length === 0) return;
@@ -56,7 +59,7 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatID }: Props) => {
 
     return (
         <div
-            className={`${addToGroupIsOpen ? "translate-x-0" : "translate-x-full"} transition-transform absolute w-full bg-background top-1/2 translate-y-1/2 duration-300 flex-1 flex overflow-x-hidden`}
+            className={`${addToGroupIsOpen ? "translate-x-0" : "translate-x-full"} transition-transform absolute w-full bg-background z-10 top-1/2 translate-y-1/2 duration-300 flex-1 flex overflow-x-hidden`}
         >
             <div className="h-full transition-transform duration-300 ease-in-out flex flex-1 flex-col gap-y-[8px]">
                 <div className="flex w-full h-[32px] gap-x-[8px] items-center">
@@ -101,7 +104,7 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatID }: Props) => {
                             users={users}
                             handleUserClick={handleClick}
                             selectedUsers={selectedUsers.map((user) => user.id)}
-                            excludeUsers={[]}
+                            excludeUsers={selectedUsers.map((user) => user.id)}
                         />
                     </div>
 

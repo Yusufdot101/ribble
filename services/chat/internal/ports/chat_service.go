@@ -32,4 +32,5 @@ type ChatService interface {
 	BanUser(chatID, currentUserID, userID uint, reason string, ExpiresAt *time.Time) error
 	GetAddableChatUsers(chatID, currentUserID uint, query string) ([]*userpb.User, error)
 	UnbanUser(chatID, currentUserID, userID uint) error
+	GetBannedUsers(chatID uint, query string) ([]*userpb.User, error)
 }

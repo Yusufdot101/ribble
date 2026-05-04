@@ -305,7 +305,7 @@ func (h *handler) unbanFromGroup(c *gin.Context) {
 	}
 	content := fmt.Sprintf("%s unbanned %s", actorName, targetName)
 
-	message, err := h.csvc.NewMessage(currentUserID, userID, content, domain.SystemMessage)
+	message, err := h.csvc.NewMessage(currentUserID, chatID, content, domain.SystemMessage)
 	if err != nil {
 		log.Printf("error sending system message: %v\n", err)
 		return
@@ -320,4 +320,32 @@ func (h *handler) unbanFromGroup(c *gin.Context) {
 	for _, p := range participants {
 		h.hub.SendToUser(p.UserID, message)
 	}
+}
+
+func (h *handler) getBannedUsers(c *gin.Context) {
+	chatID, err := parameter.GetParameterValueUint(c, "chatId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	q := c.Query("q")
+
+	bannedUsers, err := h.csvc.GetBannedUsers(chatID, q)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, domain.ErrRecordNotFound) {
+			status = http.StatusNotFound
+		}
+		c.JSON(status, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"users": bannedUsers,
+	})
 }

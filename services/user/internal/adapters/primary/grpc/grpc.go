@@ -69,6 +69,7 @@ func (a *Adapter) SearchUsers(ctx context.Context, req *userpb.SearchUsersReques
 	for _, user := range users {
 		grpcUsers = append(grpcUsers, &userpb.User{
 			Name:     user.Name,
+			Email:    user.Email,
 			Id:       uint32(user.ID),
 			Sub:      user.Sub,
 			Provider: user.Provider,

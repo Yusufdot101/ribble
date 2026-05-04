@@ -6,7 +6,12 @@ import BackArrowButton from "./BackArrowButton";
 import SearchBar from "./SearchBar";
 import { getChatUsers } from "@/utils/chats";
 import { useAuthStore } from "@/store/useAuthStore";
-import { banUser, removeUserFromGroup } from "@/utils/groups";
+import {
+    banUser,
+    getBannedUsers,
+    removeUserFromGroup,
+    unbanUser,
+} from "@/utils/groups";
 import { useRouter } from "next/navigation";
 
 interface Props {
@@ -24,7 +29,9 @@ const GroupMembers = ({
 }: Props) => {
     const [isLoading, setIsLoading] = useState(false);
     const [users, setUsers] = useState<UserType[]>([]);
+    const [bannedUsers, setBannedUsers] = useState<UserType[]>([]);
     const [clickedUser, setClickedUser] = useState<UserType>();
+    const [clickedUserIsBanned, setClickedUserIsBanned] = useState(false);
     const [menuIsOpen, setMenuIsOpen] = useState(false);
     const [banMenuIsOpen, setBanMenuIsOpen] = useState(false);
 
@@ -34,6 +41,10 @@ const GroupMembers = ({
 
     const handleBanUser = async () => {
         if (!clickedUser) return;
+
+        if (!confirm(`are you sure you want to ban ${clickedUser?.name}`))
+            return;
+
         const success = await banUser(
             chatID,
             clickedUser.id,
@@ -44,6 +55,18 @@ const GroupMembers = ({
         if (!success) return;
         setMenuIsOpen(false);
         setBanMenuIsOpen(false);
+        handleClose();
+    };
+
+    const handleUnBanUser = async () => {
+        if (!clickedUser) return;
+        if (!confirm(`are you sure you want to unban ${clickedUser?.name}`))
+            return;
+        const success = await unbanUser(chatID, clickedUser.id);
+        if (!success) return;
+        setMenuIsOpen(false);
+        setBanMenuIsOpen(false);
+        handleClose();
     };
 
     const searchUsers = useCallback(
@@ -51,11 +74,13 @@ const GroupMembers = ({
             setIsLoading(true);
             try {
                 let users = await getChatUsers(chatID);
+                const bannedUsers = await getBannedUsers(chatID, value);
                 users = users?.filter(
                     (user) =>
                         user.name.includes(value) || user.email.includes(value),
                 );
                 setUsers(users ?? []);
+                setBannedUsers(bannedUsers);
             } finally {
                 setIsLoading(false);
             }
@@ -73,6 +98,16 @@ const GroupMembers = ({
     }, [searchUsers]);
 
     const handleRemove = async (userID: number) => {
+        if (
+            (userID === loggedInUserID &&
+                !confirm(`are you sure you want to exist this group`)) ||
+            !clickedUser ||
+            !confirm(
+                `are you sure you want to remove ${clickedUser.name} from this group`,
+            )
+        ) {
+            return;
+        }
         await removeUserFromGroup(chatID, userID);
         setUsers((prev) => prev.filter((user) => user.id !== userID));
         setMenuIsOpen(false);
@@ -84,7 +119,7 @@ const GroupMembers = ({
 
     return (
         <div
-            className={`${groupMembersIsOpen ? "translate-x-0" : "translate-x-full"} transition-transform absolute w-full bg-background top-1/2 translate-y-1/2 duration-300 flex-1 flex overflow-x-hidden z-10 flex-col gap-y-[8px]`}
+            className={`${groupMembersIsOpen ? "translate-x-0" : "translate-x-full"} transition-transform absolute w-full bg-background top-1/2 translate-y-1/2 duration-300 flex-1 flex overflow-x-hidden z-10 flex-col gap-y-[1px]`}
             onClick={() => setMenuIsOpen(false)}
             onKeyDown={(e) => {
                 if (e.key !== "Escape") return;
@@ -112,6 +147,7 @@ const GroupMembers = ({
                             handleUserClick={() => {}}
                             handleUserRightClick={(user: UserType) => {
                                 handleRightClick(user);
+                                setClickedUserIsBanned(false);
                             }}
                             selectedUsers={[]}
                             excludeUsers={
@@ -122,58 +158,80 @@ const GroupMembers = ({
                 </div>
             </div>
 
+            <div className="h-full max-h-[200px] overflow-y-scroll">
+                <p className="w-full text-center">Banned Users</p>
+                <Contacts
+                    isLoading={isLoading}
+                    users={bannedUsers}
+                    handleUserClick={() => {}}
+                    handleUserRightClick={(user: UserType) => {
+                        handleRightClick(user);
+                        setClickedUserIsBanned(true);
+                    }}
+                    selectedUsers={[]}
+                    excludeUsers={[]}
+                />
+            </div>
+
             <div
                 className={`${menuIsOpen ? "max-h-96 p-[4px]" : "max-h-0 invisible p-0"} z-1 duration-300 flex justify-center items-center absolute overflow-hidden h-full w-full bg-background/80`}
             >
                 <div className="bg-background w-80 border-1 border-foreground rounded-[4px] flex flex-col justify-center">
-                    {hasPermission("remove users from group") && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (!clickedUser) return;
-                                if (
-                                    !confirm(
-                                        `are you sure you want to remove ${clickedUser.name} from this group`,
-                                    )
-                                )
-                                    return;
-                                handleRemove(clickedUser.id);
-                            }}
-                            onKeyDown={(e) => {
-                                e.stopPropagation();
-                                if (e.key !== "Enter") return;
-                                if (!clickedUser) return;
-                                if (
-                                    !confirm(
-                                        `are you sure you want to remove ${clickedUser.name} from this group`,
-                                    )
-                                )
-                                    return;
-                                handleRemove(clickedUser.id);
-                                router.push("/chats");
-                            }}
-                            className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
-                        >
-                            Remove {clickedUser?.name}
-                        </button>
-                    )}
+                    {!clickedUserIsBanned &&
+                        hasPermission("remove users from group") && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemove(clickedUser.id);
+                                }}
+                                onKeyDown={(e) => {
+                                    e.stopPropagation();
+                                    if (e.key !== "Enter") return;
+                                    handleRemove(clickedUser.id);
+                                    router.push("/chats");
+                                }}
+                                className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
+                            >
+                                Remove {clickedUser?.name}
+                            </button>
+                        )}
 
-                    {hasPermission("ban users") && (
+                    {!clickedUserIsBanned && hasPermission("ban users") && (
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setMenuIsOpen(false);
                                 setBanMenuIsOpen(true);
+                                handleBanUser();
                             }}
                             onKeyDown={(e) => {
                                 if (e.key !== "Enter") return;
                                 e.stopPropagation();
                                 setMenuIsOpen(false);
                                 setBanMenuIsOpen(true);
+                                handleBanUser();
                             }}
                             className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
                         >
                             Ban {clickedUser?.name}
+                        </button>
+                    )}
+
+                    {clickedUserIsBanned && hasPermission("ban users") && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleUnBanUser();
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key !== "Enter") return;
+                                e.stopPropagation();
+                                e.preventDefault();
+                                handleBanUser();
+                            }}
+                            className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
+                        >
+                            Unban {clickedUser?.name}
                         </button>
                     )}
                 </div>
@@ -194,6 +252,12 @@ const GroupMembers = ({
                                 e.stopPropagation();
                             }}
                             onSubmit={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                handleBanUser();
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key !== "Enter") return;
                                 e.stopPropagation();
                                 e.preventDefault();
                                 handleBanUser();
@@ -286,8 +350,6 @@ const GroupMembers = ({
             <button
                 onClick={() => {
                     if (!loggedInUserID) return;
-                    if (!confirm("are you sure you want to leave this group"))
-                        return;
                     handleRemove(loggedInUserID);
                 }}
                 className="w-full bg-red-500 p-[4px] rounded-[4px] cursor-pointer hover:bg-red-600 active:bg-red-500 duration-300"

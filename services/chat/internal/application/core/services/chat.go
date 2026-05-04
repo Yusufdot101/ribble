@@ -392,3 +392,24 @@ func (csvc *ChatService) UnbanUser(chatID, currentUserID, userID uint) error {
 
 	return csvc.repo.DeleteChatBan(chatID, userID)
 }
+
+func (csvc *ChatService) GetBannedUsers(chatID uint, query string) ([]*userpb.User, error) {
+	ctx := context.Background()
+	chatBans, err := csvc.repo.GetChatBans(chatID)
+	if err != nil {
+		return nil, err
+	}
+
+	bannedUsersID := []uint{}
+
+	for _, ban := range chatBans {
+		bannedUsersID = append(bannedUsersID, ban.UserID)
+	}
+
+	grpcUsers, err := csvc.userService.SearchUsers(ctx, query, bannedUsersID)
+	if err != nil {
+		return nil, err
+	}
+
+	return grpcUsers, nil
+}
