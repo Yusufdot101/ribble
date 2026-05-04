@@ -22,12 +22,12 @@ func (rts *RepositoryTestSuite) TestGetUserPermissions() {
 	rts.Require().Nil(err)
 
 	// create role
-	role := domain.NewRole(domain.Admin)
+	role := domain.NewRole("newRole")
 	err = adapater.NewRole(role)
 	rts.Require().Nil(err)
 
 	// create permission
-	permission := domain.NewPermission(domain.SendMessage)
+	permission := domain.NewPermission("newPermission")
 	err = adapater.NewPermission(permission)
 	rts.Require().Nil(err)
 

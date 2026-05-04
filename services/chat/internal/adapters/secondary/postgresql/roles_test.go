@@ -44,7 +44,7 @@ func (rts *RepositoryTestSuite) TestNewChatRoleFail() {
 
 	// invalid role id
 	chatRole := domain.NewChatRole(chat.ID)
-	err = adapater.NewChatRole(chatRole, domain.Member)
+	err = adapater.NewChatRole(chatRole, "sth random role")
 	rts.Require().NotNil(err)
 	rts.Require().Equal(domain.ErrInvalidRole, err)
 }

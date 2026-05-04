@@ -1,14 +1,14 @@
-name: User CI
+name: Chat CI
 
 on:
     push:
         branches: [main]
         paths:
-            - "services/user/**"
+            - "services/chat/**"
     pull_request:
         branches: [main]
         paths:
-            - "services/user/**"
+            - "services/chat/**"
 
 jobs:
     test:
@@ -31,7 +31,7 @@ jobs:
                   args: --timeout=5m
 
             - name: Run tests
-              working-directory: services/user
+              working-directory: services/chat
               env:
                   REFRESH_TOKEN_TTL: ${{ secrets.REFRESH_TOKEN_TTL }}
                   JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
