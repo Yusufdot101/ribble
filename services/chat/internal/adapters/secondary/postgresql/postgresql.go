@@ -16,10 +16,6 @@ func NewAdapter(databaseURL string) (*Adapter, error) {
 		return nil, err
 	}
 
-	_ = db.Migrator().DropTable(
-		&Chat{}, &Message{}, &ChatParticipant{}, &ChatRolePermission{}, &ChatRole{}, &ChatBan{}, &Permission{},
-		&Role{},
-	)
 	err = db.AutoMigrate(
 		&Chat{}, &Message{}, &ChatParticipant{}, &Permission{}, &Role{}, &ChatRolePermission{}, &ChatRole{},
 		&ChatBan{},
