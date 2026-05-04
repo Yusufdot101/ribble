@@ -16,6 +16,10 @@ func NewAdapter(databaseURL string) (*Adapter, error) {
 		return nil, err
 	}
 
+	_ = db.Migrator().DropTable(
+		&Chat{}, &Message{}, &ChatParticipant{}, &ChatRolePermission{}, &ChatRole{}, &ChatBan{}, &Permission{},
+		&Role{},
+	)
 	err = db.AutoMigrate(
 		&Chat{}, &Message{}, &ChatParticipant{}, &Permission{}, &Role{}, &ChatRolePermission{}, &ChatRole{},
 		&ChatBan{},
@@ -37,6 +41,7 @@ func seedRBAC(db *gorm.DB) error {
 	roles := []Role{
 		{Name: domain.Admin},
 		{Name: domain.Member},
+		{Name: domain.Creator},
 	}
 	for _, r := range roles {
 		if err := db.Where("name = ?", r.Name).FirstOrCreate(&r).Error; err != nil {

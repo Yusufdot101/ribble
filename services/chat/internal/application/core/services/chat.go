@@ -61,6 +61,9 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 			case "admin":
 				chatRole = domain.NewChatRole(chat.ID)
 				err = repo.NewChatRole(chatRole, domain.Admin)
+			case "creator":
+				chatRole = domain.NewChatRole(chat.ID)
+				err = repo.NewChatRole(chatRole, domain.Creator)
 			default:
 				return fmt.Errorf("%w: %s", domain.ErrInvalidRole, roleName)
 			}
@@ -107,6 +110,7 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 
 		memberParticipants := []uint{}
 		adminParticipants := []uint{}
+		creatorParticipants := []uint{}
 		for _, userID := range userIDs {
 			// 5. grant role to users
 			roleName := createChatRequest.UserRoles[userID]
@@ -115,6 +119,8 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 				memberParticipants = append(memberParticipants, userID)
 			case "admin":
 				adminParticipants = append(adminParticipants, userID)
+			case "creator":
+				creatorParticipants = append(creatorParticipants, userID)
 			default:
 				return fmt.Errorf("%w: %s", domain.ErrInvalidRole, roleName)
 			}
@@ -125,6 +131,11 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 		}
 
 		err = repo.GrantUsersChatRoles(adminParticipants, chat.ID, domain.Admin)
+		if err != nil {
+			return err
+		}
+
+		err = repo.GrantUsersChatRoles(creatorParticipants, chat.ID, domain.Creator)
 		if err != nil {
 			return err
 		}

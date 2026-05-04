@@ -3,8 +3,9 @@ package domain
 type RoleType string
 
 var (
-	Admin  RoleType = "admin"
-	Member RoleType = "member"
+	Admin   RoleType = "admin"
+	Member  RoleType = "member"
+	Creator RoleType = "creator"
 )
 
 type Role struct {

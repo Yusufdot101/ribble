@@ -95,6 +95,9 @@ func (a *Adapter) GrantChatRolePermission(chatRoleID uint, permission domain.Per
 }
 
 func (a *Adapter) GrantUsersChatRoles(userIDs []uint, chatID uint, roleName domain.RoleType) error {
+	if len(userIDs) == 0 {
+		return nil
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

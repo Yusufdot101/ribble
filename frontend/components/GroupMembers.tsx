@@ -182,11 +182,13 @@ const GroupMembers = ({
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
+                                    if (!clickedUser) return;
                                     handleRemove(clickedUser.id);
                                 }}
                                 onKeyDown={(e) => {
                                     e.stopPropagation();
                                     if (e.key !== "Enter") return;
+                                    if (!clickedUser) return;
                                     handleRemove(clickedUser.id);
                                     router.push("/chats");
                                 }}

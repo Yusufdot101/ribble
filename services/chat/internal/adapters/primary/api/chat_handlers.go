@@ -23,11 +23,13 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 		createChatRequest.UserRoles = make(map[uint]string)
 	}
 
-	createChatRequest.UserRoles[currentUserID] = "admin"
+	createChatRequest.UserRoles[currentUserID] = "creator"
 	if len(createChatRequest.UserRoles) < 2 {
 		ctx.String(http.StatusBadRequest, "at least 2 participants required")
 		return
 	}
+
+	createChatRequest.RolePermissions["creator"] = createChatRequest.RolePermissions["admin"]
 
 	userIDs := slices.Collect(maps.Keys(createChatRequest.UserRoles))
 	var chat *domain.Chat
