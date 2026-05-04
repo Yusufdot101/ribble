@@ -8,7 +8,7 @@ import (
 )
 
 func GetParameterValueUint(c *gin.Context, key string) (uint, error) {
-	value, err := strconv.ParseUint(c.Param(key), 10, strconv.IntSize)
+	value, err := strconv.ParseUint(c.Param(key), 10, 32)
 	if err != nil {
 		return 0, fmt.Errorf("invalid %s", key)
 	}

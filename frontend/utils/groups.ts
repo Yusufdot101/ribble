@@ -101,10 +101,16 @@ export const getBannedUsers = async (
             `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/bans?q=${encodeURIComponent(query)}`,
         );
         if (!res) {
-            return [];
+            throw new Error("No response from chat service");
+        }
+        if (!res.ok) {
+            const errBody = await res.text();
+            throw new Error(
+                errBody || `Failed to get banned users (${res.status})`,
+            );
         }
         const data = await res.json();
-        return data.users;
+        return data.users ?? [];
     } catch (error) {
         console.error(error);
         return [];

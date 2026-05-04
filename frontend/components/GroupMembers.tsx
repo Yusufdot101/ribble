@@ -202,14 +202,12 @@ const GroupMembers = ({
                                 e.stopPropagation();
                                 setMenuIsOpen(false);
                                 setBanMenuIsOpen(true);
-                                handleBanUser();
                             }}
                             onKeyDown={(e) => {
                                 if (e.key !== "Enter") return;
                                 e.stopPropagation();
                                 setMenuIsOpen(false);
                                 setBanMenuIsOpen(true);
-                                handleBanUser();
                             }}
                             className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
                         >
@@ -227,7 +225,7 @@ const GroupMembers = ({
                                 if (e.key !== "Enter") return;
                                 e.stopPropagation();
                                 e.preventDefault();
-                                handleBanUser();
+                                handleUnBanUser();
                             }}
                             className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
                         >

@@ -161,7 +161,7 @@ func (h *handler) removeFromGroup(c *gin.Context) {
 		content = fmt.Sprintf("%s removed %s", actorName, targetName)
 	}
 
-	message, err := h.csvc.NewMessage(currentUserID, userID, content, domain.SystemMessage)
+	message, err := h.csvc.NewMessage(currentUserID, chatID, content, domain.SystemMessage)
 	if err != nil {
 		log.Printf("error sending system message: %v\n", err)
 		return
