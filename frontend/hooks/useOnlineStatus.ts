@@ -11,10 +11,10 @@ export const useOnlineStatus = () => {
         if (!nav) return setOnline(false);
 
         try {
-            // await fetch("https://www.google.com/generate_204", {
-            //     cache: "no-store",
-            //     mode: "no-cors",
-            // });
+            await fetch("https://www.google.com/generate_204", {
+                cache: "no-store",
+                mode: "no-cors",
+            });
             setOnline(true);
         } catch {
             setOnline(false);

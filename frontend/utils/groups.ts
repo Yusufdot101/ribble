@@ -115,7 +115,7 @@ export const getBannedUsers = async (
             );
         }
         const body = await res.json();
-        const data = await body.data;
+        const data = body.data;
         return data;
     } catch (error) {
         console.error(error);

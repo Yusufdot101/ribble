@@ -69,8 +69,8 @@ export const deleteMessage = async (chatID: number, messageID: number) => {
             alert("an error occured deleting message");
             return;
         }
-        const data = await res.json();
-        if (data.error) {
+        const body = await res.json();
+        if (body.error) {
             alert("an error occured deleting message");
         }
     } catch (error) {
@@ -96,9 +96,9 @@ export const editMessage = async (
             alert("an error occured editing message");
             return false;
         }
-        const data = await res.json();
-        if (data.error) {
-            alert("an error occured editing message: " + data.error);
+        const body = await res.json();
+        if (body.error) {
+            alert("an error occured editing message: " + body.error);
             return false;
         }
 
