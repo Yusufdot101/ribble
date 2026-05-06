@@ -35,7 +35,7 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatID }: Props) => {
         async (email: string = "") => {
             setIsLoading(true);
             try {
-                const users = await getAddableChatUsers(chatID, email);
+                const { users } = await getAddableChatUsers(chatID, email);
                 setUsers(users ?? []);
             } finally {
                 setIsLoading(false);

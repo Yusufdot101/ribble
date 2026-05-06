@@ -83,12 +83,13 @@ export const getChatUsers = async (
             `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/users`,
         );
         if (!res) return;
-        const data = await res.json();
-        if (data.error) {
-            console.error(data.error);
+        const body = await res.json();
+        if (body.error) {
+            console.error(body.error);
             return;
         }
-        const users = data.chatUsers;
+        const data = body.data;
+        const users = data.users;
         return users;
     } catch (error) {
         console.error(error);

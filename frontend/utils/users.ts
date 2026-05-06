@@ -13,37 +13,46 @@ export type UserType = {
     createdAt: string;
 };
 
-export const getUsersByEmail = async (email: string): Promise<UserType[]> => {
+type getUsersByEmailResponse = {
+    users: UserType[];
+};
+export const getUsersByEmail = async (
+    email: string,
+): Promise<getUsersByEmailResponse> => {
     try {
         const res = await api(
             `${BASE_USER_SERVICE_API_URL}/users?email=${encodeURIComponent(email)}`,
         );
         if (!res) {
-            return [];
+            return { users: [] };
         }
         const data = await res.json();
-        return data.users;
+        return data;
     } catch (error) {
         console.error(error);
-        return [];
+        return { users: [] };
     }
 };
 
+type getAddableChatUsersResponse = {
+    users: UserType[];
+};
 export const getAddableChatUsers = async (
     chatID: number,
     email: string,
-): Promise<UserType[]> => {
+): Promise<getAddableChatUsersResponse> => {
     try {
         const res = await api(
             `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/addable-users?q=${encodeURIComponent(email)}`,
         );
         if (!res) {
-            return [];
+            return { users: [] };
         }
-        const data = await res.json();
-        return data.users;
+        const body = await res.json();
+        const data = body.data;
+        return data;
     } catch (error) {
         console.error(error);
-        return [];
+        return { users: [] };
     }
 };
