@@ -42,7 +42,7 @@ const ChatPage = () => {
     useEffect(() => {
         if (!chatID) return;
         (async () => {
-            const messages = await getChatMessages(+chatID);
+            const { messages } = await getChatMessages(+chatID);
             setMessages(messages);
 
             // add local messages
@@ -114,7 +114,7 @@ const ChatPage = () => {
                 );
                 const lastMessage = messagesRef.current.at(-1);
                 if (!chatID || !lastMessage) return;
-                const missedMessages = await syncChatMessages(
+                const { messages: missedMessages } = await syncChatMessages(
                     +chatID,
                     lastMessage.ID,
                 );

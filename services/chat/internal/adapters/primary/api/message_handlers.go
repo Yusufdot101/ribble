@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/response"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -128,11 +129,15 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg websocket
 	return nil
 }
 
+type Messages struct {
+	Messages []*domain.Message `json:"messages"`
+}
+
 func (h *handler) getMessages(ctx *gin.Context) {
 	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid chat id",
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid chat id",
 		})
 		return
 	}
@@ -141,45 +146,47 @@ func (h *handler) getMessages(ctx *gin.Context) {
 	currentUserID := context.UserIDFromContext(ctx)
 	participants, err := h.csvc.GetChatParticipants(uint(chatID), currentUserID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		ctx.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: err.Error(),
 		})
 		return
 	}
 
 	if !userIsInChat(currentUserID, participants) {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"error": "chat not found",
+		ctx.JSON(http.StatusNotFound, response.Response[any]{
+			Error: "chat not found",
 		})
 		return
 	}
 
 	messages, err := h.csvc.GetMessages(uint(chatID), domain.GetMessageFilter{})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		ctx.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"messages": messages,
+	ctx.JSON(http.StatusOK, response.Response[Messages]{
+		Data: Messages{
+			Messages: messages,
+		},
 	})
 }
 
 func (h *handler) syncMessages(ctx *gin.Context) {
 	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid chat id",
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid chat id",
 		})
 		return
 	}
 
 	lastMessageID, err := strconv.ParseUint(ctx.Query("lastMessageId"), 10, strconv.IntSize)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid message id",
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid message id",
 		})
 		return
 	}
@@ -188,15 +195,15 @@ func (h *handler) syncMessages(ctx *gin.Context) {
 	currentUserID := context.UserIDFromContext(ctx)
 	participants, err := h.csvc.GetChatParticipants(uint(chatID), currentUserID)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		ctx.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: err.Error(),
 		})
 		return
 	}
 
 	if !userIsInChat(currentUserID, participants) {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"error": "chat not found",
+		ctx.JSON(http.StatusNotFound, response.Response[any]{
+			Error: "chat not found",
 		})
 		return
 	}
@@ -205,14 +212,16 @@ func (h *handler) syncMessages(ctx *gin.Context) {
 		LastMessageID: uint(lastMessageID),
 	})
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
+		ctx.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"messages": messages,
+	ctx.JSON(http.StatusOK, response.Response[Messages]{
+		Data: Messages{
+			Messages: messages,
+		},
 	})
 }
 
