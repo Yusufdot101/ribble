@@ -148,6 +148,9 @@ func (a *Adapter) GetUserRole(userID, chatID uint) (*domain.Role, error) {
 		First(roleModel).
 		Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, domain.ErrInvalidRole
+		}
 		return nil, err
 	}
 

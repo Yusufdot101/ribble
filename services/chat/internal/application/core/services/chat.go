@@ -438,11 +438,11 @@ func (csvc *ChatService) UpdateChatUser(chatID, userID, currentUserID uint, acti
 	var userHasPermission bool
 	var err error
 	var roleName domain.RoleType
-	switch action {
-	case "promote":
+	switch domain.UpdatingChatUserAction(action) {
+	case domain.ActionPromoteMember:
 		userHasPermission, err = csvc.UserHasPermission(currentUserID, chatID, domain.PromoteMembers)
 		roleName = domain.Admin
-	case "demote":
+	case domain.ActionDemoteAdmin:
 		userHasPermission, err = csvc.UserHasPermission(currentUserID, chatID, domain.DemoteAdmins)
 		roleName = domain.Member
 	default:

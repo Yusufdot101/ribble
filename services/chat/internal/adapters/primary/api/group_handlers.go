@@ -352,13 +352,13 @@ func (h *handler) getBannedUsers(c *gin.Context) {
 
 func (h *handler) updateUserRole(c *gin.Context) {
 	var req struct {
-		UserID uint   `json:"userId"`
-		Action string `json:"action"`
+		UserID uint   `json:"userId" binding:"required"`
+		Action string `json:"action" binding:"required"`
 	}
 
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid user id",
+			"error": "invalid request",
 		})
 		return
 	}
@@ -376,7 +376,11 @@ func (h *handler) updateUserRole(c *gin.Context) {
 	err = h.csvc.UpdateChatUser(chatID, req.UserID, currentUserID, req.Action)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, domain.ErrNotPermitted) {
+		if errors.Is(err, domain.ErrInvalidAction) {
+			status = http.StatusBadRequest
+		} else if errors.Is(err, domain.ErrRecordNotFound) {
+			status = http.StatusNotFound
+		} else if errors.Is(err, domain.ErrNotPermitted) {
 			status = http.StatusForbidden
 		}
 		c.JSON(status, gin.H{
