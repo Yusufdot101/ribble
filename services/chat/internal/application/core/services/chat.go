@@ -86,6 +86,10 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 					permission = domain.DeleteMessages
 				case "ban users":
 					permission = domain.BanUsers
+				case "promote members":
+					permission = domain.PromoteMembers
+				case "demote admins":
+					permission = domain.DemoteAdmins
 				default:
 					return fmt.Errorf("%w: %s", domain.ErrInvalidPermission, permissionName)
 				}
@@ -423,4 +427,44 @@ func (csvc *ChatService) GetBannedUsers(chatID uint, query string) ([]*userpb.Us
 	}
 
 	return grpcUsers, nil
+}
+
+func (csvc *ChatService) UpdateChatUser(chatID, userID, currentUserID uint, action string) error {
+	// TODO: allow users to resign from being an admin?
+	if userID == currentUserID {
+		return domain.ErrNotPermitted
+	}
+
+	var userHasPermission bool
+	var err error
+	var roleName domain.RoleType
+	switch action {
+	case "promote":
+		userHasPermission, err = csvc.UserHasPermission(currentUserID, chatID, domain.PromoteMembers)
+		roleName = domain.Admin
+	case "demote":
+		userHasPermission, err = csvc.UserHasPermission(currentUserID, chatID, domain.DemoteAdmins)
+		roleName = domain.Member
+	default:
+		return domain.ErrInvalidAction
+	}
+
+	if err != nil {
+		return err
+	}
+	if !userHasPermission {
+		return domain.ErrNotPermitted
+	}
+
+	currentUserRole, err := csvc.repo.GetUserRole(userID, chatID)
+	if err != nil {
+		return err
+	}
+
+	// cant promote or demote the group creator
+	if currentUserRole.Name == domain.Creator {
+		return domain.ErrNotPermitted
+	}
+
+	return csvc.repo.GrantUsersChatRoles([]uint{userID}, chatID, roleName)
 }

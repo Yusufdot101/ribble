@@ -41,7 +41,6 @@ func (a *Adapter) GetUserPermissions(userID, chatID uint) ([]*domain.Permission,
 
 	permissionModels := []*Permission{}
 
-	// chat_participants: role_id -> role_permissions: permission_id -> permissions
 	err := a.db.WithContext(ctx).
 		Table("permissions").
 		Joins("JOIN chat_role_permissions ON chat_role_permissions.permission_id = permissions.id").

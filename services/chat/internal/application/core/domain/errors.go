@@ -15,4 +15,6 @@ var (
 	ErrNotPermitted = errors.New("not permitted")
 
 	ErrBannedUser = errors.New("user is banned from chat")
+
+	ErrInvalidAction = errors.New("invalid action")
 )

@@ -134,6 +134,31 @@ func (a *Adapter) GrantUsersChatRoles(userIDs []uint, chatID uint, roleName doma
 	return nil
 }
 
+func (a *Adapter) GetUserRole(userID, chatID uint) (*domain.Role, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	roleModel := &Role{}
+
+	err := a.db.WithContext(ctx).
+		Table("roles").
+		Joins("JOIN chat_roles ON chat_roles.role_id = roles.id").
+		Joins("JOIN chat_participants ON chat_participants.chat_role_id = chat_roles.id").
+		Where("chat_participants.user_id = ? AND chat_participants.chat_id = ?", userID, chatID).
+		First(roleModel).
+		Error
+	if err != nil {
+		return nil, err
+	}
+
+	role := &domain.Role{
+		ID:   roleModel.ID,
+		Name: roleModel.Name,
+	}
+
+	return role, nil
+}
+
 func isForeignKeyViolation(err error) bool {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {

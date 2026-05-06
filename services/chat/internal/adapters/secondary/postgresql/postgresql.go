@@ -51,6 +51,8 @@ func seedRBAC(db *gorm.DB) error {
 		{Name: domain.BanUsers},
 		{Name: domain.DeleteMessages},
 		{Name: domain.SendMessage},
+		{Name: domain.PromoteMembers},
+		{Name: domain.DemoteAdmins},
 	}
 	for _, p := range perms {
 		if err := db.Where("name = ?", p.Name).FirstOrCreate(&p).Error; err != nil {

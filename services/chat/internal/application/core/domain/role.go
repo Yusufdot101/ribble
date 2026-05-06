@@ -1,11 +1,17 @@
 package domain
 
-type RoleType string
+type (
+	RoleType               string
+	UpdatingChatUserAction string
+)
 
 var (
 	Admin   RoleType = "admin"
 	Member  RoleType = "member"
 	Creator RoleType = "creator"
+
+	ActionPromoteMember UpdatingChatUserAction = "promote member"
+	ActionDemoteAdmin   UpdatingChatUserAction = "demote admin"
 )
 
 type Role struct {
