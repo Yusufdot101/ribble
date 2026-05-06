@@ -40,9 +40,9 @@ const Sidebar = () => {
             return prev
                 ? {
                       ...prev,
-                      Chats: [...(prev.Chats ?? []), chat],
-                      Contacts: [
-                          ...prev.Contacts.filter(
+                      chats: [...(prev.chats ?? []), chat],
+                      contacts: [
+                          ...prev.contacts.filter(
                               (contact) => contact.id !== user.id,
                           ),
                       ],
@@ -85,14 +85,14 @@ const Sidebar = () => {
                     <GroupsSection
                         isLoading={isLoading}
                         selectedChats={activeChat ? [activeChat] : []}
-                        chats={coversationData?.Groups ?? []}
+                        chats={coversationData?.groups ?? []}
                         handleChatClick={handleChatClick}
                     />
 
                     <ChatsSection
                         isLoading={isLoading}
                         selectedChats={activeChat ? [activeChat] : []}
-                        chats={coversationData?.Chats ?? []}
+                        chats={coversationData?.chats ?? []}
                         handleChatClick={handleChatClick}
                     />
 
@@ -100,7 +100,7 @@ const Sidebar = () => {
                         selectedUsers={activeUser ? [activeUser] : []}
                         handleUserClick={handleUserClick}
                         isLoading={isLoading}
-                        users={coversationData?.Contacts ?? []}
+                        users={coversationData?.contacts ?? []}
                     />
                 </div>
             </div>

@@ -1,12 +1,11 @@
-FROM node:24-slim
+FROM node:24.15-alpine
 WORKDIR /app
 
-COPY --chown=node:node package*.json ./
+# Install dependencies first (cached layer)
+COPY ./package.json ./package-lock.json ./
 RUN npm ci
 
-COPY --chown=node:node . .
-
-USER node
-
+# Source is bind-mounted at runtime, not copied
 EXPOSE 3000
+
 CMD ["npm", "run", "dev"]

@@ -45,12 +45,12 @@ export const getChatByUserIDs = async (
         });
 
         if (!res) return;
-        const data = await res.json();
-        if (data.error) {
-            console.error(data.error);
+        const body = await res.json();
+        if (body.error) {
+            console.error(body.error);
             return;
         }
-        const chat = data.chat;
+        const chat = body.data;
         return chat;
     } catch (error) {
         console.error(error);
@@ -63,12 +63,12 @@ export const getChatByID = async (
     try {
         const res = await api(`${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}`);
         if (!res) return;
-        const data = await res.json();
-        if (data.error) {
-            console.error(data.error);
+        const body = await res.json();
+        if (body.error) {
+            console.error(body.error);
             return;
         }
-        const chat = data.chat;
+        const chat = body.data;
         return chat;
     } catch (error) {
         console.error(error);
@@ -96,9 +96,9 @@ export const getChatUsers = async (
 };
 
 export type ConversationDataType = {
-    Chats: ChatType[];
-    Groups: ChatType[];
-    Contacts: UserType[];
+    chats: ChatType[];
+    groups: ChatType[];
+    contacts: UserType[];
 };
 
 export const getConversations = async (
@@ -109,12 +109,12 @@ export const getConversations = async (
             `${BASE_CHAT_SERVICE_API_URL}/conversations?q=${encodeURIComponent(query)}`,
         );
         if (!res) return;
-        const data = await res.json();
-        if (data.error) {
-            console.error(data.error);
+        const body = await res.json();
+        if (body.error) {
+            console.error(body.error);
             return;
         }
-        return data;
+        return body.data;
     } catch (error) {
         console.error(error);
     }
