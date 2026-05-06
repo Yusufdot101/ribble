@@ -74,7 +74,11 @@ const GroupMembers = ({
             setIsLoading(true);
             try {
                 let users = await getChatUsers(chatID);
-                const bannedUsers = await getBannedUsers(chatID, value);
+                const { users: bannedUsers } = await getBannedUsers(
+                    chatID,
+                    value,
+                );
+
                 users = users?.filter(
                     (user) =>
                         user.name.includes(value) || user.email.includes(value),

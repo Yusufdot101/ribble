@@ -1,6 +1,7 @@
 package response
 
 type Response[T any] struct {
-	Data  T      `json:"data,omitempty"`
-	Error string `json:"error,omitempty"`
+	Data    T      `json:"data,omitempty"`
+	Error   string `json:"error,omitempty"`
+	Message string `json:"message,omitempty"`
 }

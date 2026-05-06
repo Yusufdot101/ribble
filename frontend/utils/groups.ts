@@ -1,3 +1,4 @@
+import { upsertSegmentEntry } from "next/dist/client/components/segment-cache/cache";
 import { api, BASE_CHAT_SERVICE_API_URL } from "./api";
 import { UserType } from "./users";
 
@@ -92,10 +93,14 @@ export const banUser = async (
     return true;
 };
 
+type ChatUsers = {
+    users: UserType[];
+};
+
 export const getBannedUsers = async (
     chatID: number,
     query: string,
-): Promise<UserType[]> => {
+): Promise<ChatUsers> => {
     try {
         const res = await api(
             `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/bans?q=${encodeURIComponent(query)}`,
@@ -109,11 +114,12 @@ export const getBannedUsers = async (
                 errBody || `Failed to get banned users (${res.status})`,
             );
         }
-        const data = await res.json();
-        return data.users ?? [];
+        const body = await res.json();
+        const data = await body.data;
+        return data;
     } catch (error) {
         console.error(error);
-        return [];
+        return { users: [] };
     }
 };
 
