@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,8 +15,8 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 
 	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid chat id",
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid chat id",
 		})
 		return
 	}
@@ -23,14 +24,14 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 
 	messageID, err := strconv.ParseUint(ctx.Param("messageId"), 10, strconv.IntSize)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid message id",
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid message id",
 		})
 		return
 	}
 	if messageID > uint64(^uint(0)) {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid message id",
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid message id",
 		})
 		return
 	}
@@ -38,14 +39,14 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 
 	message, err := h.csvc.DeleteMessage(chatIDUint, currentUserID, messageIDUint)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "message deleted successfully",
+	ctx.JSON(http.StatusOK, response.Response[any]{
+		Message: "message deleted successfully",
 	})
 
 	// broadcast to all the connections

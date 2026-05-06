@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/response"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/gin-gonic/gin"
 )
@@ -17,14 +18,14 @@ func (h *handler) editMessage(ctx *gin.Context) {
 
 	messageID, err := strconv.ParseUint(ctx.Param("messageId"), 10, strconv.IntSize)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid message id",
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid message id",
 		})
 		return
 	}
 	if messageID > uint64(^uint(0)) {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid message id",
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid message id",
 		})
 		return
 	}
@@ -34,8 +35,8 @@ func (h *handler) editMessage(ctx *gin.Context) {
 		NewContent string `json:"newContent"`
 	}
 	if err := ctx.ShouldBind(&editMessageRequest); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+		ctx.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: err.Error(),
 		})
 		return
 	}
@@ -55,14 +56,14 @@ func (h *handler) editMessage(ctx *gin.Context) {
 			statusCode = http.StatusForbidden
 			error = err.Error()
 		}
-		ctx.JSON(statusCode, gin.H{
-			"error": error,
+		ctx.JSON(statusCode, response.Response[any]{
+			Error: error,
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "message edit successfully",
+	ctx.JSON(http.StatusOK, response.Response[any]{
+		Message: "message edit successfully",
 	})
 
 	// broadcast to all the connections
