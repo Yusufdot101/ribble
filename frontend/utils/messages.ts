@@ -31,6 +31,10 @@ export const getChatMessages = async (
             return { messages: [] };
         }
         const data = body.data;
+        if (!data || !data.messages) {
+            console.error("Invalid response structure");
+            return { messages: [] };
+        }
         return data;
     } catch (error) {
         console.error(error);
@@ -50,6 +54,10 @@ export const syncChatMessages = async (
         const data = body.data;
         if (body.error) {
             console.error(body.error);
+            return { messages: [] };
+        }
+        if (!data || !data.messages) {
+            console.error("Invalid response structure");
             return { messages: [] };
         }
         return data;

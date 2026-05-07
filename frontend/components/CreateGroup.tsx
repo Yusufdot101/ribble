@@ -33,9 +33,12 @@ const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
     const [users, setUsers] = useState<UserType[]>([]);
     const searchUsers = async (email: string = "") => {
         setIsLoading(true);
-        const { users } = await getUsersByEmail(email);
-        setUsers(users);
-        setIsLoading(false);
+        try {
+            const { users } = await getUsersByEmail(email);
+            setUsers(users ?? []);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {

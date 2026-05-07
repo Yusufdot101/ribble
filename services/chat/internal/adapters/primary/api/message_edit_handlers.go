@@ -63,7 +63,7 @@ func (h *handler) editMessage(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response.Response[any]{
-		Message: "message edit successfully",
+		Message: "message edited successfully",
 	})
 
 	// broadcast to all the connections

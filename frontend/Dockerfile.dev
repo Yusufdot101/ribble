@@ -5,7 +5,8 @@ WORKDIR /app
 COPY ./package.json ./package-lock.json ./
 RUN npm ci
 
-# Source is bind-mounted at runtime, not copied
 EXPOSE 3000
+
+USER node
 
 CMD ["npm", "run", "dev"]

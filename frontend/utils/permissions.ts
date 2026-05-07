@@ -19,6 +19,10 @@ export const getUserPermissions = async (
         if (!res) return { permissions: [] };
         const body = await res.json();
         const data = body.data;
+        if (body.error || !data) {
+            console.error(body.error);
+            return { permissions: [] };
+        }
         return data;
     } catch (error) {
         console.error(error);

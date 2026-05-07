@@ -17,9 +17,9 @@ type DirectChat struct {
 }
 
 type Conversation struct {
-	Groups   []*domain.Chat `json:"groups,omitempty"`
-	Chats    []*domain.Chat `json:"chats,omitempty"`
-	Contacts []*userpb.User `json:"contacts,omitempty"`
+	Groups   []*domain.Chat `json:"groups"`
+	Chats    []*domain.Chat `json:"chats"`
+	Contacts []*userpb.User `json:"contacts"`
 }
 
 func (h *handler) getConversations(c *gin.Context) {
@@ -47,9 +47,9 @@ func (h *handler) getConversations(c *gin.Context) {
 		return
 	}
 
-	var groups []*domain.Chat
-	var directChats []DirectChat
-	var otherUserIDs []uint
+	groups := make([]*domain.Chat, 0)
+	directChats := make([]DirectChat, 0)
+	otherUserIDs := make([]uint, 0)
 
 	// 3. classify in memory
 	for _, chat := range chats {
@@ -89,7 +89,7 @@ func (h *handler) getConversations(c *gin.Context) {
 	}
 
 	// 5. filter chats safely
-	var filteredChats []*domain.Chat
+	filteredChats := make([]*domain.Chat, 0)
 	for _, dc := range directChats {
 		if userMatch[uint32(dc.OtherUserID)] {
 			filteredChats = append(filteredChats, dc.Chat)

@@ -23,7 +23,7 @@ export const getUsersByEmail = async (
         const res = await api(
             `${BASE_USER_SERVICE_API_URL}/users?email=${encodeURIComponent(email)}`,
         );
-        if (!res) {
+        if (!res || !res.ok) {
             return { users: [] };
         }
         const data = await res.json();
@@ -45,12 +45,12 @@ export const getAddableChatUsers = async (
         const res = await api(
             `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/addable-users?q=${encodeURIComponent(email)}`,
         );
-        if (!res) {
+        if (!res || !res.ok) {
             return { users: [] };
         }
         const body = await res.json();
         const data = body.data;
-        return data;
+        return data ?? { users: [] };
     } catch (error) {
         console.error(error);
         return { users: [] };

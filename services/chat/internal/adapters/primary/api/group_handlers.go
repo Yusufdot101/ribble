@@ -132,7 +132,7 @@ func (h *handler) removeFromGroup(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, response.Response[any]{
+	c.JSON(http.StatusOK, response.Response[any]{
 		Message: "user removed from group",
 	})
 
@@ -208,7 +208,7 @@ func (h *handler) banFromGroup(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, response.Response[any]{
+	c.JSON(http.StatusOK, response.Response[any]{
 		Message: "user banned from group",
 	})
 

@@ -1,4 +1,3 @@
-import { upsertSegmentEntry } from "next/dist/client/components/segment-cache/cache";
 import { api, BASE_CHAT_SERVICE_API_URL } from "./api";
 import { UserType } from "./users";
 
@@ -115,8 +114,7 @@ export const getBannedUsers = async (
             );
         }
         const body = await res.json();
-        const data = body.data;
-        return data;
+        return body.data ?? { users: [] };
     } catch (error) {
         console.error(error);
         return { users: [] };

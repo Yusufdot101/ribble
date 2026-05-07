@@ -96,13 +96,13 @@ func (h *handler) getChatByID(ctx *gin.Context) {
 	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid message id",
+			Error: "invalid chat id",
 		})
 		return
 	}
 	if chatID > uint64(^uint(0)) {
 		ctx.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid message id",
+			Error: "invalid chat id",
 		})
 		return
 	}
@@ -135,13 +135,13 @@ func (h *handler) getChatUsers(ctx *gin.Context) {
 	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid message id",
+			Error: "invalid chat id",
 		})
 		return
 	}
 	if chatID > uint64(^uint(0)) {
 		ctx.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid message id",
+			Error: "invalid chat id",
 		})
 		return
 	}
@@ -175,13 +175,13 @@ func (h *handler) getAddableChatUsers(c *gin.Context) {
 	chatID, err := strconv.ParseUint(c.Param("chatId"), 10, strconv.IntSize)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid message id",
+			Error: "invalid chat id",
 		})
 		return
 	}
 	if chatID > uint64(^uint(0)) {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid message id",
+			Error: "invalid chat id",
 		})
 		return
 	}
