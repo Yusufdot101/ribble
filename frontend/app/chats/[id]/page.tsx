@@ -297,7 +297,7 @@ const ChatPage = () => {
         if (!chatID) return;
         if (+chatID <= 0) return;
         (async () => {
-            const permissions = await getUserPermissions(+chatID);
+            const { permissions } = await getUserPermissions(+chatID);
             setPermissions(permissions ?? []);
         })();
     }, [chatID]);
