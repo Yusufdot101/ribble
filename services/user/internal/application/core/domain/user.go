@@ -4,12 +4,17 @@ import (
 	"time"
 )
 
+type Entry struct {
+	ID       uint
+	Sub      string
+	Provider string
+	UserID   uint
+	Email    string
+}
+
 type User struct {
-	ID        uint      `json:"id"`  // this is local id
-	Sub       string    `json:"sub"` // this is id from providers(in case user changes email, the sub will be always be the same)
-	Provider  string    `json:"provider"`
+	ID        uint      `json:"id"` // this is local id
 	Name      string    `json:"name"`
-	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

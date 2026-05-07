@@ -48,7 +48,7 @@ func TestGoogleCallbackHandler(t *testing.T) {
 
 	// mock the google oidc
 	provider := ports.NewMockOAuthProvider(t)
-	provider.EXPECT().GetUserInfo(mock.Anything, "fake-code", "fake-nonce").Return(&domain.User{
+	provider.EXPECT().GetUserInfo(mock.Anything, map[string]string{"code": "fake-code", "nonce": "fake-nonce"}).Return(&domain.User{
 		Name:     "yusuf",
 		Email:    "example@gmail.com",
 		Provider: "google",

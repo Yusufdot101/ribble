@@ -98,8 +98,8 @@ func (_c *MockAuthService_BeginAuth_Call) RunAndReturn(run func() (string, strin
 }
 
 // HandleCallback provides a mock function for the type MockAuthService
-func (_mock *MockAuthService) HandleCallback(ctx context.Context, code string, nonce string) (string, string, error) {
-	ret := _mock.Called(ctx, code, nonce)
+func (_mock *MockAuthService) HandleCallback(ctx context.Context, inputs map[string]string) (string, string, error) {
+	ret := _mock.Called(ctx, inputs)
 
 	if len(ret) == 0 {
 		panic("no return value specified for HandleCallback")
@@ -108,21 +108,21 @@ func (_mock *MockAuthService) HandleCallback(ctx context.Context, code string, n
 	var r0 string
 	var r1 string
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (string, string, error)); ok {
-		return returnFunc(ctx, code, nonce)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) (string, string, error)); ok {
+		return returnFunc(ctx, inputs)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) string); ok {
-		r0 = returnFunc(ctx, code, nonce)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) string); ok {
+		r0 = returnFunc(ctx, inputs)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) string); ok {
-		r1 = returnFunc(ctx, code, nonce)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, map[string]string) string); ok {
+		r1 = returnFunc(ctx, inputs)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, string, string) error); ok {
-		r2 = returnFunc(ctx, code, nonce)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, map[string]string) error); ok {
+		r2 = returnFunc(ctx, inputs)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -136,30 +136,24 @@ type MockAuthService_HandleCallback_Call struct {
 
 // HandleCallback is a helper method to define mock.On call
 //   - ctx context.Context
-//   - code string
-//   - nonce string
-func (_e *MockAuthService_Expecter) HandleCallback(ctx interface{}, code interface{}, nonce interface{}) *MockAuthService_HandleCallback_Call {
-	return &MockAuthService_HandleCallback_Call{Call: _e.mock.On("HandleCallback", ctx, code, nonce)}
+//   - inputs map[string]string
+func (_e *MockAuthService_Expecter) HandleCallback(ctx interface{}, inputs interface{}) *MockAuthService_HandleCallback_Call {
+	return &MockAuthService_HandleCallback_Call{Call: _e.mock.On("HandleCallback", ctx, inputs)}
 }
 
-func (_c *MockAuthService_HandleCallback_Call) Run(run func(ctx context.Context, code string, nonce string)) *MockAuthService_HandleCallback_Call {
+func (_c *MockAuthService_HandleCallback_Call) Run(run func(ctx context.Context, inputs map[string]string)) *MockAuthService_HandleCallback_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 map[string]string
 		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(map[string]string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -170,7 +164,7 @@ func (_c *MockAuthService_HandleCallback_Call) Return(refreshToken string, acces
 	return _c
 }
 
-func (_c *MockAuthService_HandleCallback_Call) RunAndReturn(run func(ctx context.Context, code string, nonce string) (string, string, error)) *MockAuthService_HandleCallback_Call {
+func (_c *MockAuthService_HandleCallback_Call) RunAndReturn(run func(ctx context.Context, inputs map[string]string) (string, string, error)) *MockAuthService_HandleCallback_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -377,8 +371,8 @@ func (_c *MockOAuthProvider_GetAuthURL_Call) RunAndReturn(run func(state string,
 }
 
 // GetUserInfo provides a mock function for the type MockOAuthProvider
-func (_mock *MockOAuthProvider) GetUserInfo(ctx context.Context, code string, nonce string) (*domain.User, error) {
-	ret := _mock.Called(ctx, code, nonce)
+func (_mock *MockOAuthProvider) GetUserInfo(ctx context.Context, inputs map[string]string) (*domain.User, error) {
+	ret := _mock.Called(ctx, inputs)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserInfo")
@@ -386,18 +380,18 @@ func (_mock *MockOAuthProvider) GetUserInfo(ctx context.Context, code string, no
 
 	var r0 *domain.User
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*domain.User, error)); ok {
-		return returnFunc(ctx, code, nonce)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) (*domain.User, error)); ok {
+		return returnFunc(ctx, inputs)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *domain.User); ok {
-		r0 = returnFunc(ctx, code, nonce)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) *domain.User); ok {
+		r0 = returnFunc(ctx, inputs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*domain.User)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = returnFunc(ctx, code, nonce)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, map[string]string) error); ok {
+		r1 = returnFunc(ctx, inputs)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -411,30 +405,24 @@ type MockOAuthProvider_GetUserInfo_Call struct {
 
 // GetUserInfo is a helper method to define mock.On call
 //   - ctx context.Context
-//   - code string
-//   - nonce string
-func (_e *MockOAuthProvider_Expecter) GetUserInfo(ctx interface{}, code interface{}, nonce interface{}) *MockOAuthProvider_GetUserInfo_Call {
-	return &MockOAuthProvider_GetUserInfo_Call{Call: _e.mock.On("GetUserInfo", ctx, code, nonce)}
+//   - inputs map[string]string
+func (_e *MockOAuthProvider_Expecter) GetUserInfo(ctx interface{}, inputs interface{}) *MockOAuthProvider_GetUserInfo_Call {
+	return &MockOAuthProvider_GetUserInfo_Call{Call: _e.mock.On("GetUserInfo", ctx, inputs)}
 }
 
-func (_c *MockOAuthProvider_GetUserInfo_Call) Run(run func(ctx context.Context, code string, nonce string)) *MockOAuthProvider_GetUserInfo_Call {
+func (_c *MockOAuthProvider_GetUserInfo_Call) Run(run func(ctx context.Context, inputs map[string]string)) *MockOAuthProvider_GetUserInfo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 map[string]string
 		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
+			arg1 = args[1].(map[string]string)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -445,7 +433,7 @@ func (_c *MockOAuthProvider_GetUserInfo_Call) Return(user *domain.User, err erro
 	return _c
 }
 
-func (_c *MockOAuthProvider_GetUserInfo_Call) RunAndReturn(run func(ctx context.Context, code string, nonce string) (*domain.User, error)) *MockOAuthProvider_GetUserInfo_Call {
+func (_c *MockOAuthProvider_GetUserInfo_Call) RunAndReturn(run func(ctx context.Context, inputs map[string]string) (*domain.User, error)) *MockOAuthProvider_GetUserInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }

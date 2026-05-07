@@ -8,5 +8,5 @@ import (
 
 type OAuthProvider interface {
 	GetAuthURL(state, nonce string) string
-	GetUserInfo(ctx context.Context, code, nonce string) (*domain.User, error)
+	GetUserInfo(ctx context.Context, inputs map[string]string) (*domain.User, error)
 }

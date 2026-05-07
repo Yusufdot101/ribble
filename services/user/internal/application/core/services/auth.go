@@ -26,8 +26,8 @@ func (asvc *AuthService) NewUser(user *domain.User) error {
 	return asvc.repo.InsertUser(user)
 }
 
-func (asvc *AuthService) HandleCallback(ctx context.Context, code, nonce string) (string, string, error) {
-	user, err := asvc.provider.GetUserInfo(ctx, code, nonce)
+func (asvc *AuthService) HandleCallback(ctx context.Context, inputs map[string]string) (string, string, error) {
+	user, err := asvc.provider.GetUserInfo(ctx, inputs)
 	if err != nil {
 		return "", "", err
 	}

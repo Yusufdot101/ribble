@@ -20,7 +20,7 @@ func TestHandleCallback(t *testing.T) {
 		{
 			name: "valid flow",
 			setupMocks: func(r *ports.MockRepository, tsvc *ports.MockTokenService, pr *ports.MockOAuthProvider) {
-				pr.EXPECT().GetUserInfo(context.Background(), "code", "nonce").Return(&domain.User{
+				pr.EXPECT().GetUserInfo(context.Background(), map[string]string{"code": "code", "nonce": "nonce"}).Return(&domain.User{
 					Sub:      "1",
 					Provider: "google",
 					Name:     "yusuf",
@@ -57,7 +57,7 @@ func TestHandleCallback(t *testing.T) {
 		{
 			name: "user not found",
 			setupMocks: func(r *ports.MockRepository, tsvc *ports.MockTokenService, pr *ports.MockOAuthProvider) {
-				pr.EXPECT().GetUserInfo(context.Background(), "code", "nonce").Return(&domain.User{
+				pr.EXPECT().GetUserInfo(context.Background(), map[string]string{"code": "code", "nonce": "nonce"}).Return(&domain.User{
 					Sub:      "1",
 					Provider: "google",
 					Name:     "yusuf",
@@ -104,7 +104,9 @@ func TestHandleCallback(t *testing.T) {
 
 			asvc := NewAuthService(repo, provider, tsvc)
 			ctx := context.Background()
-			_, _, err := asvc.HandleCallback(ctx, "code", "nonce")
+			_, _, err := asvc.HandleCallback(ctx,
+				map[string]string{"code": "code", "nonce": "nonce"},
+			)
 			if err != nil {
 				if !tt.wantErr {
 					t.Fatalf("unexpected error %v\n", err)

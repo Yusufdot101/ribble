@@ -62,13 +62,26 @@ func (g *GoogleOIDC) exchangeCode(ctx context.Context, code string) (string, err
 	return rawIDToken, nil
 }
 
-func (g *GoogleOIDC) GetUserInfo(ctx context.Context, code, expectedNonce string) (*domain.User, error) {
+func (g *GoogleOIDC) GetUserInfo(ctx context.Context, inputs map[string]string) (*domain.User, error) {
+	if len(inputs) != 2 {
+		return nil, domain.ErrInvalidGoogleOIDCInputs
+	}
+	if _, exists := inputs["code"]; !exists {
+		return nil, domain.ErrInvalidGoogleOIDCInputs
+	}
+	if _, exists := inputs["nonce"]; !exists {
+		return nil, domain.ErrInvalidGoogleOIDCInputs
+	}
+
+	code := inputs["code"]
+	nonce := inputs["nonce"]
+
 	rawIDToken, err := g.exchangeCode(ctx, code)
 	if err != nil {
 		return nil, err
 	}
 
-	idToken, err := g.verifyIDToken(ctx, rawIDToken, expectedNonce)
+	idToken, err := g.verifyIDToken(ctx, rawIDToken, nonce)
 	if err != nil {
 		return nil, err
 	}
