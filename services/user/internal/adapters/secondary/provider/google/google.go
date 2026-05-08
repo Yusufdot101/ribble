@@ -45,6 +45,11 @@ func (g *GoogleOIDC) verifyIDToken(ctx context.Context, rawIDToken string, expec
 	if err != nil {
 		return nil, err
 	}
+
+	if expectedNonce == "" || idToken.Nonce != expectedNonce {
+		return nil, domain.ErrInvalidNonce
+	}
+
 	return idToken, nil
 }
 
@@ -63,18 +68,11 @@ func (g *GoogleOIDC) exchangeCode(ctx context.Context, code string) (string, err
 }
 
 func (g *GoogleOIDC) Authenticate(ctx context.Context, credentials map[string]string) (*domain.UserInfo, error) {
-	if len(credentials) != 2 {
+	code, hasCode := credentials["code"]
+	nonce, hasNonce := credentials["nonce"]
+	if !hasCode || !hasNonce || code == "" || nonce == "" {
 		return nil, domain.ErrInvalidGoogleOIDCInputs
 	}
-	if _, exists := credentials["code"]; !exists {
-		return nil, domain.ErrInvalidGoogleOIDCInputs
-	}
-	if _, exists := credentials["nonce"]; !exists {
-		return nil, domain.ErrInvalidGoogleOIDCInputs
-	}
-
-	code := credentials["code"]
-	nonce := credentials["nonce"]
 
 	return g.getUserInfo(ctx, code, nonce)
 }

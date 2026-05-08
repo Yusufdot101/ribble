@@ -11,9 +11,9 @@ import (
 
 type UserIdentity struct {
 	gorm.Model
-	Provider string
-	Sub      string
-	UserID   uint
+	Provider string `gorm:"index:idx_provider_sub,unique"`
+	Sub      string `gorm:"index:idx_provider_sub,unique"`
+	UserID   uint   `gorm:"index"`
 }
 
 func (a *Adapter) InsertIdentity(identity *domain.UserIdentity) error {
@@ -34,8 +34,11 @@ func (a *Adapter) InsertIdentity(identity *domain.UserIdentity) error {
 }
 
 func (a *Adapter) FindIdentityByProviderAndSub(provider, sub string) (*domain.UserIdentity, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	identityModel := &UserIdentity{}
-	res := a.DB.First(identityModel, "provider = ? AND sub = ?", provider, sub)
+	res := a.DB.WithContext(ctx).First(identityModel, "provider = ? AND sub = ?", provider, sub)
 	if res.Error != nil {
 		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrRecordNotFound

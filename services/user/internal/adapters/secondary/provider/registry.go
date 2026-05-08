@@ -15,7 +15,7 @@ type ProviderRegistry struct {
 func (r *ProviderRegistry) GetProvider(name string) (ports.Provider, error) {
 	p, ok := r.Providers[name]
 	if !ok {
-		return nil, fmt.Errorf("unknown provider: %s", name)
+		return nil, fmt.Errorf("%w: %s", domain.ErrInvalidProvider, name)
 	}
 	return p, nil
 }
