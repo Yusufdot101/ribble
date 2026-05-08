@@ -62,20 +62,24 @@ func (g *GoogleOIDC) exchangeCode(ctx context.Context, code string) (string, err
 	return rawIDToken, nil
 }
 
-func (g *GoogleOIDC) GetUserInfo(ctx context.Context, inputs map[string]string) (*domain.User, error) {
-	if len(inputs) != 2 {
+func (g *GoogleOIDC) Authenticate(ctx context.Context, credentials map[string]string) (*domain.UserInfo, error) {
+	if len(credentials) != 2 {
 		return nil, domain.ErrInvalidGoogleOIDCInputs
 	}
-	if _, exists := inputs["code"]; !exists {
+	if _, exists := credentials["code"]; !exists {
 		return nil, domain.ErrInvalidGoogleOIDCInputs
 	}
-	if _, exists := inputs["nonce"]; !exists {
+	if _, exists := credentials["nonce"]; !exists {
 		return nil, domain.ErrInvalidGoogleOIDCInputs
 	}
 
-	code := inputs["code"]
-	nonce := inputs["nonce"]
+	code := credentials["code"]
+	nonce := credentials["nonce"]
 
+	return g.getUserInfo(ctx, code, nonce)
+}
+
+func (g *GoogleOIDC) getUserInfo(ctx context.Context, code, nonce string) (*domain.UserInfo, error) {
 	rawIDToken, err := g.exchangeCode(ctx, code)
 	if err != nil {
 		return nil, err
@@ -97,7 +101,7 @@ func (g *GoogleOIDC) GetUserInfo(ctx context.Context, inputs map[string]string) 
 	}
 
 	// all the OIDC token exchange + verification code lives here
-	return &domain.User{
+	return &domain.UserInfo{
 		Provider: "google",
 		Sub:      claims.Sub,
 		Email:    claims.Email,

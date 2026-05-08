@@ -26,7 +26,11 @@ func NewHandler(svc ports.AuthService, tsvc ports.TokenService, usvc ports.UserS
 
 func (h *handler) googleBegin(c *gin.Context) {
 	// get the authURL, state and nonce cookies
-	url, state, nonce := h.svc.BeginAuth()
+	url, state, nonce, err := h.svc.BeginAuth("google")
+	if err != nil {
+		c.String(http.StatusInternalServerError, "an error occurred, please try again later")
+		return
+	}
 
 	// set state and nonce cookies to response
 	c.SetCookie("state", state, int(5*time.Minute.Seconds()), "/", "", false, true)
@@ -58,10 +62,10 @@ func (h *handler) googleCallback(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	refreshToken, _, err := h.svc.HandleCallback(ctx, map[string]string{
+	refreshToken, _, err := h.svc.HandleAuth(ctx, map[string]string{
 		"code":  c.Query("code"),
 		"nonce": nonce,
-	})
+	}, "google")
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return

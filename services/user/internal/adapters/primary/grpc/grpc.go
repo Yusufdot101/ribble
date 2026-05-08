@@ -46,11 +46,9 @@ func (a *Adapter) GetUsers(ctx context.Context, req *userpb.GetUsersRequest) (*u
 
 	for _, user := range users {
 		grpcUsers = append(grpcUsers, &userpb.User{
-			Name:     user.Name,
-			Id:       uint32(user.ID),
-			Sub:      user.Sub,
-			Provider: user.Provider,
-			Email:    user.Email,
+			Name:  user.Name,
+			Id:    uint32(user.ID),
+			Email: user.Email,
 		})
 	}
 
@@ -68,11 +66,9 @@ func (a *Adapter) SearchUsers(ctx context.Context, req *userpb.SearchUsersReques
 
 	for _, user := range users {
 		grpcUsers = append(grpcUsers, &userpb.User{
-			Name:     user.Name,
-			Email:    user.Email,
-			Id:       uint32(user.ID),
-			Sub:      user.Sub,
-			Provider: user.Provider,
+			Name:  user.Name,
+			Email: user.Email,
+			Id:    uint32(user.ID),
 		})
 	}
 
@@ -89,11 +85,9 @@ func (a *Adapter) GetContacts(ctx context.Context, req *userpb.GetContactsReques
 
 	for _, user := range users {
 		grpcUsers = append(grpcUsers, &userpb.User{
-			Name:     user.Name,
-			Id:       uint32(user.ID),
-			Sub:      user.Sub,
-			Provider: user.Provider,
-			Email:    user.Email,
+			Name:  user.Name,
+			Id:    uint32(user.ID),
+			Email: user.Email,
 		})
 	}
 	return &userpb.GetContactsResponse{Users: grpcUsers}, nil

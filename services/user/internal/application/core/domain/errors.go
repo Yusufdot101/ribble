@@ -17,4 +17,5 @@ var (
 	ErrInvalidEmail = errors.New("invalid email")
 
 	ErrInvalidGoogleOIDCInputs = errors.New("invalid google oidc inputs")
+	ErrInvalidProvider         = errors.New("invalid provider")
 )

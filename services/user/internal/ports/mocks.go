@@ -39,8 +39,8 @@ func (_m *MockAuthService) EXPECT() *MockAuthService_Expecter {
 }
 
 // BeginAuth provides a mock function for the type MockAuthService
-func (_mock *MockAuthService) BeginAuth() (string, string, string) {
-	ret := _mock.Called()
+func (_mock *MockAuthService) BeginAuth(providerName string) (string, string, string, error) {
+	ret := _mock.Called(providerName)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BeginAuth")
@@ -49,25 +49,31 @@ func (_mock *MockAuthService) BeginAuth() (string, string, string) {
 	var r0 string
 	var r1 string
 	var r2 string
-	if returnFunc, ok := ret.Get(0).(func() (string, string, string)); ok {
-		return returnFunc()
+	var r3 error
+	if returnFunc, ok := ret.Get(0).(func(string) (string, string, string, error)); ok {
+		return returnFunc(providerName)
 	}
-	if returnFunc, ok := ret.Get(0).(func() string); ok {
-		r0 = returnFunc()
+	if returnFunc, ok := ret.Get(0).(func(string) string); ok {
+		r0 = returnFunc(providerName)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func() string); ok {
-		r1 = returnFunc()
+	if returnFunc, ok := ret.Get(1).(func(string) string); ok {
+		r1 = returnFunc(providerName)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
-	if returnFunc, ok := ret.Get(2).(func() string); ok {
-		r2 = returnFunc()
+	if returnFunc, ok := ret.Get(2).(func(string) string); ok {
+		r2 = returnFunc(providerName)
 	} else {
 		r2 = ret.Get(2).(string)
 	}
-	return r0, r1, r2
+	if returnFunc, ok := ret.Get(3).(func(string) error); ok {
+		r3 = returnFunc(providerName)
+	} else {
+		r3 = ret.Error(3)
+	}
+	return r0, r1, r2, r3
 }
 
 // MockAuthService_BeginAuth_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BeginAuth'
@@ -76,72 +82,80 @@ type MockAuthService_BeginAuth_Call struct {
 }
 
 // BeginAuth is a helper method to define mock.On call
-func (_e *MockAuthService_Expecter) BeginAuth() *MockAuthService_BeginAuth_Call {
-	return &MockAuthService_BeginAuth_Call{Call: _e.mock.On("BeginAuth")}
+//   - providerName string
+func (_e *MockAuthService_Expecter) BeginAuth(providerName interface{}) *MockAuthService_BeginAuth_Call {
+	return &MockAuthService_BeginAuth_Call{Call: _e.mock.On("BeginAuth", providerName)}
 }
 
-func (_c *MockAuthService_BeginAuth_Call) Run(run func()) *MockAuthService_BeginAuth_Call {
+func (_c *MockAuthService_BeginAuth_Call) Run(run func(providerName string)) *MockAuthService_BeginAuth_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
 
-func (_c *MockAuthService_BeginAuth_Call) Return(authURL string, state string, nonce string) *MockAuthService_BeginAuth_Call {
-	_c.Call.Return(authURL, state, nonce)
+func (_c *MockAuthService_BeginAuth_Call) Return(authURL string, state string, nonce string, err error) *MockAuthService_BeginAuth_Call {
+	_c.Call.Return(authURL, state, nonce, err)
 	return _c
 }
 
-func (_c *MockAuthService_BeginAuth_Call) RunAndReturn(run func() (string, string, string)) *MockAuthService_BeginAuth_Call {
+func (_c *MockAuthService_BeginAuth_Call) RunAndReturn(run func(providerName string) (string, string, string, error)) *MockAuthService_BeginAuth_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// HandleCallback provides a mock function for the type MockAuthService
-func (_mock *MockAuthService) HandleCallback(ctx context.Context, inputs map[string]string) (string, string, error) {
-	ret := _mock.Called(ctx, inputs)
+// HandleAuth provides a mock function for the type MockAuthService
+func (_mock *MockAuthService) HandleAuth(ctx context.Context, credentials map[string]string, provider string) (string, string, error) {
+	ret := _mock.Called(ctx, credentials, provider)
 
 	if len(ret) == 0 {
-		panic("no return value specified for HandleCallback")
+		panic("no return value specified for HandleAuth")
 	}
 
 	var r0 string
 	var r1 string
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) (string, string, error)); ok {
-		return returnFunc(ctx, inputs)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string, string) (string, string, error)); ok {
+		return returnFunc(ctx, credentials, provider)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) string); ok {
-		r0 = returnFunc(ctx, inputs)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string, string) string); ok {
+		r0 = returnFunc(ctx, credentials, provider)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, map[string]string) string); ok {
-		r1 = returnFunc(ctx, inputs)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, map[string]string, string) string); ok {
+		r1 = returnFunc(ctx, credentials, provider)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
-	if returnFunc, ok := ret.Get(2).(func(context.Context, map[string]string) error); ok {
-		r2 = returnFunc(ctx, inputs)
+	if returnFunc, ok := ret.Get(2).(func(context.Context, map[string]string, string) error); ok {
+		r2 = returnFunc(ctx, credentials, provider)
 	} else {
 		r2 = ret.Error(2)
 	}
 	return r0, r1, r2
 }
 
-// MockAuthService_HandleCallback_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HandleCallback'
-type MockAuthService_HandleCallback_Call struct {
+// MockAuthService_HandleAuth_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'HandleAuth'
+type MockAuthService_HandleAuth_Call struct {
 	*mock.Call
 }
 
-// HandleCallback is a helper method to define mock.On call
+// HandleAuth is a helper method to define mock.On call
 //   - ctx context.Context
-//   - inputs map[string]string
-func (_e *MockAuthService_Expecter) HandleCallback(ctx interface{}, inputs interface{}) *MockAuthService_HandleCallback_Call {
-	return &MockAuthService_HandleCallback_Call{Call: _e.mock.On("HandleCallback", ctx, inputs)}
+//   - credentials map[string]string
+//   - provider string
+func (_e *MockAuthService_Expecter) HandleAuth(ctx interface{}, credentials interface{}, provider interface{}) *MockAuthService_HandleAuth_Call {
+	return &MockAuthService_HandleAuth_Call{Call: _e.mock.On("HandleAuth", ctx, credentials, provider)}
 }
 
-func (_c *MockAuthService_HandleCallback_Call) Run(run func(ctx context.Context, inputs map[string]string)) *MockAuthService_HandleCallback_Call {
+func (_c *MockAuthService_HandleAuth_Call) Run(run func(ctx context.Context, credentials map[string]string, provider string)) *MockAuthService_HandleAuth_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -151,20 +165,25 @@ func (_c *MockAuthService_HandleCallback_Call) Run(run func(ctx context.Context,
 		if args[1] != nil {
 			arg1 = args[1].(map[string]string)
 		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
 }
 
-func (_c *MockAuthService_HandleCallback_Call) Return(refreshToken string, accessToken string, err error) *MockAuthService_HandleCallback_Call {
+func (_c *MockAuthService_HandleAuth_Call) Return(refreshToken string, accessToken string, err error) *MockAuthService_HandleAuth_Call {
 	_c.Call.Return(refreshToken, accessToken, err)
 	return _c
 }
 
-func (_c *MockAuthService_HandleCallback_Call) RunAndReturn(run func(ctx context.Context, inputs map[string]string) (string, string, error)) *MockAuthService_HandleCallback_Call {
+func (_c *MockAuthService_HandleAuth_Call) RunAndReturn(run func(ctx context.Context, credentials map[string]string, provider string) (string, string, error)) *MockAuthService_HandleAuth_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -286,6 +305,252 @@ func (_c *MockAuthService_VerifyUsers_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+// NewMockAuthProviderRegistry creates a new instance of MockAuthProviderRegistry. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewMockAuthProviderRegistry(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *MockAuthProviderRegistry {
+	mock := &MockAuthProviderRegistry{}
+	mock.Mock.Test(t)
+
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+
+	return mock
+}
+
+// MockAuthProviderRegistry is an autogenerated mock type for the AuthProviderRegistry type
+type MockAuthProviderRegistry struct {
+	mock.Mock
+}
+
+type MockAuthProviderRegistry_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockAuthProviderRegistry) EXPECT() *MockAuthProviderRegistry_Expecter {
+	return &MockAuthProviderRegistry_Expecter{mock: &_m.Mock}
+}
+
+// GetOauthProvider provides a mock function for the type MockAuthProviderRegistry
+func (_mock *MockAuthProviderRegistry) GetOauthProvider(provider string) (OAuthProvider, error) {
+	ret := _mock.Called(provider)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetOauthProvider")
+	}
+
+	var r0 OAuthProvider
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (OAuthProvider, error)); ok {
+		return returnFunc(provider)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) OAuthProvider); ok {
+		r0 = returnFunc(provider)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(OAuthProvider)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(provider)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAuthProviderRegistry_GetOauthProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetOauthProvider'
+type MockAuthProviderRegistry_GetOauthProvider_Call struct {
+	*mock.Call
+}
+
+// GetOauthProvider is a helper method to define mock.On call
+//   - provider string
+func (_e *MockAuthProviderRegistry_Expecter) GetOauthProvider(provider interface{}) *MockAuthProviderRegistry_GetOauthProvider_Call {
+	return &MockAuthProviderRegistry_GetOauthProvider_Call{Call: _e.mock.On("GetOauthProvider", provider)}
+}
+
+func (_c *MockAuthProviderRegistry_GetOauthProvider_Call) Run(run func(provider string)) *MockAuthProviderRegistry_GetOauthProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAuthProviderRegistry_GetOauthProvider_Call) Return(oAuthProvider OAuthProvider, err error) *MockAuthProviderRegistry_GetOauthProvider_Call {
+	_c.Call.Return(oAuthProvider, err)
+	return _c
+}
+
+func (_c *MockAuthProviderRegistry_GetOauthProvider_Call) RunAndReturn(run func(provider string) (OAuthProvider, error)) *MockAuthProviderRegistry_GetOauthProvider_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetProvider provides a mock function for the type MockAuthProviderRegistry
+func (_mock *MockAuthProviderRegistry) GetProvider(provider string) (Provider, error) {
+	ret := _mock.Called(provider)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetProvider")
+	}
+
+	var r0 Provider
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (Provider, error)); ok {
+		return returnFunc(provider)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) Provider); ok {
+		r0 = returnFunc(provider)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(Provider)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(provider)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAuthProviderRegistry_GetProvider_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetProvider'
+type MockAuthProviderRegistry_GetProvider_Call struct {
+	*mock.Call
+}
+
+// GetProvider is a helper method to define mock.On call
+//   - provider string
+func (_e *MockAuthProviderRegistry_Expecter) GetProvider(provider interface{}) *MockAuthProviderRegistry_GetProvider_Call {
+	return &MockAuthProviderRegistry_GetProvider_Call{Call: _e.mock.On("GetProvider", provider)}
+}
+
+func (_c *MockAuthProviderRegistry_GetProvider_Call) Run(run func(provider string)) *MockAuthProviderRegistry_GetProvider_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAuthProviderRegistry_GetProvider_Call) Return(provider1 Provider, err error) *MockAuthProviderRegistry_GetProvider_Call {
+	_c.Call.Return(provider1, err)
+	return _c
+}
+
+func (_c *MockAuthProviderRegistry_GetProvider_Call) RunAndReturn(run func(provider string) (Provider, error)) *MockAuthProviderRegistry_GetProvider_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// NewMockProvider creates a new instance of MockProvider. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
+// The first argument is typically a *testing.T value.
+func NewMockProvider(t interface {
+	mock.TestingT
+	Cleanup(func())
+}) *MockProvider {
+	mock := &MockProvider{}
+	mock.Mock.Test(t)
+
+	t.Cleanup(func() { mock.AssertExpectations(t) })
+
+	return mock
+}
+
+// MockProvider is an autogenerated mock type for the Provider type
+type MockProvider struct {
+	mock.Mock
+}
+
+type MockProvider_Expecter struct {
+	mock *mock.Mock
+}
+
+func (_m *MockProvider) EXPECT() *MockProvider_Expecter {
+	return &MockProvider_Expecter{mock: &_m.Mock}
+}
+
+// Authenticate provides a mock function for the type MockProvider
+func (_mock *MockProvider) Authenticate(ctx context.Context, inputs map[string]string) (*domain.UserInfo, error) {
+	ret := _mock.Called(ctx, inputs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Authenticate")
+	}
+
+	var r0 *domain.UserInfo
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) (*domain.UserInfo, error)); ok {
+		return returnFunc(ctx, inputs)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) *domain.UserInfo); ok {
+		r0 = returnFunc(ctx, inputs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.UserInfo)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, map[string]string) error); ok {
+		r1 = returnFunc(ctx, inputs)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockProvider_Authenticate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Authenticate'
+type MockProvider_Authenticate_Call struct {
+	*mock.Call
+}
+
+// Authenticate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - inputs map[string]string
+func (_e *MockProvider_Expecter) Authenticate(ctx interface{}, inputs interface{}) *MockProvider_Authenticate_Call {
+	return &MockProvider_Authenticate_Call{Call: _e.mock.On("Authenticate", ctx, inputs)}
+}
+
+func (_c *MockProvider_Authenticate_Call) Run(run func(ctx context.Context, inputs map[string]string)) *MockProvider_Authenticate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 map[string]string
+		if args[1] != nil {
+			arg1 = args[1].(map[string]string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockProvider_Authenticate_Call) Return(userInfo *domain.UserInfo, err error) *MockProvider_Authenticate_Call {
+	_c.Call.Return(userInfo, err)
+	return _c
+}
+
+func (_c *MockProvider_Authenticate_Call) RunAndReturn(run func(ctx context.Context, inputs map[string]string) (*domain.UserInfo, error)) *MockProvider_Authenticate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockOAuthProvider creates a new instance of MockOAuthProvider. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockOAuthProvider(t interface {
@@ -311,6 +576,74 @@ type MockOAuthProvider_Expecter struct {
 
 func (_m *MockOAuthProvider) EXPECT() *MockOAuthProvider_Expecter {
 	return &MockOAuthProvider_Expecter{mock: &_m.Mock}
+}
+
+// Authenticate provides a mock function for the type MockOAuthProvider
+func (_mock *MockOAuthProvider) Authenticate(ctx context.Context, inputs map[string]string) (*domain.UserInfo, error) {
+	ret := _mock.Called(ctx, inputs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Authenticate")
+	}
+
+	var r0 *domain.UserInfo
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) (*domain.UserInfo, error)); ok {
+		return returnFunc(ctx, inputs)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) *domain.UserInfo); ok {
+		r0 = returnFunc(ctx, inputs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.UserInfo)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, map[string]string) error); ok {
+		r1 = returnFunc(ctx, inputs)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockOAuthProvider_Authenticate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Authenticate'
+type MockOAuthProvider_Authenticate_Call struct {
+	*mock.Call
+}
+
+// Authenticate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - inputs map[string]string
+func (_e *MockOAuthProvider_Expecter) Authenticate(ctx interface{}, inputs interface{}) *MockOAuthProvider_Authenticate_Call {
+	return &MockOAuthProvider_Authenticate_Call{Call: _e.mock.On("Authenticate", ctx, inputs)}
+}
+
+func (_c *MockOAuthProvider_Authenticate_Call) Run(run func(ctx context.Context, inputs map[string]string)) *MockOAuthProvider_Authenticate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 map[string]string
+		if args[1] != nil {
+			arg1 = args[1].(map[string]string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockOAuthProvider_Authenticate_Call) Return(userInfo *domain.UserInfo, err error) *MockOAuthProvider_Authenticate_Call {
+	_c.Call.Return(userInfo, err)
+	return _c
+}
+
+func (_c *MockOAuthProvider_Authenticate_Call) RunAndReturn(run func(ctx context.Context, inputs map[string]string) (*domain.UserInfo, error)) *MockOAuthProvider_Authenticate_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // GetAuthURL provides a mock function for the type MockOAuthProvider
@@ -366,74 +699,6 @@ func (_c *MockOAuthProvider_GetAuthURL_Call) Return(s string) *MockOAuthProvider
 }
 
 func (_c *MockOAuthProvider_GetAuthURL_Call) RunAndReturn(run func(state string, nonce string) string) *MockOAuthProvider_GetAuthURL_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetUserInfo provides a mock function for the type MockOAuthProvider
-func (_mock *MockOAuthProvider) GetUserInfo(ctx context.Context, inputs map[string]string) (*domain.User, error) {
-	ret := _mock.Called(ctx, inputs)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetUserInfo")
-	}
-
-	var r0 *domain.User
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) (*domain.User, error)); ok {
-		return returnFunc(ctx, inputs)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, map[string]string) *domain.User); ok {
-		r0 = returnFunc(ctx, inputs)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.User)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, map[string]string) error); ok {
-		r1 = returnFunc(ctx, inputs)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockOAuthProvider_GetUserInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetUserInfo'
-type MockOAuthProvider_GetUserInfo_Call struct {
-	*mock.Call
-}
-
-// GetUserInfo is a helper method to define mock.On call
-//   - ctx context.Context
-//   - inputs map[string]string
-func (_e *MockOAuthProvider_Expecter) GetUserInfo(ctx interface{}, inputs interface{}) *MockOAuthProvider_GetUserInfo_Call {
-	return &MockOAuthProvider_GetUserInfo_Call{Call: _e.mock.On("GetUserInfo", ctx, inputs)}
-}
-
-func (_c *MockOAuthProvider_GetUserInfo_Call) Run(run func(ctx context.Context, inputs map[string]string)) *MockOAuthProvider_GetUserInfo_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 map[string]string
-		if args[1] != nil {
-			arg1 = args[1].(map[string]string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockOAuthProvider_GetUserInfo_Call) Return(user *domain.User, err error) *MockOAuthProvider_GetUserInfo_Call {
-	_c.Call.Return(user, err)
-	return _c
-}
-
-func (_c *MockOAuthProvider_GetUserInfo_Call) RunAndReturn(run func(ctx context.Context, inputs map[string]string) (*domain.User, error)) *MockOAuthProvider_GetUserInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -522,24 +787,24 @@ func (_c *MockRepository_DeleteTokenByStringAndUse_Call) RunAndReturn(run func(t
 	return _c
 }
 
-// FindUserByProviderAndSub provides a mock function for the type MockRepository
-func (_mock *MockRepository) FindUserByProviderAndSub(provider string, sub string) (*domain.User, error) {
+// FindIdentityByProviderAndSub provides a mock function for the type MockRepository
+func (_mock *MockRepository) FindIdentityByProviderAndSub(provider string, sub string) (*domain.UserIdentity, error) {
 	ret := _mock.Called(provider, sub)
 
 	if len(ret) == 0 {
-		panic("no return value specified for FindUserByProviderAndSub")
+		panic("no return value specified for FindIdentityByProviderAndSub")
 	}
 
-	var r0 *domain.User
+	var r0 *domain.UserIdentity
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, string) (*domain.User, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, string) (*domain.UserIdentity, error)); ok {
 		return returnFunc(provider, sub)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, string) *domain.User); ok {
+	if returnFunc, ok := ret.Get(0).(func(string, string) *domain.UserIdentity); ok {
 		r0 = returnFunc(provider, sub)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*domain.User)
+			r0 = ret.Get(0).(*domain.UserIdentity)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(string, string) error); ok {
@@ -550,19 +815,19 @@ func (_mock *MockRepository) FindUserByProviderAndSub(provider string, sub strin
 	return r0, r1
 }
 
-// MockRepository_FindUserByProviderAndSub_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindUserByProviderAndSub'
-type MockRepository_FindUserByProviderAndSub_Call struct {
+// MockRepository_FindIdentityByProviderAndSub_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindIdentityByProviderAndSub'
+type MockRepository_FindIdentityByProviderAndSub_Call struct {
 	*mock.Call
 }
 
-// FindUserByProviderAndSub is a helper method to define mock.On call
+// FindIdentityByProviderAndSub is a helper method to define mock.On call
 //   - provider string
 //   - sub string
-func (_e *MockRepository_Expecter) FindUserByProviderAndSub(provider interface{}, sub interface{}) *MockRepository_FindUserByProviderAndSub_Call {
-	return &MockRepository_FindUserByProviderAndSub_Call{Call: _e.mock.On("FindUserByProviderAndSub", provider, sub)}
+func (_e *MockRepository_Expecter) FindIdentityByProviderAndSub(provider interface{}, sub interface{}) *MockRepository_FindIdentityByProviderAndSub_Call {
+	return &MockRepository_FindIdentityByProviderAndSub_Call{Call: _e.mock.On("FindIdentityByProviderAndSub", provider, sub)}
 }
 
-func (_c *MockRepository_FindUserByProviderAndSub_Call) Run(run func(provider string, sub string)) *MockRepository_FindUserByProviderAndSub_Call {
+func (_c *MockRepository_FindIdentityByProviderAndSub_Call) Run(run func(provider string, sub string)) *MockRepository_FindIdentityByProviderAndSub_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
@@ -580,12 +845,74 @@ func (_c *MockRepository_FindUserByProviderAndSub_Call) Run(run func(provider st
 	return _c
 }
 
-func (_c *MockRepository_FindUserByProviderAndSub_Call) Return(user *domain.User, err error) *MockRepository_FindUserByProviderAndSub_Call {
+func (_c *MockRepository_FindIdentityByProviderAndSub_Call) Return(userIdentity *domain.UserIdentity, err error) *MockRepository_FindIdentityByProviderAndSub_Call {
+	_c.Call.Return(userIdentity, err)
+	return _c
+}
+
+func (_c *MockRepository_FindIdentityByProviderAndSub_Call) RunAndReturn(run func(provider string, sub string) (*domain.UserIdentity, error)) *MockRepository_FindIdentityByProviderAndSub_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindUserByEmail provides a mock function for the type MockRepository
+func (_mock *MockRepository) FindUserByEmail(email string) (*domain.User, error) {
+	ret := _mock.Called(email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindUserByEmail")
+	}
+
+	var r0 *domain.User
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (*domain.User, error)); ok {
+		return returnFunc(email)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) *domain.User); ok {
+		r0 = returnFunc(email)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.User)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(email)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepository_FindUserByEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindUserByEmail'
+type MockRepository_FindUserByEmail_Call struct {
+	*mock.Call
+}
+
+// FindUserByEmail is a helper method to define mock.On call
+//   - email string
+func (_e *MockRepository_Expecter) FindUserByEmail(email interface{}) *MockRepository_FindUserByEmail_Call {
+	return &MockRepository_FindUserByEmail_Call{Call: _e.mock.On("FindUserByEmail", email)}
+}
+
+func (_c *MockRepository_FindUserByEmail_Call) Run(run func(email string)) *MockRepository_FindUserByEmail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_FindUserByEmail_Call) Return(user *domain.User, err error) *MockRepository_FindUserByEmail_Call {
 	_c.Call.Return(user, err)
 	return _c
 }
 
-func (_c *MockRepository_FindUserByProviderAndSub_Call) RunAndReturn(run func(provider string, sub string) (*domain.User, error)) *MockRepository_FindUserByProviderAndSub_Call {
+func (_c *MockRepository_FindUserByEmail_Call) RunAndReturn(run func(email string) (*domain.User, error)) *MockRepository_FindUserByEmail_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -864,6 +1191,57 @@ func (_c *MockRepository_GetTokenByStringAndUse_Call) Return(token *domain.Token
 }
 
 func (_c *MockRepository_GetTokenByStringAndUse_Call) RunAndReturn(run func(tokenString string, tokenUse domain.TokenUse) (*domain.Token, error)) *MockRepository_GetTokenByStringAndUse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// InsertIdentity provides a mock function for the type MockRepository
+func (_mock *MockRepository) InsertIdentity(identity *domain.UserIdentity) error {
+	ret := _mock.Called(identity)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InsertIdentity")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(*domain.UserIdentity) error); ok {
+		r0 = returnFunc(identity)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepository_InsertIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InsertIdentity'
+type MockRepository_InsertIdentity_Call struct {
+	*mock.Call
+}
+
+// InsertIdentity is a helper method to define mock.On call
+//   - identity *domain.UserIdentity
+func (_e *MockRepository_Expecter) InsertIdentity(identity interface{}) *MockRepository_InsertIdentity_Call {
+	return &MockRepository_InsertIdentity_Call{Call: _e.mock.On("InsertIdentity", identity)}
+}
+
+func (_c *MockRepository_InsertIdentity_Call) Run(run func(identity *domain.UserIdentity)) *MockRepository_InsertIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 *domain.UserIdentity
+		if args[0] != nil {
+			arg0 = args[0].(*domain.UserIdentity)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_InsertIdentity_Call) Return(err error) *MockRepository_InsertIdentity_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepository_InsertIdentity_Call) RunAndReturn(run func(identity *domain.UserIdentity) error) *MockRepository_InsertIdentity_Call {
 	_c.Call.Return(run)
 	return _c
 }

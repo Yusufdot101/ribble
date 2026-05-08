@@ -16,7 +16,7 @@ func NewAdapter(databaseURL string) (*Adapter, error) {
 	if err != nil {
 		return nil, fmt.Errorf("db connection error: %v", err)
 	}
-	err = DB.AutoMigrate(&User{}, &Token{})
+	err = DB.AutoMigrate(&User{}, &Token{}, &UserIdentity{})
 	if err != nil {
 		return nil, fmt.Errorf("db migration error: %v", err)
 	}

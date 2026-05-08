@@ -11,7 +11,7 @@ func (rts *RepositoryTestSuite) TestInsertToken() {
 	rts.Require().Nil(err)
 
 	// insert user becauset the tokens table has reference to users id
-	user := domain.NewUser("yusuf", "example@gmail.com", "google", "1")
+	user := domain.NewUser("yusuf", "example@gmail.com")
 	err = adapter.InsertUser(user)
 	rts.Require().Nil(err)
 
@@ -24,7 +24,7 @@ func (rts *RepositoryTestSuite) TestGetTokenByStringAndUse() {
 	adapter, err := NewAdapter(rts.DataSourceURL)
 	rts.Require().Nil(err)
 
-	user := domain.NewUser("yusuf", "example@gmail.com", "google", "1")
+	user := domain.NewUser("yusuf", "example@gmail.com")
 	err = adapter.InsertUser(user)
 	rts.Require().Nil(err)
 
@@ -44,7 +44,7 @@ func (rts *RepositoryTestSuite) TestDeleteTokenByStringAndUse() {
 	adapter, err := NewAdapter(rts.DataSourceURL)
 	rts.Require().Nil(err)
 
-	user := domain.NewUser("yusuf", "example@gmail.com", "google", "1")
+	user := domain.NewUser("yusuf", "example@gmail.com")
 	err = adapter.InsertUser(user)
 	rts.Require().Nil(err)
 
