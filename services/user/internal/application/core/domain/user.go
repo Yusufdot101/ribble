@@ -4,20 +4,38 @@ import (
 	"time"
 )
 
-type User struct {
-	ID        uint      `json:"id"`  // this is local id
-	Sub       string    `json:"sub"` // this is id from providers(in case user changes email, the sub will be always be the same)
-	Provider  string    `json:"provider"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
+type UserInfo struct {
+	Provider string
+	Sub      string
+	Email    string
+	Name     string
+}
+
+type UserIdentity struct {
+	ID        uint
+	Provider  string
+	Sub       string
+	UserID    uint
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func NewUser(name, email, provider, sub string) *User {
-	return &User{
-		Name:     name,
-		Email:    email,
+type User struct {
+	ID        uint      `json:"id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func NewIdentity(provider, sub string) *UserIdentity {
+	return &UserIdentity{
 		Provider: provider,
 		Sub:      sub,
+	}
+}
+
+func NewUser(name, email string) *User {
+	return &User{
+		Name:  name,
+		Email: email,
 	}
 }

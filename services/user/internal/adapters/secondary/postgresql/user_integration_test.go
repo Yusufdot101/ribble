@@ -11,15 +11,14 @@ func (rts *RepositoryTestSuite) TestInsertUser() {
 	rts.Nil(saveErr)
 }
 
-func (rts *RepositoryTestSuite) TestFindUserByProviderAndSub() {
+func (rts *RepositoryTestSuite) TestFindUserByEmail() {
 	adapter, err := NewAdapter(rts.DataSourceURL)
 	rts.Require().Nil(err)
-	user := domain.NewUser("yusuf", "example@gmail.com", "google", "1")
+	user := domain.NewUser("yusuf", "example@gmail.com")
 	err = adapter.InsertUser(user)
 	rts.Nil(err)
 
-	gotUser, err := adapter.FindUserByProviderAndSub(user.Provider, user.Sub)
+	gotUser, err := adapter.FindUserByEmail(user.Email)
 	rts.Nil(err)
-	rts.Equal("1", gotUser.Sub)
-	rts.Equal("google", gotUser.Provider)
+	rts.Equal("example@gmail.com", gotUser.Email)
 }

@@ -11,11 +11,10 @@ import (
 
 type User struct {
 	gorm.Model
-	Sub      string
 	Name     string
 	Email    string
-	Provider string
-	Tokens   []Token `gorm:"constraint:OnDelete:CASCADE;"`
+	Tokens   []Token        `gorm:"constraint:OnDelete:CASCADE;"`
+	Identity []UserIdentity `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 func (a *Adapter) InsertUser(user *domain.User) error {
@@ -23,10 +22,8 @@ func (a *Adapter) InsertUser(user *domain.User) error {
 	defer cancel()
 
 	userModel := &User{
-		Name:     user.Name,
-		Email:    user.Email,
-		Sub:      user.Sub,
-		Provider: user.Provider,
+		Name:  user.Name,
+		Email: user.Email,
 	}
 	res := a.DB.WithContext(ctx).Create(userModel)
 	if res.Error == nil {
@@ -36,14 +33,17 @@ func (a *Adapter) InsertUser(user *domain.User) error {
 	return res.Error
 }
 
-func (a *Adapter) FindUserByProviderAndSub(provider, sub string) (*domain.User, error) {
+func (a *Adapter) FindUserByEmail(email string) (*domain.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	userModel := &User{}
-	res := a.DB.First(userModel, "provider = ? AND sub = ?", provider, sub)
-	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
+	err := a.DB.WithContext(ctx).Where("email = ?", email).First(&userModel).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, domain.ErrRecordNotFound
 		}
-		return nil, res.Error
+		return nil, err
 	}
 
 	user := &domain.User{
@@ -51,8 +51,6 @@ func (a *Adapter) FindUserByProviderAndSub(provider, sub string) (*domain.User, 
 		Name:      userModel.Name,
 		Email:     userModel.Email,
 		CreatedAt: userModel.CreatedAt,
-		Provider:  userModel.Provider,
-		Sub:       userModel.Sub,
 	}
 	return user, nil
 }
@@ -64,8 +62,6 @@ func (a *Adapter) FindUsersByID(ctx context.Context, userIDs []uint32) ([]*domai
 	for _, userModel := range userModels {
 		users = append(users, &domain.User{
 			ID:        userModel.ID,
-			Sub:       userModel.Sub,
-			Provider:  userModel.Provider,
 			Name:      userModel.Name,
 			Email:     userModel.Email,
 			CreatedAt: userModel.CreatedAt,
@@ -93,8 +89,6 @@ func (a *Adapter) FindUsersByEmail(email string) ([]*domain.User, error) {
 	for _, userModel := range userModels {
 		users = append(users, &domain.User{
 			ID:        userModel.ID,
-			Sub:       userModel.Sub,
-			Provider:  userModel.Provider,
 			Name:      userModel.Name,
 			Email:     userModel.Email,
 			CreatedAt: userModel.CreatedAt,
@@ -122,8 +116,6 @@ func (a *Adapter) SearchUsers(ctx context.Context, query string, ids []uint32) (
 	for _, userModel := range userModels {
 		users = append(users, &domain.User{
 			ID:        userModel.ID,
-			Sub:       userModel.Sub,
-			Provider:  userModel.Provider,
 			Name:      userModel.Name,
 			Email:     userModel.Email,
 			CreatedAt: userModel.CreatedAt,
@@ -152,8 +144,6 @@ func (a *Adapter) GetContacts(ctx context.Context, query string, excludeIds []ui
 	for _, userModel := range userModels {
 		users = append(users, &domain.User{
 			ID:        userModel.ID,
-			Sub:       userModel.Sub,
-			Provider:  userModel.Provider,
 			Name:      userModel.Name,
 			Email:     userModel.Email,
 			CreatedAt: userModel.CreatedAt,

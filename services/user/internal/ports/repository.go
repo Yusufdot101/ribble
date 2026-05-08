@@ -8,7 +8,6 @@ import (
 
 type Repository interface {
 	InsertUser(user *domain.User) error
-	FindUserByProviderAndSub(provider, sub string) (*domain.User, error)
 	FindUsersByID(context.Context, []uint32) ([]*domain.User, error)
 	FindUsersByEmail(email string) ([]*domain.User, error)
 	SearchUsers(ctx context.Context, query string, ids []uint32) ([]*domain.User, error)
@@ -17,4 +16,9 @@ type Repository interface {
 	InsertToken(token *domain.Token) error
 	GetTokenByStringAndUse(tokenString string, tokenUse domain.TokenUse) (*domain.Token, error)
 	DeleteTokenByStringAndUse(tokenString string, tokenUse domain.TokenUse) error
+
+	InsertIdentity(identity *domain.UserIdentity) error
+	FindIdentityByProviderAndSub(provider, sub string) (*domain.UserIdentity, error)
+
+	FindUserByEmail(email string) (*domain.User, error)
 }

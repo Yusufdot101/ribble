@@ -1,1 +1,1 @@
-CREATE USER user_service WITH PASSWORD 'user_service_password';
+CREATE USER user_service WITH PASSWORD 'password';

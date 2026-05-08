@@ -10,14 +10,14 @@ import (
 
 type AuthService struct {
 	repo     ports.Repository
-	provider ports.OAuthProvider
+	registry ports.AuthProviderRegistry
 	tsvc     ports.TokenService
 }
 
-func NewAuthService(repo ports.Repository, provider ports.OAuthProvider, tsvc ports.TokenService) *AuthService {
+func NewAuthService(repo ports.Repository, tsvc ports.TokenService, registry ports.AuthProviderRegistry) *AuthService {
 	return &AuthService{
 		repo:     repo,
-		provider: provider,
+		registry: registry,
 		tsvc:     tsvc,
 	}
 }
@@ -26,26 +26,52 @@ func (asvc *AuthService) NewUser(user *domain.User) error {
 	return asvc.repo.InsertUser(user)
 }
 
-func (asvc *AuthService) HandleCallback(ctx context.Context, code, nonce string) (string, string, error) {
-	user, err := asvc.provider.GetUserInfo(ctx, code, nonce)
+func (asvc *AuthService) HandleAuth(ctx context.Context, credentials map[string]string, provider string) (string, string, error) {
+	p, err := asvc.registry.GetProvider(provider)
 	if err != nil {
 		return "", "", err
 	}
 
-	gotUser, err := asvc.repo.FindUserByProviderAndSub(user.Provider, user.Sub)
+	userInfo, err := p.Authenticate(ctx, credentials)
+	if err != nil {
+		return "", "", err
+	}
+
+	identity, err := asvc.repo.FindIdentityByProviderAndSub(userInfo.Provider, userInfo.Sub)
 	if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
 		return "", "", err
-	} else if errors.Is(err, domain.ErrRecordNotFound) {
-		// new user
-		err = asvc.repo.InsertUser(user)
+	}
+
+	if errors.Is(err, domain.ErrRecordNotFound) {
+		user, err := asvc.repo.FindUserByEmail(userInfo.Email)
+		if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
+			return "", "", err
+		}
+		// TODO: make use of transaction
+		if errors.Is(err, domain.ErrRecordNotFound) {
+			// create entry
+			user = &domain.User{
+				Email: userInfo.Email,
+				Name:  userInfo.Name,
+			}
+			err = asvc.repo.InsertUser(user)
+			if err != nil {
+				return "", "", err
+			}
+
+		}
+		identity = &domain.UserIdentity{
+			UserID:   user.ID,
+			Provider: userInfo.Provider,
+			Sub:      userInfo.Sub,
+		}
+		err = asvc.repo.InsertIdentity(identity)
 		if err != nil {
 			return "", "", err
 		}
-	} else {
-		user.ID = gotUser.ID
 	}
 
-	refreshToken, err := asvc.tsvc.New(domain.UUID, domain.REFRESH, user.ID)
+	refreshToken, err := asvc.tsvc.New(domain.UUID, domain.REFRESH, identity.UserID)
 	if err != nil {
 		return "", "", err
 	}
@@ -55,7 +81,7 @@ func (asvc *AuthService) HandleCallback(ctx context.Context, code, nonce string)
 		return "", "", err
 	}
 
-	accessToken, err := asvc.tsvc.New(domain.JWT, domain.ACCESS, user.ID)
+	accessToken, err := asvc.tsvc.New(domain.JWT, domain.ACCESS, identity.UserID)
 	if err != nil {
 		return "", "", err
 	}
@@ -63,12 +89,16 @@ func (asvc *AuthService) HandleCallback(ctx context.Context, code, nonce string)
 	return refreshToken.TokenString, accessToken.TokenString, nil
 }
 
-func (asvc *AuthService) BeginAuth() (string, string, string) {
+func (asvc *AuthService) BeginAuth(provider string) (string, string, string, error) {
 	state := generateUUID()
 	nonce := generateUUID()
+	p, err := asvc.registry.GetOauthProvider(provider)
+	if err != nil {
+		return "", "", "", err
+	}
 
-	url := asvc.provider.GetAuthURL(state, nonce)
-	return url, state, nonce
+	url := p.GetAuthURL(state, nonce)
+	return url, state, nonce, nil
 }
 
 func (asvc *AuthService) VerifyUsers(ctx context.Context, userIDs []uint32) (bool, error) {

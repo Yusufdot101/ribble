@@ -45,6 +45,11 @@ func (g *GoogleOIDC) verifyIDToken(ctx context.Context, rawIDToken string, expec
 	if err != nil {
 		return nil, err
 	}
+
+	if expectedNonce == "" || idToken.Nonce != expectedNonce {
+		return nil, domain.ErrInvalidNonce
+	}
+
 	return idToken, nil
 }
 
@@ -62,13 +67,23 @@ func (g *GoogleOIDC) exchangeCode(ctx context.Context, code string) (string, err
 	return rawIDToken, nil
 }
 
-func (g *GoogleOIDC) GetUserInfo(ctx context.Context, code, expectedNonce string) (*domain.User, error) {
+func (g *GoogleOIDC) Authenticate(ctx context.Context, credentials map[string]string) (*domain.UserInfo, error) {
+	code, hasCode := credentials["code"]
+	nonce, hasNonce := credentials["nonce"]
+	if !hasCode || !hasNonce || code == "" || nonce == "" {
+		return nil, domain.ErrInvalidGoogleOIDCInputs
+	}
+
+	return g.getUserInfo(ctx, code, nonce)
+}
+
+func (g *GoogleOIDC) getUserInfo(ctx context.Context, code, nonce string) (*domain.UserInfo, error) {
 	rawIDToken, err := g.exchangeCode(ctx, code)
 	if err != nil {
 		return nil, err
 	}
 
-	idToken, err := g.verifyIDToken(ctx, rawIDToken, expectedNonce)
+	idToken, err := g.verifyIDToken(ctx, rawIDToken, nonce)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +99,7 @@ func (g *GoogleOIDC) GetUserInfo(ctx context.Context, code, expectedNonce string
 	}
 
 	// all the OIDC token exchange + verification code lives here
-	return &domain.User{
+	return &domain.UserInfo{
 		Provider: "google",
 		Sub:      claims.Sub,
 		Email:    claims.Email,
