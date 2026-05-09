@@ -15,7 +15,7 @@ func (rts *RepositoryTestSuite) TestInsertToken() {
 	err = adapter.InsertUser(user)
 	rts.Require().Nil(err)
 
-	token := domain.NewToken(domain.REFRESH, domain.UUID, 1, "refreshToken", time.Now())
+	token := domain.NewToken(domain.REFRESH, domain.UUID, user.ID, "refreshToken", time.Now())
 	err = adapter.InsertToken(token)
 	rts.Nil(err)
 }
@@ -28,7 +28,7 @@ func (rts *RepositoryTestSuite) TestGetTokenByStringAndUse() {
 	err = adapter.InsertUser(user)
 	rts.Require().Nil(err)
 
-	token := domain.NewToken(domain.REFRESH, domain.UUID, 1, "refreshToken", time.Now().Add(time.Hour))
+	token := domain.NewToken(domain.REFRESH, domain.UUID, user.ID, "refreshToken", time.Now().Add(time.Hour))
 	err = adapter.InsertToken(token)
 	rts.Require().Nil(err)
 
