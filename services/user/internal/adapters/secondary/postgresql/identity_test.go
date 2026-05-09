@@ -18,7 +18,7 @@ func (rts *RepositoryTestSuite) TestInsertIdentity() {
 	rts.Require().Nil(err)
 }
 
-func (rts *RepositoryTestSuite) FindIdentityByProviderAndSub() {
+func (rts *RepositoryTestSuite) TestFindIdentityByProviderAndSub() {
 	adapter, err := NewAdapter(rts.DataSourceURL)
 	rts.Require().Nil(err)
 

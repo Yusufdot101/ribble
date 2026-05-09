@@ -98,5 +98,7 @@ func (rts *RepositoryTestSuite) TestGetContacts() {
 	gotUsers, err := adapter.GetContacts(ctx, "", []uint32{}, uint32(user.ID))
 	rts.Require().Nil(err)
 	rts.Require().Len(gotUsers, 2)
-	rts.Require().NotContains(gotUsers, user)
+	for _, gotUser := range gotUsers {
+		rts.Require().NotEqual(user.ID, gotUser.ID)
+	}
 }
