@@ -2,19 +2,10 @@ package services
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
 )
-
-var EmailRX = regexp.MustCompile(
-	"^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-)
-
-func isValidEmail(email string) bool {
-	return EmailRX.MatchString(email)
-}
 
 type UserService struct {
 	repo ports.Repository

@@ -5,18 +5,24 @@ import (
 )
 
 type UserInfo struct {
-	Provider string
-	Sub      string
-	Email    string
-	Name     string
+	Provider      string
+	Sub           string
+	Email         string
+	Name          string
+	EmailVerified bool
+	PasswordHash  *[]byte
 }
 
 type UserIdentity struct {
-	ID        uint
-	Provider  string
-	Sub       string
-	UserID    uint
-	CreatedAt time.Time `json:"created_at"`
+	ID            uint
+	Provider      string
+	Sub           string
+	UserID        uint
+	EmailVerified bool
+	PasswordHash  *[]byte
+	CreatedAt     time.Time
+	Email         string
+	Name          string
 }
 
 type User struct {

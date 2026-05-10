@@ -6,6 +6,11 @@ import (
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
 )
 
+type IdentityRepository interface {
+	InsertIdentity(identity *domain.UserIdentity) error
+	FindIdentityByProviderAndSub(provider, sub string) (*domain.UserIdentity, error)
+}
+
 type Repository interface {
 	InsertUser(user *domain.User) error
 	FindUsersByID(context.Context, []uint32) ([]*domain.User, error)

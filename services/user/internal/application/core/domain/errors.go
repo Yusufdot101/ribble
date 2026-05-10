@@ -16,6 +16,12 @@ var (
 	ErrInvalidID    = errors.New("invalid id")
 	ErrInvalidEmail = errors.New("invalid email")
 
-	ErrInvalidGoogleOIDCInputs = errors.New("invalid google oidc inputs")
-	ErrInvalidProvider         = errors.New("invalid provider")
+	ErrInvalidProviderInputs = errors.New("invalid provider inputs")
+	ErrInvalidProvider       = errors.New("invalid provider")
+
+	// used in local(email/password) provider identity saved somehow without the password hash
+	ErrInvalidIdentity    = errors.New("invalid identity found")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+
+	ErrUnverifiedAccount = errors.New("please verify your account to continue")
 )

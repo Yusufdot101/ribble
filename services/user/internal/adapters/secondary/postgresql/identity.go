@@ -11,9 +11,10 @@ import (
 
 type UserIdentity struct {
 	gorm.Model
-	Provider string `gorm:"index:idx_provider_sub,unique"`
-	Sub      string `gorm:"index:idx_provider_sub,unique"`
-	UserID   uint   `gorm:"index"`
+	Provider     string `gorm:"index:idx_provider_sub,unique"`
+	Sub          string `gorm:"index:idx_provider_sub,unique"`
+	UserID       uint   `gorm:"index"`
+	PasswordHash *[]byte
 }
 
 func (a *Adapter) InsertIdentity(identity *domain.UserIdentity) error {
@@ -47,11 +48,12 @@ func (a *Adapter) FindIdentityByProviderAndSub(provider, sub string) (*domain.Us
 	}
 
 	identity := &domain.UserIdentity{
-		ID:        identityModel.ID,
-		CreatedAt: identityModel.CreatedAt,
-		Provider:  identityModel.Provider,
-		Sub:       identityModel.Sub,
-		UserID:    identityModel.UserID,
+		ID:            identityModel.ID,
+		CreatedAt:     identityModel.CreatedAt,
+		Provider:      identityModel.Provider,
+		Sub:           identityModel.Sub,
+		UserID:        identityModel.UserID,
+		EmailVerified: true,
 	}
 	return identity, nil
 }

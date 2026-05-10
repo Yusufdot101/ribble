@@ -32,39 +32,33 @@ func (asvc *AuthService) HandleAuth(ctx context.Context, credentials map[string]
 		return "", "", err
 	}
 
-	userInfo, err := p.Authenticate(ctx, credentials)
-	if err != nil {
-		return "", "", err
-	}
-
-	identity, err := asvc.repo.FindIdentityByProviderAndSub(userInfo.Provider, userInfo.Sub)
+	identity, err := p.Authenticate(ctx, credentials)
 	if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
 		return "", "", err
 	}
+	if !identity.EmailVerified {
+		return "", "", domain.ErrUnverifiedAccount
+	}
 
 	if errors.Is(err, domain.ErrRecordNotFound) {
-		user, err := asvc.repo.FindUserByEmail(userInfo.Email)
+		user, err := asvc.repo.FindUserByEmail(identity.Email)
 		if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
 			return "", "", err
 		}
+
 		// TODO: make use of transaction
 		if errors.Is(err, domain.ErrRecordNotFound) {
 			// create entry
 			user = &domain.User{
-				Email: userInfo.Email,
-				Name:  userInfo.Name,
+				Email: identity.Email,
+				Name:  identity.Name,
 			}
 			err = asvc.repo.InsertUser(user)
 			if err != nil {
 				return "", "", err
 			}
-
 		}
-		identity = &domain.UserIdentity{
-			UserID:   user.ID,
-			Provider: userInfo.Provider,
-			Sub:      userInfo.Sub,
-		}
+		identity.UserID = user.ID
 		err = asvc.repo.InsertIdentity(identity)
 		if err != nil {
 			return "", "", err

@@ -12,7 +12,7 @@ type AuthProviderRegistry interface {
 }
 
 type Provider interface {
-	Authenticate(ctx context.Context, inputs map[string]string) (*domain.UserInfo, error)
+	Authenticate(ctx context.Context, inputs map[string]string) (*domain.UserIdentity, error)
 }
 
 type OAuthProvider interface {
