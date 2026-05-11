@@ -27,22 +27,24 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
+	providers := map[string]ports.Provider{}
+	oauthProviders := map[string]ports.OAuthProvider{}
+
 	googleOIDC, err := google.NewGoogleOIDC(ctx, config.GetGoogleClientID(), config.GetGoogleClientSecret(), google.CallbackURL, repo)
 	if err != nil {
-		log.Printf("error : %v", err)
+		log.Printf("google oidc disabled: %v", err)
+	} else {
+		providers[google.GoogleProviderName] = googleOIDC
+		oauthProviders[google.GoogleProviderName] = googleOIDC
 	}
 
 	mailer := mailer.NewMailer()
 	localProvider := local.NewLocalProvider(mailer, repo)
+	providers[local.LocalProviderName] = localProvider
 
 	registry := &provider.ProviderRegistry{
-		Providers: map[string]ports.Provider{
-			google.GoogleProviderName: googleOIDC,
-			local.LocalProviderName:   localProvider,
-		},
-		OauthProviders: map[string]ports.OAuthProvider{
-			google.GoogleProviderName: googleOIDC,
-		},
+		Providers:      providers,
+		OauthProviders: oauthProviders,
 	}
 	tsvc := services.NewTokenService(repo)
 	asvc := services.NewAuthService(repo, tsvc, registry)

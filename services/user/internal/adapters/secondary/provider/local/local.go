@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"time"
 
@@ -126,7 +125,7 @@ func (l *LocalProvider) sendMail(name, email, password string) error {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(config.GetJWTSecret())
 	if err != nil {
-		log.Fatalf("error signing jwt: %v\n", err)
+		return fmt.Errorf("sign verification token: %w", err)
 	}
 
 	return l.Mailer.Send(email, tokenString)

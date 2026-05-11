@@ -399,8 +399,8 @@ func (_m *MockMailer) EXPECT() *MockMailer_Expecter {
 }
 
 // Send provides a mock function for the type MockMailer
-func (_mock *MockMailer) Send(receipiant string, email string) error {
-	ret := _mock.Called(receipiant, email)
+func (_mock *MockMailer) Send(recipient string, email string) error {
+	ret := _mock.Called(recipient, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Send")
@@ -408,7 +408,7 @@ func (_mock *MockMailer) Send(receipiant string, email string) error {
 
 	var r0 error
 	if returnFunc, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = returnFunc(receipiant, email)
+		r0 = returnFunc(recipient, email)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -421,13 +421,13 @@ type MockMailer_Send_Call struct {
 }
 
 // Send is a helper method to define mock.On call
-//   - receipiant string
+//   - recipient string
 //   - email string
-func (_e *MockMailer_Expecter) Send(receipiant interface{}, email interface{}) *MockMailer_Send_Call {
-	return &MockMailer_Send_Call{Call: _e.mock.On("Send", receipiant, email)}
+func (_e *MockMailer_Expecter) Send(recipient interface{}, email interface{}) *MockMailer_Send_Call {
+	return &MockMailer_Send_Call{Call: _e.mock.On("Send", recipient, email)}
 }
 
-func (_c *MockMailer_Send_Call) Run(run func(receipiant string, email string)) *MockMailer_Send_Call {
+func (_c *MockMailer_Send_Call) Run(run func(recipient string, email string)) *MockMailer_Send_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
@@ -450,7 +450,7 @@ func (_c *MockMailer_Send_Call) Return(err error) *MockMailer_Send_Call {
 	return _c
 }
 
-func (_c *MockMailer_Send_Call) RunAndReturn(run func(receipiant string, email string) error) *MockMailer_Send_Call {
+func (_c *MockMailer_Send_Call) RunAndReturn(run func(recipient string, email string) error) *MockMailer_Send_Call {
 	_c.Call.Return(run)
 	return _c
 }

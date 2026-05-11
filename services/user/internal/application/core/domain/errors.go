@@ -23,5 +23,6 @@ var (
 	ErrInvalidIdentity    = errors.New("invalid identity found")
 	ErrInvalidCredentials = errors.New("invalid credentials")
 
-	ErrUnverifiedAccount = errors.New("please verify your account to continue")
+	ErrUnverifiedAccount       = errors.New("please verify your account to continue")
+	ErrAccountAlreadyActivated = errors.New("account is already activated")
 )

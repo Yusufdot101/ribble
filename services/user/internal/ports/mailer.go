@@ -1,5 +1,5 @@
 package ports
 
 type Mailer interface {
-	Send(receipiant, email string) error
+	Send(recipient, email string) error
 }

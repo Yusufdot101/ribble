@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/local"
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
@@ -92,15 +91,15 @@ func (asvc *AuthService) ActivateAccount(tokenString string) (string, string, er
 		return "", "", err
 	}
 
-	claims := token.Claims.(jwt.MapClaims)
-	log.Println("claims: ", claims)
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", "", domain.ErrInvalidProviderInputs
+	}
 	email, ok := claims["Email"].(string)
-	log.Println("log1: ", email)
 	if !ok {
 		return "", "", domain.ErrInvalidProviderInputs
 	}
 	name, ok := claims["Name"].(string)
-	log.Println("log2: ", name)
 	if !ok {
 		return "", "", domain.ErrInvalidProviderInputs
 	}
@@ -127,6 +126,11 @@ func (asvc *AuthService) ActivateAccount(tokenString string) (string, string, er
 		}
 	}
 
+	_, err = asvc.repo.FindIdentityByProviderAndSub(local.LocalProviderName, email)
+	if err == nil {
+		return "", "", domain.ErrAccountAlreadyActivated
+	}
+
 	identity := domain.NewIdentity(local.LocalProviderName, email)
 	identity.UserID = user.ID
 	identity.PasswordHash = &passwordHash
@@ -139,11 +143,11 @@ func (asvc *AuthService) ActivateAccount(tokenString string) (string, string, er
 	if err != nil {
 		return "", "", err
 	}
-	accessToken, err := asvc.tsvc.New(domain.JWT, domain.ACCESS, identity.UserID)
-	if err != nil {
+	if err := asvc.tsvc.Save(refreshToken); err != nil {
 		return "", "", err
 	}
-	err = asvc.tsvc.Save(refreshToken)
+
+	accessToken, err := asvc.tsvc.New(domain.JWT, domain.ACCESS, identity.UserID)
 	if err != nil {
 		return "", "", err
 	}

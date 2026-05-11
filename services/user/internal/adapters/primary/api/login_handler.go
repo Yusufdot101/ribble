@@ -15,8 +15,8 @@ import (
 func (h *handler) register(c *gin.Context) {
 	var req struct {
 		Name     string `json:"name" binding:"required"`
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=8,max=72"`
 	}
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
@@ -32,26 +32,22 @@ func (h *handler) register(c *gin.Context) {
 		"email":    req.Email,
 		"password": req.Password,
 	}, local.LocalProviderName)
-	if err != nil {
-		status := http.StatusInternalServerError
-		error := err.Error()
-		switch {
-		case errors.Is(err, domain.ErrUnverifiedAccount):
-			status = http.StatusOK
-			c.JSON(status, response.Response[any]{
-				Message: err.Error(),
-			})
-			return
-		case errors.Is(err, domain.ErrInvalidProviderInputs):
-			status = http.StatusBadRequest
-			error = "invalid request"
-		}
-		c.JSON(status, response.Response[any]{
-			Error: error,
+	if err == nil || errors.Is(err, domain.ErrUnverifiedAccount) {
+		c.JSON(http.StatusCreated, response.Response[any]{
+			Message: "registration successful, please verify your email",
 		})
 		return
 	}
-	panic("shouldnt reach this place")
+	status := http.StatusInternalServerError
+	error := err.Error()
+	switch {
+	case errors.Is(err, domain.ErrInvalidProviderInputs):
+		status = http.StatusBadRequest
+		error = "invalid request"
+	}
+	c.JSON(status, response.Response[any]{
+		Error: error,
+	})
 }
 
 func (h *handler) verify(c *gin.Context) {
@@ -60,6 +56,10 @@ func (h *handler) verify(c *gin.Context) {
 	if err != nil {
 		status := http.StatusInternalServerError
 		error := err.Error()
+		switch {
+		case errors.Is(err, domain.ErrAccountAlreadyActivated):
+			status = http.StatusForbidden
+		}
 		c.JSON(status, response.Response[any]{
 			Error: error,
 		})
@@ -74,8 +74,8 @@ func (h *handler) verify(c *gin.Context) {
 
 func (h *handler) login(c *gin.Context) {
 	var req struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
+		Email    string `json:"email" binding:"required,email"`
+		Password string `json:"password" binding:"required,min=8,max=72"`
 	}
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
@@ -84,7 +84,7 @@ func (h *handler) login(c *gin.Context) {
 		return
 	}
 
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	refreshToken, accessToken, err := h.svc.HandleAuth(ctx, map[string]string{
 		"method":   "login",
 		"email":    req.Email,
