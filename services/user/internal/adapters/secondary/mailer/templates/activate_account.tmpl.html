@@ -1,0 +1,32 @@
+{{define "subject"}}Welcome to Ripple!{{end}}
+
+{{define "plainBody"}}
+
+You have one more step remaining to activate your ripple account.
+Click the link below to verify your email address: 
+{{.Token}}
+
+The Ripple Team
+{{end}}
+
+{{define "htmlBody"}}
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    </head>
+    <body>
+        <p>Hi,</p>
+        <p>
+            You have one more step remaining to activate your ripple account.
+            Click the link below to verify your email address: 
+            <a href="http://localhost:8080/auth/verify?token={{.Token}}">
+                Activate Account
+            </a>
+        </p>
+        <p>Thanks,</p>
+        <p>The Ripple Team</p>
+    </body>
+</html>
+{{end}}

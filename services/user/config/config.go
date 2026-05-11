@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -64,6 +65,31 @@ func GetJWTSecret() []byte {
 	}
 
 	return []byte(jwtSecret)
+}
+
+// SMTP vars
+func GetSMTPHost() string {
+	return getEnvVariable("SMTP_HOST")
+}
+
+func GetSMTPPort() int {
+	port, err := strconv.Atoi(getEnvVariable("SMTP_PORT"))
+	if err != nil {
+		log.Fatalf("invalid SMTP_PORT: %v", err)
+	}
+	return port
+}
+
+func GetSMTPUsername() string {
+	return getEnvVariable("SMTP_USERNAME")
+}
+
+func GetSMTPSender() string {
+	return getEnvVariable("SMTP_SENDER")
+}
+
+func GetSMTPPassword() string {
+	return getEnvVariable("SMTP_PASSWORD")
 }
 
 func GetEnv() string {

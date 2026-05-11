@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -128,5 +129,11 @@ func (l *LocalProvider) sendMail(name, email, password string) error {
 		return fmt.Errorf("sign verification token: %w", err)
 	}
 
-	return l.Mailer.Send(email, tokenString)
+	go func() {
+		data := struct{ Token string }{Token: tokenString}
+		err := l.Mailer.Send(email, "activate_account.tmpl.html", data)
+		log.Printf("error sending email: %v", err)
+	}()
+
+	return nil
 }

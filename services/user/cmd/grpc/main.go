@@ -38,7 +38,10 @@ func main() {
 		oauthProviders[google.GoogleProviderName] = googleOIDC
 	}
 
-	mailer := mailer.NewMailer()
+	mailer := mailer.NewMailer(
+		config.GetSMTPHost(), config.GetSMTPPort(), config.GetSMTPUsername(),
+		config.GetSMTPPassword(), config.GetSMTPSender(),
+	)
 	localProvider := local.NewLocalProvider(mailer, repo)
 	providers[local.LocalProviderName] = localProvider
 
