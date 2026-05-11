@@ -22,9 +22,10 @@ func (a *Adapter) InsertIdentity(identity *domain.UserIdentity) error {
 	defer cancel()
 
 	identityModel := &UserIdentity{
-		Provider: identity.Provider,
-		Sub:      identity.Sub,
-		UserID:   identity.UserID,
+		Provider:     identity.Provider,
+		Sub:          identity.Sub,
+		UserID:       identity.UserID,
+		PasswordHash: identity.PasswordHash,
 	}
 	res := a.DB.WithContext(ctx).Create(identityModel)
 	if res.Error == nil {
@@ -54,6 +55,7 @@ func (a *Adapter) FindIdentityByProviderAndSub(provider, sub string) (*domain.Us
 		Sub:           identityModel.Sub,
 		UserID:        identityModel.UserID,
 		EmailVerified: true,
+		PasswordHash:  identityModel.PasswordHash,
 	}
 	return identity, nil
 }

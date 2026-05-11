@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	issuerURL   = "https://accounts.google.com"
-	CallbackURL = "http://localhost:8080/auth/google/callback"
+	issuerURL          = "https://accounts.google.com"
+	CallbackURL        = "http://localhost:8080/auth/google/callback"
+	GoogleProviderName = "google"
 )
 
 type GoogleOIDC struct {
@@ -42,7 +43,7 @@ func NewGoogleOIDC(ctx context.Context, clientID, clientSecret, redirectURL stri
 		config:       cfg,
 		provider:     provider,
 		repo:         repo,
-		ProviderName: "google",
+		ProviderName: GoogleProviderName,
 	}, nil
 }
 
@@ -60,6 +61,7 @@ func (g *GoogleOIDC) Authenticate(ctx context.Context, credentials map[string]st
 
 	identity, err := g.repo.FindIdentityByProviderAndSub(userInfo.Provider, userInfo.Sub)
 	if err == nil {
+		identity.EmailVerified = true
 		return identity, nil
 	}
 	if !errors.Is(err, domain.ErrRecordNotFound) {

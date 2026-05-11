@@ -7,9 +7,11 @@ import (
 
 	"github.com/Yusufdot101/ripple/services/user/config"
 	"github.com/Yusufdot101/ripple/services/user/internal/adapters/primary/api"
+	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/mailer"
 	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/postgresql"
 	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider"
 	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/google"
+	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/local"
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/services"
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
 )
@@ -27,18 +29,21 @@ func main() {
 
 	googleOIDC, err := google.NewGoogleOIDC(ctx, config.GetGoogleClientID(), config.GetGoogleClientSecret(), google.CallbackURL, repo)
 	if err != nil {
-		log.Fatalf("error : %v", err)
+		log.Printf("error : %v", err)
 	}
+
+	mailer := mailer.NewMailer()
+	localProvider := local.NewLocalProvider(mailer, repo)
 
 	registry := &provider.ProviderRegistry{
 		Providers: map[string]ports.Provider{
-			"google": googleOIDC,
+			google.GoogleProviderName: googleOIDC,
+			local.LocalProviderName:   localProvider,
 		},
 		OauthProviders: map[string]ports.OAuthProvider{
-			"google": googleOIDC,
+			google.GoogleProviderName: googleOIDC,
 		},
 	}
-	// get service
 	tsvc := services.NewTokenService(repo)
 	asvc := services.NewAuthService(repo, tsvc, registry)
 	usvc := services.NewUserService(repo)

@@ -21,6 +21,11 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	group.GET("/google", h.googleBegin)
 	group.GET("/google/callback", h.googleCallback)
 	group.GET("/refreshtoken", h.RefreshToken)
+
+	group.POST("/signup", h.register)
+	group.GET("/verify", h.verify)
+	group.POST("/login", h.login)
+
 	group.Match([]string{http.MethodPost, http.MethodOptions}, "/logout", h.logout)
 
 	userGroup := r.Group("/users")

@@ -48,6 +48,15 @@ func GetAccessTokenTTL() time.Duration {
 	return duration
 }
 
+func GetEmailVerificationTTL() time.Duration {
+	duration, err := time.ParseDuration(getEnvVariable("EMAIL_VERIFICATION_TTL"))
+	if err != nil {
+		log.Fatalf("invalid email verification ttl")
+	}
+
+	return duration
+}
+
 func GetJWTSecret() []byte {
 	jwtSecret := getEnvVariable("JWT_SECRET")
 	if len(jwtSecret) < 32 {

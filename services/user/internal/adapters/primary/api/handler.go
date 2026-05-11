@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/Yusufdot101/ripple/services/user/config"
+	"github.com/Yusufdot101/ripple/services/user/internal/adapters/primary/api/response"
+	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/google"
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
 	"github.com/gin-gonic/gin"
 )
@@ -26,9 +28,11 @@ func NewHandler(svc ports.AuthService, tsvc ports.TokenService, usvc ports.UserS
 
 func (h *handler) googleBegin(c *gin.Context) {
 	// get the authURL, state and nonce cookies
-	url, state, nonce, err := h.svc.BeginAuth("google")
+	url, state, nonce, err := h.svc.BeginAuth(google.GoogleProviderName)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "an error occurred, please try again later")
+		c.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: "an error occurred, please try again later",
+		})
 		return
 	}
 
@@ -49,13 +53,18 @@ func (h *handler) googleCallback(c *gin.Context) {
 	}
 
 	if state != c.Query("state") {
-		c.String(http.StatusInternalServerError, "state doesnt match")
+		c.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: "state doesnt match",
+		},
+		)
 		return
 	}
 
 	nonce, err := c.Cookie("nonce")
 	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: err.Error(),
+		})
 		return
 	}
 
@@ -65,9 +74,11 @@ func (h *handler) googleCallback(c *gin.Context) {
 	refreshToken, _, err := h.svc.HandleAuth(ctx, map[string]string{
 		"code":  c.Query("code"),
 		"nonce": nonce,
-	}, "google")
+	}, google.GoogleProviderName)
 	if err != nil {
-		c.String(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: err.Error(),
+		})
 		return
 	}
 

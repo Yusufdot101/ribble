@@ -1,6 +1,7 @@
 package postgresql
 
 import (
+	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/local"
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
 )
 
@@ -12,7 +13,7 @@ func (rts *RepositoryTestSuite) TestInsertIdentity() {
 	err = adapter.InsertUser(user)
 	rts.Require().Nil(err)
 
-	identity := domain.NewIdentity("local", "1")
+	identity := domain.NewIdentity(local.LocalProviderName, "1")
 	identity.UserID = user.ID
 	err = adapter.InsertIdentity(identity)
 	rts.Require().Nil(err)
@@ -26,7 +27,7 @@ func (rts *RepositoryTestSuite) TestFindIdentityByProviderAndSub() {
 	err = adapter.InsertUser(user)
 	rts.Require().Nil(err)
 
-	identity := domain.NewIdentity("local", user.Email)
+	identity := domain.NewIdentity(local.LocalProviderName, user.Email)
 	identity.UserID = user.ID
 	err = adapter.InsertIdentity(identity)
 	rts.Require().Nil(err)

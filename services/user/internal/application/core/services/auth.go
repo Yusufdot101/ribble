@@ -3,9 +3,12 @@ package services
 import (
 	"context"
 	"errors"
+	"log"
 
+	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/local"
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type AuthService struct {
@@ -76,6 +79,71 @@ func (asvc *AuthService) HandleAuth(ctx context.Context, credentials map[string]
 	}
 
 	accessToken, err := asvc.tsvc.New(domain.JWT, domain.ACCESS, identity.UserID)
+	if err != nil {
+		return "", "", err
+	}
+
+	return refreshToken.TokenString, accessToken.TokenString, nil
+}
+
+func (asvc *AuthService) ActivateAccount(tokenString string) (string, string, error) {
+	token, err := ValidateJWT(tokenString)
+	if err != nil {
+		return "", "", err
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+	log.Println("claims: ", claims)
+	email, ok := claims["Email"].(string)
+	log.Println("log1: ", email)
+	if !ok {
+		return "", "", domain.ErrInvalidProviderInputs
+	}
+	name, ok := claims["Name"].(string)
+	log.Println("log2: ", name)
+	if !ok {
+		return "", "", domain.ErrInvalidProviderInputs
+	}
+	passwordString, ok := claims["PasswordHash"].(string)
+	if !ok {
+		return "", "", domain.ErrInvalidProviderInputs
+	}
+	passwordHash := []byte(passwordString)
+
+	user, err := asvc.repo.FindUserByEmail(email)
+	if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
+		return "", "", err
+	}
+
+	if errors.Is(err, domain.ErrRecordNotFound) {
+		// create entry
+		user = &domain.User{
+			Email: email,
+			Name:  name,
+		}
+		err = asvc.repo.InsertUser(user)
+		if err != nil {
+			return "", "", err
+		}
+	}
+
+	identity := domain.NewIdentity(local.LocalProviderName, email)
+	identity.UserID = user.ID
+	identity.PasswordHash = &passwordHash
+	err = asvc.repo.InsertIdentity(identity)
+	if err != nil {
+		return "", "", err
+	}
+
+	refreshToken, err := asvc.tsvc.New(domain.UUID, domain.REFRESH, identity.UserID)
+	if err != nil {
+		return "", "", err
+	}
+	accessToken, err := asvc.tsvc.New(domain.JWT, domain.ACCESS, identity.UserID)
+	if err != nil {
+		return "", "", err
+	}
+	err = asvc.tsvc.Save(refreshToken)
 	if err != nil {
 		return "", "", err
 	}
