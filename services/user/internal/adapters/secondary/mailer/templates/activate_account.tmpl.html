@@ -4,7 +4,7 @@
 
 You have one more step remaining to activate your ripple account.
 Click the link below to verify your email address: 
-{{.Token}}
+{{.ActivationURL}}
 
 The Ripple Team
 {{end}}
@@ -21,10 +21,10 @@ The Ripple Team
         <p>
             You have one more step remaining to activate your ripple account.
             Click the link below to verify your email address: 
-            <a href="http://localhost:8080/auth/verify?token={{.Token}}">
-                Activate Account
-            </a>
         </p>
+        <a href="{{.ActivationURL}}">
+            Activate Account
+        </a>
         <p>Thanks,</p>
         <p>The Ripple Team</p>
     </body>

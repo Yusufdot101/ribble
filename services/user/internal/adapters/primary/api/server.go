@@ -1,7 +1,7 @@
 package api
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
@@ -10,19 +10,18 @@ import (
 
 type Server struct {
 	router *gin.Engine
+	port   int
 }
 
-func NewServer(svc ports.AuthService, tsvc ports.TokenService, usvc ports.UserService) *Server {
+func NewServer(port int, svc ports.AuthService, tsvc ports.TokenService, usvc ports.UserService) *Server {
 	h := NewHandler(svc, tsvc, usvc)
 	r := h.RegisterRoutes()
 	return &Server{
 		router: r,
+		port:   port,
 	}
 }
 
-const PORT = ":8080"
-
 func (s *Server) ListenAndServe() error {
-	log.Printf("server listening on port %v\n", PORT)
-	return http.ListenAndServe(PORT, s.router)
+	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.router)
 }

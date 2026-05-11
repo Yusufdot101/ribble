@@ -50,7 +50,7 @@ func (l *LocalProvider) Authenticate(ctx context.Context, credentials map[string
 		if err := l.sendMail(name, email, password); err != nil {
 			return nil, fmt.Errorf("error sending email: %w", err)
 		}
-		return nil, fmt.Errorf("%w: we sent an activation link to your inbox", domain.ErrUnverifiedAccount)
+		return nil, fmt.Errorf("%w: we are sending an activation link to your inbox", domain.ErrUnverifiedAccount)
 	}
 
 	if method != "login" {
@@ -130,9 +130,15 @@ func (l *LocalProvider) sendMail(name, email, password string) error {
 	}
 
 	go func() {
-		data := struct{ Token string }{Token: tokenString}
+		data := struct {
+			ActivationURL string
+		}{
+			ActivationURL: fmt.Sprintf("%s/auth/verify?token=%s", config.GetServiceURL(), tokenString),
+		}
 		err := l.Mailer.Send(email, "activate_account.tmpl.html", data)
-		log.Printf("error sending email: %v", err)
+		if err != nil {
+			log.Printf("error sending activation email to %s: %v", email, err)
+		}
 	}()
 
 	return nil

@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+func GetServiceURL() string {
+	return getEnvVariable("SERVICE_URL")
+}
+
 func GetDatabaseURL() string {
 	return getEnvVariable("DATABASE_URL")
 }
