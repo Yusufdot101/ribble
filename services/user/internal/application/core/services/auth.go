@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/local"
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 type AuthService struct {
@@ -85,65 +83,43 @@ func (asvc *AuthService) HandleAuth(ctx context.Context, credentials map[string]
 	return refreshToken.TokenString, accessToken.TokenString, nil
 }
 
-func (asvc *AuthService) ActivateAccount(tokenString string) (string, string, error) {
-	token, err := ValidateJWT(tokenString)
+func (asvc *AuthService) ActivateAccount(tokenString string, identityID uint) (string, string, error) {
+	token, err := asvc.tsvc.GetTokenByStringAndUse(tokenString, domain.ACTIVATE)
 	if err != nil {
 		return "", "", err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return "", "", domain.ErrInvalidProviderInputs
-	}
-	email, ok := claims["Email"].(string)
-	if !ok {
-		return "", "", domain.ErrInvalidProviderInputs
-	}
-	name, ok := claims["Name"].(string)
-	if !ok {
-		return "", "", domain.ErrInvalidProviderInputs
-	}
-	passwordString, ok := claims["PasswordHash"].(string)
-	if !ok {
-		return "", "", domain.ErrInvalidProviderInputs
-	}
-	passwordHash := []byte(passwordString)
-
-	user, err := asvc.repo.FindUserByEmail(email)
-	if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
-		return "", "", err
-	}
-
-	if errors.Is(err, domain.ErrRecordNotFound) {
-		// create entry
-		user = &domain.User{
-			Email: email,
-			Name:  name,
-		}
-		err = asvc.repo.InsertUser(user)
+	var refreshToken *domain.Token
+	var identity *domain.UserIdentity
+	err = asvc.repo.WithTx(func(repo ports.Repository) error {
+		identity, err = asvc.repo.FindIdentityByUserIDAndID(token.UserID, identityID)
 		if err != nil {
-			return "", "", err
+			return err
 		}
-	}
 
-	_, err = asvc.repo.FindIdentityByProviderAndSub(local.LocalProviderName, email)
-	if err == nil {
-		return "", "", domain.ErrAccountAlreadyActivated
-	}
+		err = asvc.repo.ActivateIdentity(identity.ID)
+		if err != nil {
+			if errors.Is(err, domain.ErrRecordNotFound) {
+				err = domain.ErrAccountAlreadyActivated
+			}
+			return err
+		}
 
-	identity := domain.NewIdentity(local.LocalProviderName, email)
-	identity.UserID = user.ID
-	identity.PasswordHash = &passwordHash
-	err = asvc.repo.InsertIdentity(identity)
+		err = asvc.tsvc.DeleteTokenByStringAndUse(token.TokenString, domain.ACTIVATE)
+		if err != nil {
+			return err
+		}
+
+		refreshToken, err := asvc.tsvc.New(domain.UUID, domain.REFRESH, identity.UserID)
+		if err != nil {
+			return err
+		}
+		if err := asvc.tsvc.Save(refreshToken); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return "", "", err
-	}
-
-	refreshToken, err := asvc.tsvc.New(domain.UUID, domain.REFRESH, identity.UserID)
-	if err != nil {
-		return "", "", err
-	}
-	if err := asvc.tsvc.Save(refreshToken); err != nil {
 		return "", "", err
 	}
 

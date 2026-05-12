@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/Yusufdot101/ripple/services/user/config"
 	"github.com/Yusufdot101/ripple/services/user/internal/adapters/primary/api/response"
@@ -52,13 +53,22 @@ func (h *handler) register(c *gin.Context) {
 
 func (h *handler) verify(c *gin.Context) {
 	token := c.Query("token")
-	refreshToken, accessToken, err := h.svc.ActivateAccount(token)
+	identityID, err := strconv.ParseUint(c.Query("identity"), 10, strconv.IntSize)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid identity id",
+		})
+		return
+	}
+	refreshToken, accessToken, err := h.svc.ActivateAccount(token, uint(identityID))
 	if err != nil {
 		status := http.StatusInternalServerError
 		error := err.Error()
 		switch {
 		case errors.Is(err, domain.ErrAccountAlreadyActivated):
 			status = http.StatusForbidden
+		case errors.Is(err, domain.ErrRecordNotFound):
+			status = http.StatusNotFound
 		}
 		c.JSON(status, response.Response[any]{
 			Error: error,

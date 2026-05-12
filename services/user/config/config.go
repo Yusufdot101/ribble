@@ -53,10 +53,10 @@ func GetAccessTokenTTL() time.Duration {
 	return duration
 }
 
-func GetEmailVerificationTTL() time.Duration {
-	duration, err := time.ParseDuration(getEnvVariable("EMAIL_VERIFICATION_TTL"))
+func GetActivationTokenTTL() time.Duration {
+	duration, err := time.ParseDuration(getEnvVariable("ACTIVATION_TOKEN_TTL"))
 	if err != nil {
-		log.Fatalf("invalid email verification ttl")
+		log.Fatalf("invalid access token ttl")
 	}
 
 	return duration

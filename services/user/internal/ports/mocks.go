@@ -39,8 +39,8 @@ func (_m *MockAuthService) EXPECT() *MockAuthService_Expecter {
 }
 
 // ActivateAccount provides a mock function for the type MockAuthService
-func (_mock *MockAuthService) ActivateAccount(tokenString string) (string, string, error) {
-	ret := _mock.Called(tokenString)
+func (_mock *MockAuthService) ActivateAccount(tokenString string, identityID uint) (string, string, error) {
+	ret := _mock.Called(tokenString, identityID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ActivateAccount")
@@ -49,21 +49,21 @@ func (_mock *MockAuthService) ActivateAccount(tokenString string) (string, strin
 	var r0 string
 	var r1 string
 	var r2 error
-	if returnFunc, ok := ret.Get(0).(func(string) (string, string, error)); ok {
-		return returnFunc(tokenString)
+	if returnFunc, ok := ret.Get(0).(func(string, uint) (string, string, error)); ok {
+		return returnFunc(tokenString, identityID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) string); ok {
-		r0 = returnFunc(tokenString)
+	if returnFunc, ok := ret.Get(0).(func(string, uint) string); ok {
+		r0 = returnFunc(tokenString, identityID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) string); ok {
-		r1 = returnFunc(tokenString)
+	if returnFunc, ok := ret.Get(1).(func(string, uint) string); ok {
+		r1 = returnFunc(tokenString, identityID)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
-	if returnFunc, ok := ret.Get(2).(func(string) error); ok {
-		r2 = returnFunc(tokenString)
+	if returnFunc, ok := ret.Get(2).(func(string, uint) error); ok {
+		r2 = returnFunc(tokenString, identityID)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -77,18 +77,24 @@ type MockAuthService_ActivateAccount_Call struct {
 
 // ActivateAccount is a helper method to define mock.On call
 //   - tokenString string
-func (_e *MockAuthService_Expecter) ActivateAccount(tokenString interface{}) *MockAuthService_ActivateAccount_Call {
-	return &MockAuthService_ActivateAccount_Call{Call: _e.mock.On("ActivateAccount", tokenString)}
+//   - identityID uint
+func (_e *MockAuthService_Expecter) ActivateAccount(tokenString interface{}, identityID interface{}) *MockAuthService_ActivateAccount_Call {
+	return &MockAuthService_ActivateAccount_Call{Call: _e.mock.On("ActivateAccount", tokenString, identityID)}
 }
 
-func (_c *MockAuthService_ActivateAccount_Call) Run(run func(tokenString string)) *MockAuthService_ActivateAccount_Call {
+func (_c *MockAuthService_ActivateAccount_Call) Run(run func(tokenString string, identityID uint)) *MockAuthService_ActivateAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
 			arg0 = args[0].(string)
 		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
 		run(
 			arg0,
+			arg1,
 		)
 	})
 	return _c
@@ -99,7 +105,7 @@ func (_c *MockAuthService_ActivateAccount_Call) Return(s string, s1 string, err 
 	return _c
 }
 
-func (_c *MockAuthService_ActivateAccount_Call) RunAndReturn(run func(tokenString string) (string, string, error)) *MockAuthService_ActivateAccount_Call {
+func (_c *MockAuthService_ActivateAccount_Call) RunAndReturn(run func(tokenString string, identityID uint) (string, string, error)) *MockAuthService_ActivateAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -399,16 +405,16 @@ func (_m *MockMailer) EXPECT() *MockMailer_Expecter {
 }
 
 // Send provides a mock function for the type MockMailer
-func (_mock *MockMailer) Send(recipient string, email string) error {
-	ret := _mock.Called(recipient, email)
+func (_mock *MockMailer) Send(recipient string, templateFile string, data any) error {
+	ret := _mock.Called(recipient, templateFile, data)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Send")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = returnFunc(recipient, email)
+	if returnFunc, ok := ret.Get(0).(func(string, string, any) error); ok {
+		r0 = returnFunc(recipient, templateFile, data)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -422,12 +428,13 @@ type MockMailer_Send_Call struct {
 
 // Send is a helper method to define mock.On call
 //   - recipient string
-//   - email string
-func (_e *MockMailer_Expecter) Send(recipient interface{}, email interface{}) *MockMailer_Send_Call {
-	return &MockMailer_Send_Call{Call: _e.mock.On("Send", recipient, email)}
+//   - templateFile string
+//   - data any
+func (_e *MockMailer_Expecter) Send(recipient interface{}, templateFile interface{}, data interface{}) *MockMailer_Send_Call {
+	return &MockMailer_Send_Call{Call: _e.mock.On("Send", recipient, templateFile, data)}
 }
 
-func (_c *MockMailer_Send_Call) Run(run func(recipient string, email string)) *MockMailer_Send_Call {
+func (_c *MockMailer_Send_Call) Run(run func(recipient string, templateFile string, data any)) *MockMailer_Send_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
@@ -437,9 +444,14 @@ func (_c *MockMailer_Send_Call) Run(run func(recipient string, email string)) *M
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
+		var arg2 any
+		if args[2] != nil {
+			arg2 = args[2].(any)
+		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -450,7 +462,7 @@ func (_c *MockMailer_Send_Call) Return(err error) *MockMailer_Send_Call {
 	return _c
 }
 
-func (_c *MockMailer_Send_Call) RunAndReturn(run func(recipient string, email string) error) *MockMailer_Send_Call {
+func (_c *MockMailer_Send_Call) RunAndReturn(run func(recipient string, templateFile string, data any) error) *MockMailer_Send_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -880,6 +892,57 @@ func (_m *MockIdentityRepository) EXPECT() *MockIdentityRepository_Expecter {
 	return &MockIdentityRepository_Expecter{mock: &_m.Mock}
 }
 
+// ActivateIdentity provides a mock function for the type MockIdentityRepository
+func (_mock *MockIdentityRepository) ActivateIdentity(identityID uint) error {
+	ret := _mock.Called(identityID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActivateIdentity")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(uint) error); ok {
+		r0 = returnFunc(identityID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIdentityRepository_ActivateIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateIdentity'
+type MockIdentityRepository_ActivateIdentity_Call struct {
+	*mock.Call
+}
+
+// ActivateIdentity is a helper method to define mock.On call
+//   - identityID uint
+func (_e *MockIdentityRepository_Expecter) ActivateIdentity(identityID interface{}) *MockIdentityRepository_ActivateIdentity_Call {
+	return &MockIdentityRepository_ActivateIdentity_Call{Call: _e.mock.On("ActivateIdentity", identityID)}
+}
+
+func (_c *MockIdentityRepository_ActivateIdentity_Call) Run(run func(identityID uint)) *MockIdentityRepository_ActivateIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 uint
+		if args[0] != nil {
+			arg0 = args[0].(uint)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIdentityRepository_ActivateIdentity_Call) Return(err error) *MockIdentityRepository_ActivateIdentity_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIdentityRepository_ActivateIdentity_Call) RunAndReturn(run func(identityID uint) error) *MockIdentityRepository_ActivateIdentity_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindIdentityByProviderAndSub provides a mock function for the type MockIdentityRepository
 func (_mock *MockIdentityRepository) FindIdentityByProviderAndSub(provider string, sub string) (*domain.UserIdentity, error) {
 	ret := _mock.Called(provider, sub)
@@ -948,6 +1011,136 @@ func (_c *MockIdentityRepository_FindIdentityByProviderAndSub_Call) RunAndReturn
 	return _c
 }
 
+// FindIdentityByUserIDAndID provides a mock function for the type MockIdentityRepository
+func (_mock *MockIdentityRepository) FindIdentityByUserIDAndID(userID uint, identityID uint) (*domain.UserIdentity, error) {
+	ret := _mock.Called(userID, identityID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindIdentityByUserIDAndID")
+	}
+
+	var r0 *domain.UserIdentity
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(uint, uint) (*domain.UserIdentity, error)); ok {
+		return returnFunc(userID, identityID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(uint, uint) *domain.UserIdentity); ok {
+		r0 = returnFunc(userID, identityID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.UserIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(uint, uint) error); ok {
+		r1 = returnFunc(userID, identityID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIdentityRepository_FindIdentityByUserIDAndID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindIdentityByUserIDAndID'
+type MockIdentityRepository_FindIdentityByUserIDAndID_Call struct {
+	*mock.Call
+}
+
+// FindIdentityByUserIDAndID is a helper method to define mock.On call
+//   - userID uint
+//   - identityID uint
+func (_e *MockIdentityRepository_Expecter) FindIdentityByUserIDAndID(userID interface{}, identityID interface{}) *MockIdentityRepository_FindIdentityByUserIDAndID_Call {
+	return &MockIdentityRepository_FindIdentityByUserIDAndID_Call{Call: _e.mock.On("FindIdentityByUserIDAndID", userID, identityID)}
+}
+
+func (_c *MockIdentityRepository_FindIdentityByUserIDAndID_Call) Run(run func(userID uint, identityID uint)) *MockIdentityRepository_FindIdentityByUserIDAndID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 uint
+		if args[0] != nil {
+			arg0 = args[0].(uint)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIdentityRepository_FindIdentityByUserIDAndID_Call) Return(userIdentity *domain.UserIdentity, err error) *MockIdentityRepository_FindIdentityByUserIDAndID_Call {
+	_c.Call.Return(userIdentity, err)
+	return _c
+}
+
+func (_c *MockIdentityRepository_FindIdentityByUserIDAndID_Call) RunAndReturn(run func(userID uint, identityID uint) (*domain.UserIdentity, error)) *MockIdentityRepository_FindIdentityByUserIDAndID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindUserByEmail provides a mock function for the type MockIdentityRepository
+func (_mock *MockIdentityRepository) FindUserByEmail(email string) (*domain.User, error) {
+	ret := _mock.Called(email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindUserByEmail")
+	}
+
+	var r0 *domain.User
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string) (*domain.User, error)); ok {
+		return returnFunc(email)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string) *domain.User); ok {
+		r0 = returnFunc(email)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.User)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
+		r1 = returnFunc(email)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockIdentityRepository_FindUserByEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindUserByEmail'
+type MockIdentityRepository_FindUserByEmail_Call struct {
+	*mock.Call
+}
+
+// FindUserByEmail is a helper method to define mock.On call
+//   - email string
+func (_e *MockIdentityRepository_Expecter) FindUserByEmail(email interface{}) *MockIdentityRepository_FindUserByEmail_Call {
+	return &MockIdentityRepository_FindUserByEmail_Call{Call: _e.mock.On("FindUserByEmail", email)}
+}
+
+func (_c *MockIdentityRepository_FindUserByEmail_Call) Run(run func(email string)) *MockIdentityRepository_FindUserByEmail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIdentityRepository_FindUserByEmail_Call) Return(user *domain.User, err error) *MockIdentityRepository_FindUserByEmail_Call {
+	_c.Call.Return(user, err)
+	return _c
+}
+
+func (_c *MockIdentityRepository_FindUserByEmail_Call) RunAndReturn(run func(email string) (*domain.User, error)) *MockIdentityRepository_FindUserByEmail_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // InsertIdentity provides a mock function for the type MockIdentityRepository
 func (_mock *MockIdentityRepository) InsertIdentity(identity *domain.UserIdentity) error {
 	ret := _mock.Called(identity)
@@ -999,6 +1192,108 @@ func (_c *MockIdentityRepository_InsertIdentity_Call) RunAndReturn(run func(iden
 	return _c
 }
 
+// InsertUser provides a mock function for the type MockIdentityRepository
+func (_mock *MockIdentityRepository) InsertUser(user *domain.User) error {
+	ret := _mock.Called(user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InsertUser")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(*domain.User) error); ok {
+		r0 = returnFunc(user)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIdentityRepository_InsertUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InsertUser'
+type MockIdentityRepository_InsertUser_Call struct {
+	*mock.Call
+}
+
+// InsertUser is a helper method to define mock.On call
+//   - user *domain.User
+func (_e *MockIdentityRepository_Expecter) InsertUser(user interface{}) *MockIdentityRepository_InsertUser_Call {
+	return &MockIdentityRepository_InsertUser_Call{Call: _e.mock.On("InsertUser", user)}
+}
+
+func (_c *MockIdentityRepository_InsertUser_Call) Run(run func(user *domain.User)) *MockIdentityRepository_InsertUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 *domain.User
+		if args[0] != nil {
+			arg0 = args[0].(*domain.User)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIdentityRepository_InsertUser_Call) Return(err error) *MockIdentityRepository_InsertUser_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIdentityRepository_InsertUser_Call) RunAndReturn(run func(user *domain.User) error) *MockIdentityRepository_InsertUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WithTx provides a mock function for the type MockIdentityRepository
+func (_mock *MockIdentityRepository) WithTx(fn func(repo Repository) error) error {
+	ret := _mock.Called(fn)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithTx")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(func(repo Repository) error) error); ok {
+		r0 = returnFunc(fn)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIdentityRepository_WithTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WithTx'
+type MockIdentityRepository_WithTx_Call struct {
+	*mock.Call
+}
+
+// WithTx is a helper method to define mock.On call
+//   - fn func(repo Repository) error
+func (_e *MockIdentityRepository_Expecter) WithTx(fn interface{}) *MockIdentityRepository_WithTx_Call {
+	return &MockIdentityRepository_WithTx_Call{Call: _e.mock.On("WithTx", fn)}
+}
+
+func (_c *MockIdentityRepository_WithTx_Call) Run(run func(fn func(repo Repository) error)) *MockIdentityRepository_WithTx_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 func(repo Repository) error
+		if args[0] != nil {
+			arg0 = args[0].(func(repo Repository) error)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIdentityRepository_WithTx_Call) Return(err error) *MockIdentityRepository_WithTx_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIdentityRepository_WithTx_Call) RunAndReturn(run func(fn func(repo Repository) error) error) *MockIdentityRepository_WithTx_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewMockRepository creates a new instance of MockRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewMockRepository(t interface {
@@ -1024,6 +1319,57 @@ type MockRepository_Expecter struct {
 
 func (_m *MockRepository) EXPECT() *MockRepository_Expecter {
 	return &MockRepository_Expecter{mock: &_m.Mock}
+}
+
+// ActivateIdentity provides a mock function for the type MockRepository
+func (_mock *MockRepository) ActivateIdentity(identityID uint) error {
+	ret := _mock.Called(identityID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ActivateIdentity")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(uint) error); ok {
+		r0 = returnFunc(identityID)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepository_ActivateIdentity_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ActivateIdentity'
+type MockRepository_ActivateIdentity_Call struct {
+	*mock.Call
+}
+
+// ActivateIdentity is a helper method to define mock.On call
+//   - identityID uint
+func (_e *MockRepository_Expecter) ActivateIdentity(identityID interface{}) *MockRepository_ActivateIdentity_Call {
+	return &MockRepository_ActivateIdentity_Call{Call: _e.mock.On("ActivateIdentity", identityID)}
+}
+
+func (_c *MockRepository_ActivateIdentity_Call) Run(run func(identityID uint)) *MockRepository_ActivateIdentity_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 uint
+		if args[0] != nil {
+			arg0 = args[0].(uint)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_ActivateIdentity_Call) Return(err error) *MockRepository_ActivateIdentity_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepository_ActivateIdentity_Call) RunAndReturn(run func(identityID uint) error) *MockRepository_ActivateIdentity_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // DeleteTokenByStringAndUse provides a mock function for the type MockRepository
@@ -1147,6 +1493,74 @@ func (_c *MockRepository_FindIdentityByProviderAndSub_Call) Return(userIdentity 
 }
 
 func (_c *MockRepository_FindIdentityByProviderAndSub_Call) RunAndReturn(run func(provider string, sub string) (*domain.UserIdentity, error)) *MockRepository_FindIdentityByProviderAndSub_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// FindIdentityByUserIDAndID provides a mock function for the type MockRepository
+func (_mock *MockRepository) FindIdentityByUserIDAndID(userID uint, identityID uint) (*domain.UserIdentity, error) {
+	ret := _mock.Called(userID, identityID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for FindIdentityByUserIDAndID")
+	}
+
+	var r0 *domain.UserIdentity
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(uint, uint) (*domain.UserIdentity, error)); ok {
+		return returnFunc(userID, identityID)
+	}
+	if returnFunc, ok := ret.Get(0).(func(uint, uint) *domain.UserIdentity); ok {
+		r0 = returnFunc(userID, identityID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*domain.UserIdentity)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(uint, uint) error); ok {
+		r1 = returnFunc(userID, identityID)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockRepository_FindIdentityByUserIDAndID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'FindIdentityByUserIDAndID'
+type MockRepository_FindIdentityByUserIDAndID_Call struct {
+	*mock.Call
+}
+
+// FindIdentityByUserIDAndID is a helper method to define mock.On call
+//   - userID uint
+//   - identityID uint
+func (_e *MockRepository_Expecter) FindIdentityByUserIDAndID(userID interface{}, identityID interface{}) *MockRepository_FindIdentityByUserIDAndID_Call {
+	return &MockRepository_FindIdentityByUserIDAndID_Call{Call: _e.mock.On("FindIdentityByUserIDAndID", userID, identityID)}
+}
+
+func (_c *MockRepository_FindIdentityByUserIDAndID_Call) Run(run func(userID uint, identityID uint)) *MockRepository_FindIdentityByUserIDAndID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 uint
+		if args[0] != nil {
+			arg0 = args[0].(uint)
+		}
+		var arg1 uint
+		if args[1] != nil {
+			arg1 = args[1].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_FindIdentityByUserIDAndID_Call) Return(userIdentity *domain.UserIdentity, err error) *MockRepository_FindIdentityByUserIDAndID_Call {
+	_c.Call.Return(userIdentity, err)
+	return _c
+}
+
+func (_c *MockRepository_FindIdentityByUserIDAndID_Call) RunAndReturn(run func(userID uint, identityID uint) (*domain.UserIdentity, error)) *MockRepository_FindIdentityByUserIDAndID_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1714,6 +2128,57 @@ func (_c *MockRepository_SearchUsers_Call) Return(users []*domain.User, err erro
 }
 
 func (_c *MockRepository_SearchUsers_Call) RunAndReturn(run func(ctx context.Context, query string, ids []uint32) ([]*domain.User, error)) *MockRepository_SearchUsers_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// WithTx provides a mock function for the type MockRepository
+func (_mock *MockRepository) WithTx(fn func(repo Repository) error) error {
+	ret := _mock.Called(fn)
+
+	if len(ret) == 0 {
+		panic("no return value specified for WithTx")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(func(repo Repository) error) error); ok {
+		r0 = returnFunc(fn)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepository_WithTx_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'WithTx'
+type MockRepository_WithTx_Call struct {
+	*mock.Call
+}
+
+// WithTx is a helper method to define mock.On call
+//   - fn func(repo Repository) error
+func (_e *MockRepository_Expecter) WithTx(fn interface{}) *MockRepository_WithTx_Call {
+	return &MockRepository_WithTx_Call{Call: _e.mock.On("WithTx", fn)}
+}
+
+func (_c *MockRepository_WithTx_Call) Run(run func(fn func(repo Repository) error)) *MockRepository_WithTx_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 func(repo Repository) error
+		if args[0] != nil {
+			arg0 = args[0].(func(repo Repository) error)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_WithTx_Call) Return(err error) *MockRepository_WithTx_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepository_WithTx_Call) RunAndReturn(run func(fn func(repo Repository) error) error) *MockRepository_WithTx_Call {
 	_c.Call.Return(run)
 	return _c
 }

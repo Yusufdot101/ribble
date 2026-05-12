@@ -13,8 +13,9 @@ const (
 	UUID TokenType = "uuid"
 	JWT  TokenType = "jwt"
 
-	REFRESH TokenUse = "refresh"
-	ACCESS  TokenUse = "access"
+	REFRESH  TokenUse = "refresh"
+	ACCESS   TokenUse = "access"
+	ACTIVATE TokenUse = "activate"
 )
 
 type Token struct {

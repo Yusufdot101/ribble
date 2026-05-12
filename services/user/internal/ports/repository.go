@@ -9,10 +9,15 @@ import (
 type IdentityRepository interface {
 	InsertIdentity(identity *domain.UserIdentity) error
 	FindIdentityByProviderAndSub(provider, sub string) (*domain.UserIdentity, error)
+	FindIdentityByUserIDAndID(userID, identityID uint) (*domain.UserIdentity, error)
+	FindUserByEmail(email string) (*domain.User, error)
+	InsertUser(user *domain.User) error
+	WithTx(fn func(repo Repository) error) error
+	ActivateIdentity(identityID uint) error
 }
 
 type Repository interface {
-	InsertUser(user *domain.User) error
+	IdentityRepository
 	FindUsersByID(context.Context, []uint32) ([]*domain.User, error)
 	FindUsersByEmail(email string) ([]*domain.User, error)
 	SearchUsers(ctx context.Context, query string, ids []uint32) ([]*domain.User, error)
@@ -21,9 +26,4 @@ type Repository interface {
 	InsertToken(token *domain.Token) error
 	GetTokenByStringAndUse(tokenString string, tokenUse domain.TokenUse) (*domain.Token, error)
 	DeleteTokenByStringAndUse(tokenString string, tokenUse domain.TokenUse) error
-
-	InsertIdentity(identity *domain.UserIdentity) error
-	FindIdentityByProviderAndSub(provider, sub string) (*domain.UserIdentity, error)
-
-	FindUserByEmail(email string) (*domain.User, error)
 }

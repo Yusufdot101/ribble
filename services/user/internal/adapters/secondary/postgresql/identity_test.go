@@ -28,6 +28,7 @@ func (rts *RepositoryTestSuite) TestFindIdentityByProviderAndSub() {
 	rts.Require().Nil(err)
 
 	identity := domain.NewIdentity(local.LocalProviderName, user.Email)
+	identity.EmailVerified = true
 	identity.UserID = user.ID
 	err = adapter.InsertIdentity(identity)
 	rts.Require().Nil(err)

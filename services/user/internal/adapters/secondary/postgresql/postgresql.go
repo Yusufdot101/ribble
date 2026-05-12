@@ -3,6 +3,7 @@ package postgresql
 import (
 	"fmt"
 
+	"github.com/Yusufdot101/ripple/services/user/internal/ports"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,4 +25,11 @@ func NewAdapter(databaseURL string) (*Adapter, error) {
 	return &Adapter{
 		DB: DB,
 	}, nil
+}
+
+func (a *Adapter) WithTx(fn func(repo ports.Repository) error) error {
+	return a.DB.Transaction(func(tx *gorm.DB) error {
+		txRepo := &Adapter{DB: tx} // same struct, but with tx as the db
+		return fn(txRepo)
+	})
 }

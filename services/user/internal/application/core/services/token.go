@@ -29,6 +29,8 @@ func (tsvc *TokenService) New(tokenType domain.TokenType, tokenUse domain.TokenU
 		ttl = config.GetRefreshTokenTTL()
 	case domain.ACCESS:
 		ttl = config.GetAccessTokenTTL()
+	case domain.ACTIVATE:
+		ttl = config.GetActivationTokenTTL()
 	default:
 		return nil, domain.ErrInvalidTokenUse
 	}

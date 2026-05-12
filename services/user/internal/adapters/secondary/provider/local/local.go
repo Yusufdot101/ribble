@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"time"
 
 	"github.com/Yusufdot101/ripple/services/user/config"
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
@@ -20,14 +19,16 @@ const LocalProviderName = "local"
 type LocalProvider struct {
 	ProviderName string
 	repo         ports.IdentityRepository
-	Mailer       ports.Mailer
+	mailer       ports.Mailer
+	tsvc         ports.TokenService
 }
 
-func NewLocalProvider(mailer ports.Mailer, repo ports.IdentityRepository) *LocalProvider {
+func NewLocalProvider(mailer ports.Mailer, repo ports.IdentityRepository, tsvc ports.TokenService) *LocalProvider {
 	return &LocalProvider{
 		repo:         repo,
 		ProviderName: LocalProviderName,
-		Mailer:       mailer,
+		mailer:       mailer,
+		tsvc:         tsvc,
 	}
 }
 
@@ -43,30 +44,91 @@ func (l *LocalProvider) Authenticate(ctx context.Context, credentials map[string
 	}
 
 	if errors.Is(err, domain.ErrRecordNotFound) {
-		if method != "signup" {
-			return nil, domain.ErrInvalidProviderInputs
-		}
-		// send activation link to user
-		if err := l.sendMail(name, email, password); err != nil {
-			return nil, fmt.Errorf("error sending email: %w", err)
-		}
-		return nil, fmt.Errorf("%w: we are sending an activation link to your inbox", domain.ErrUnverifiedAccount)
+		return nil, l.handleSignup(method, name, email, password)
 	}
 
-	if method != "login" {
-		return nil, domain.ErrInvalidProviderInputs
-	}
-
-	if identity.PasswordHash == nil {
-		return nil, domain.ErrInvalidIdentity
-	}
-
-	err = bcrypt.CompareHashAndPassword(*identity.PasswordHash, []byte(password))
+	err = l.handleLogin(method, identity, password)
 	if err != nil {
-		return nil, domain.ErrInvalidProviderInputs
+		return nil, err
 	}
 
 	return identity, nil
+}
+
+func (l *LocalProvider) handleSignup(method, name, email, password string) error {
+	if method != "signup" {
+		return domain.ErrInvalidProviderInputs
+	}
+	var user *domain.User
+	var err error
+	var identity *domain.UserIdentity
+	err = l.repo.WithTx(func(repo ports.Repository) error {
+		// create user
+		user, err = repo.FindUserByEmail(email)
+		if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
+			return err
+		}
+
+		// save
+		if errors.Is(err, domain.ErrRecordNotFound) {
+			// create entry
+			user = &domain.User{
+				Email: email,
+				Name:  name,
+			}
+			err = repo.InsertUser(user)
+			if err != nil {
+				return err
+			}
+		}
+
+		// create identity; with verified = false
+		passwordHash := []byte(password)
+		identity = domain.NewIdentity(l.ProviderName, email)
+		// link
+		identity.UserID = user.ID
+		identity.PasswordHash = &passwordHash
+		// save
+		err = repo.InsertIdentity(identity)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	// create activation toke
+	token, err := l.tsvc.New(domain.UUID, domain.ACTIVATE, user.ID)
+	if err != nil {
+		return err
+	}
+	// save activation token
+	if err = l.tsvc.Save(token); err != nil {
+		return err
+	}
+
+	// send activation link to user
+	if err := l.sendMail(email, token.TokenString, identity.ID); err != nil {
+		return fmt.Errorf("error sending email: %w", err)
+	}
+	return fmt.Errorf("%w: we are sending an activation link to your inbox", domain.ErrUnverifiedAccount)
+}
+
+func (l *LocalProvider) handleLogin(method string, identity *domain.UserIdentity, password string) error {
+	if method != "login" {
+		return domain.ErrInvalidProviderInputs
+	}
+
+	if identity.PasswordHash == nil {
+		return domain.ErrInvalidIdentity
+	}
+
+	err := bcrypt.CompareHashAndPassword(*identity.PasswordHash, []byte(password))
+	if err != nil {
+		return domain.ErrInvalidProviderInputs
+	}
+	return nil
 }
 
 var emailRX = regexp.MustCompile(
@@ -108,34 +170,15 @@ type EmailClaims struct {
 	PasswordHash string
 }
 
-func (l *LocalProvider) sendMail(name, email, password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
-	claims := EmailClaims{
-		Name:         name,
-		Email:        email,
-		PasswordHash: string(hash),
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    config.GetJWTIssuer(),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(config.GetEmailVerificationTTL())),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(config.GetJWTSecret())
-	if err != nil {
-		return fmt.Errorf("sign verification token: %w", err)
-	}
-
+func (l *LocalProvider) sendMail(email, token string, identityID uint) error {
 	go func() {
+		url := fmt.Sprintf("%s/auth/verify?token=%s&identity=%d", config.GetServiceURL(), token, identityID)
 		data := struct {
 			ActivationURL string
 		}{
-			ActivationURL: fmt.Sprintf("%s/auth/verify?token=%s", config.GetServiceURL(), tokenString),
+			ActivationURL: url,
 		}
-		err := l.Mailer.Send(email, "activate_account.tmpl.html", data)
+		err := l.mailer.Send(email, "activate_account.tmpl.html", data)
 		if err != nil {
 			log.Printf("error sending activation email to %s: %v", email, err)
 		}

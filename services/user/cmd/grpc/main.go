@@ -38,11 +38,12 @@ func main() {
 		oauthProviders[google.GoogleProviderName] = googleOIDC
 	}
 
+	tsvc := services.NewTokenService(repo)
 	mailer := mailer.NewMailer(
 		config.GetSMTPHost(), config.GetSMTPPort(), config.GetSMTPUsername(),
 		config.GetSMTPPassword(), config.GetSMTPSender(),
 	)
-	localProvider := local.NewLocalProvider(mailer, repo)
+	localProvider := local.NewLocalProvider(mailer, repo, tsvc)
 	providers[local.LocalProviderName] = localProvider
 
 	registry := &provider.ProviderRegistry{
@@ -51,7 +52,6 @@ func main() {
 	}
 
 	// get service
-	tsvc := services.NewTokenService(repo)
 	asvc := services.NewAuthService(repo, tsvc, registry)
 	usvc := services.NewUserService(repo)
 
