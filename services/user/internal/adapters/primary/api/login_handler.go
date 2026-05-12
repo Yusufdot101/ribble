@@ -53,7 +53,7 @@ func (h *handler) register(c *gin.Context) {
 
 func (h *handler) verify(c *gin.Context) {
 	token := c.Query("token")
-	identityID, err := strconv.ParseUint(c.Query("identity"), 10, strconv.IntSize)
+	identityID, err := strconv.ParseUint(c.Query("identity"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
 			Error: "invalid identity id",

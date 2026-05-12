@@ -83,7 +83,11 @@ func (l *LocalProvider) handleSignup(method, name, email, password string) error
 		}
 
 		// create identity; with verified = false
-		passwordHash := []byte(password)
+		// create identity; with verified = false
+		passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
 		identity = domain.NewIdentity(l.ProviderName, email)
 		// link
 		identity.UserID = user.ID
