@@ -120,9 +120,9 @@ const LoginForm = () => {
 
             <div className="flex flex-col gap-[24px]">
                 <div
-                    className="flex flex-wrap h-fit flex items-center justify-center border-gray-500 border rounded-[4px] hover:cursor-pointer hover:bg-white/10 active:bg-black duration-300"
+                    className="flex flex-wrap h-fit items-center justify-center border-gray-500 border rounded-[4px] hover:cursor-pointer hover:bg-white/10 active:bg-black duration-300"
                     onClick={() => {
-                        router.push(googleInfo.href);
+                        window.location.href = googleInfo.href;
                     }}
                 >
                     <span>Continue With</span>

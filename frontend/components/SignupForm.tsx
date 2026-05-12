@@ -36,6 +36,7 @@ const SignupForm = () => {
 
     const handleSubmit = async () => {
         if (password !== confirmPassword) {
+            setError("Passwords must match");
             return;
         }
         if (
@@ -43,11 +44,12 @@ const SignupForm = () => {
             !email ||
             !password ||
             !confirmPassword ||
-            !(password.length >= 8 && password.length <= 72) ||
-            confirmPassword !== password
+            !(password.length >= 8 && password.length <= 72)
         ) {
+            setError("Please provide valid signup details");
             return;
         }
+        setError("");
         const success = await signup(
             (error: string) => setError(error),
             name,
@@ -139,8 +141,6 @@ const SignupForm = () => {
                             required
                             minLength={8}
                             maxLength={72}
-                            pattern={password}
-                            title="passwords must match"
                             className="border-muted-foreground border-1 rounded-[4px] p-[8px] outline-none w-full pr-[40px]"
                             placeholder="Re-enter your password"
                         />
@@ -171,7 +171,7 @@ const SignupForm = () => {
             </section>
 
             <div className="flex flex-col gap-[24px]">
-                <div
+                <button
                     className="flex flex-wrap h-fit flex items-center justify-center border-gray-500 border rounded-[4px] hover:cursor-pointer hover:bg-white/10 active:bg-black duration-300"
                     onClick={() => {
                         router.push(googleInfo.href);
@@ -184,7 +184,7 @@ const SignupForm = () => {
                         alt={googleInfo.alt}
                         width="50px"
                     />
-                </div>
+                </button>
             </div>
 
             <section className="flex gap-x-[4px] w-full justify-center items-center">

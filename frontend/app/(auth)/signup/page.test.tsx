@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { it, beforeEach, expect, vi } from "vitest";
 import { useAuthStore } from "@/store/useAuthStore";
 import userEvent from "@testing-library/user-event";
-import Login from "./page";
+import Signup from "./page";
 import { BASE_USER_SERVICE_API_URL } from "@/utils/api";
 import type { ImageProps } from "next/image";
 
@@ -29,18 +29,18 @@ vi.mock("next/image", () => ({
 
 it("redirects to home if already logged in", () => {
     useAuthStore.setState({ isLoggedIn: true });
-    render(<Login />);
+    render(<Signup />);
     expect(mockPush).toHaveBeenCalledWith("/");
 });
 
 it("does not redirect if not logged in", () => {
     useAuthStore.setState({ isLoggedIn: false });
-    render(<Login />);
+    render(<Signup />);
     expect(mockPush).not.toHaveBeenCalled();
 });
 
 it("navigates to google auth on click", async () => {
-    render(<Login />);
+    render(<Signup />);
     await userEvent.click(screen.getByText(/continue with/i));
     expect(mockPush).toHaveBeenCalledWith(
         `${BASE_USER_SERVICE_API_URL}/auth/google`,

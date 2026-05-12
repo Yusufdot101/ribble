@@ -33,12 +33,20 @@ func (h *handler) register(c *gin.Context) {
 		"email":    req.Email,
 		"password": req.Password,
 	}, local.LocalProviderName)
-	if err == nil || errors.Is(err, domain.ErrUnverifiedAccount) {
+	if err == nil {
+		c.JSON(http.StatusCreated, response.Response[any]{
+			Message: "registration successful, please verify your email",
+		})
+		return
+	}
+
+	if errors.Is(err, domain.ErrUnverifiedAccount) {
 		c.JSON(http.StatusCreated, response.Response[any]{
 			Message: err.Error(),
 		})
 		return
 	}
+
 	status := http.StatusInternalServerError
 	error := err.Error()
 	switch {
