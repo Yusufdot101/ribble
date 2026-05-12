@@ -12,7 +12,7 @@ function base64UrlDecode(str: string) {
     }
 }
 
-export function decodeJWT(token: string) {
+export const decodeJWT = (token: string) => {
     if (!token)
         return {
             header: {},
@@ -42,4 +42,4 @@ export function decodeJWT(token: string) {
             signature: "",
         };
     }
-}
+};

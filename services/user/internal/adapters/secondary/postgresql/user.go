@@ -6,13 +6,14 @@ import (
 	"time"
 
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
 
 type User struct {
 	gorm.Model
 	Name     string
-	Email    string
+	Email    string         `gorm:"index:idx_email,unique"`
 	Tokens   []Token        `gorm:"constraint:OnDelete:CASCADE;"`
 	Identity []UserIdentity `gorm:"constraint:OnDelete:CASCADE;"`
 }
@@ -25,7 +26,11 @@ func (a *Adapter) InsertUser(user *domain.User) error {
 		Name:  user.Name,
 		Email: user.Email,
 	}
+
 	res := a.DB.WithContext(ctx).Create(userModel)
+	if isDuplicateViolation(res.Error) {
+		return domain.ErrDuplicateEmail
+	}
 	if res.Error == nil {
 		user.ID = userModel.ID
 	}
@@ -150,4 +155,12 @@ func (a *Adapter) GetContacts(ctx context.Context, query string, excludeIds []ui
 		})
 	}
 	return users, nil
+}
+
+func isDuplicateViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505"
+	}
+	return false
 }

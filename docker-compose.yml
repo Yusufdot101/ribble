@@ -1,17 +1,4 @@
 include:
     - ./services/user/docker-compose.yml
     - ./services/chat/docker-compose.yml
-
-services:
-    frontend:
-        build:
-            context: ./frontend
-            dockerfile: Dockerfile
-            args:
-                NEXT_PUBLIC_BASE_USER_SERVICE_API_URL: http://localhost:8080
-                NEXT_PUBLIC_BASE_CHAT_SERVICE_API_URL: http://localhost:8081
-        ports:
-            - "3000:3000"
-        depends_on:
-            - user-api
-            - chat-api
+    - ./frontend/docker-compose.yml

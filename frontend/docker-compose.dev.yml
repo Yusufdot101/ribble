@@ -7,8 +7,7 @@ services:
                 NEXT_PUBLIC_BASE_USER_SERVICE_API_URL: http://localhost:8080
                 NEXT_PUBLIC_BASE_CHAT_SERVICE_API_URL: http://localhost:8081
         volumes:
-            - ./frontend:/app
+            - ./:/app
             - /app/node_modules
-            - /app/.next
         ports:
             - "3000:3000"

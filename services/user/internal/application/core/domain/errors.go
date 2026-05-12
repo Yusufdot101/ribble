@@ -25,4 +25,6 @@ var (
 
 	ErrUnverifiedAccount       = errors.New("please verify your account to continue")
 	ErrAccountAlreadyActivated = errors.New("account is already activated")
+
+	ErrDuplicateEmail = errors.New("duplicate email")
 )

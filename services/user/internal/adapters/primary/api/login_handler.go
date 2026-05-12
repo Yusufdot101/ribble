@@ -35,7 +35,7 @@ func (h *handler) register(c *gin.Context) {
 	}, local.LocalProviderName)
 	if err == nil || errors.Is(err, domain.ErrUnverifiedAccount) {
 		c.JSON(http.StatusCreated, response.Response[any]{
-			Message: "registration successful, please verify your email",
+			Message: err.Error(),
 		})
 		return
 	}
