@@ -107,14 +107,20 @@ func (a *Adapter) SearchUsers(ctx context.Context, query string, ids []uint32) (
 		return []*domain.User{}, nil
 	}
 
+	tx := a.DB.WithContext(ctx).
+		Joins("JOIN user_identities ON users.id = user_identities.user_id").
+		Where("users.id IN ? AND user_identities.email_verified = true", ids)
+
 	var userModels []User
-	var res *gorm.DB
-	if query == "" {
-		res = a.DB.WithContext(ctx).Where("id IN ?", ids).Find(&userModels)
-	} else {
-		res = a.DB.WithContext(ctx).Where("id IN ?", ids).Where(`
-			email ILIKE ? OR name ILIKE ?
-			`, "%"+query+"%", "%"+query+"%").Find(&userModels)
+	if query != "" {
+		searchTerm := "%" + query + "%"
+		tx = tx.Where(`
+			users.email ILIKE ? OR users.name ILIKE ?
+			`, searchTerm, searchTerm).Find(&userModels)
+	}
+
+	if err := tx.Find(&userModels).Error; err != nil {
+		return nil, err
 	}
 
 	var users []*domain.User
@@ -126,20 +132,23 @@ func (a *Adapter) SearchUsers(ctx context.Context, query string, ids []uint32) (
 			CreatedAt: userModel.CreatedAt,
 		})
 	}
-	return users, res.Error
+	return users, nil
 }
 
 func (a *Adapter) GetContacts(ctx context.Context, query string, excludeIds []uint32, currentUserID uint32) ([]*domain.User, error) {
 	userModels := []*User{}
-	tx := a.DB.WithContext(ctx).Model(&User{}).Where("id != ?", currentUserID)
+	tx := a.DB.WithContext(ctx).
+		Joins("JOIN user_identities ON users.id = user_identities.user_id").
+		Model(&User{}).
+		Where("users.id != ? AND user_identities.email_verified = true", currentUserID)
 
 	if query != "" {
 		searchTerm := "%" + query + "%"
-		tx = tx.Where("name ILIKE ? OR email ILIKE ?", searchTerm, searchTerm)
+		tx = tx.Where("users.name ILIKE ? OR users.email ILIKE ?", searchTerm, searchTerm)
 	}
 
 	if len(excludeIds) > 0 {
-		tx = tx.Where("id NOT IN ?", excludeIds)
+		tx = tx.Where("users.id NOT IN ?", excludeIds)
 	}
 	if err := tx.Find(&userModels).Error; err != nil {
 		return nil, err
