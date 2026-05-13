@@ -93,7 +93,7 @@ func (asvc *AuthService) ActivateAccount(tokenString string, identityID uint) (s
 	var refreshToken *domain.Token
 	var identity *domain.UserIdentity
 	err = asvc.repo.WithTx(func(repo ports.Repository) error {
-		identity, err = asvc.repo.FindIdentityByUserIDAndID(token.UserID, identityID)
+		identity, err = repo.FindIdentityByUserIDAndID(token.UserID, identityID)
 		if err != nil {
 			return err
 		}
