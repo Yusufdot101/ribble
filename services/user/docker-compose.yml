@@ -32,6 +32,8 @@ services:
 
     user-postgres:
         image: postgres:18.3
+        ports:
+            - 5433:5432
         healthcheck:
             test: ["CMD-SHELL", "pg_isready -U postgres"]
             interval: 5s

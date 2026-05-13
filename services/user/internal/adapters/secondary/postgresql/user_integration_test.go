@@ -43,12 +43,25 @@ func (rts *RepositoryTestSuite) TestFindUsersByID() {
 func (rts *RepositoryTestSuite) TestSearchUsers() {
 	adapter, err := NewAdapter(rts.DataSourceURL)
 	rts.Require().Nil(err)
+
 	user := domain.NewUser("yusuf", "example@gmail.com")
 	err = adapter.InsertUser(user)
 	rts.Require().Nil(err)
 
 	user2 := domain.NewUser("yusuf2", "example2@gmail.com")
 	err = adapter.InsertUser(user2)
+	rts.Require().Nil(err)
+
+	identity1 := domain.NewIdentity("local", user.Email)
+	identity1.UserID = user.ID
+	identity1.EmailVerified = true
+	err = adapter.InsertIdentity(identity1)
+	rts.Require().Nil(err)
+
+	identity2 := domain.NewIdentity("local", user2.Email)
+	identity2.UserID = user2.ID
+	identity2.EmailVerified = true
+	err = adapter.InsertIdentity(identity2)
 	rts.Require().Nil(err)
 
 	query := "yusuf"
@@ -92,6 +105,24 @@ func (rts *RepositoryTestSuite) TestGetContacts() {
 
 	user3 := domain.NewUser("yusuf3", "example3@gmail.com")
 	err = adapter.InsertUser(user3)
+	rts.Require().Nil(err)
+
+	identity1 := domain.NewIdentity("local", user.Email)
+	identity1.UserID = user.ID
+	identity1.EmailVerified = true
+	err = adapter.InsertIdentity(identity1)
+	rts.Require().Nil(err)
+
+	identity2 := domain.NewIdentity("local", user2.Email)
+	identity2.UserID = user2.ID
+	identity2.EmailVerified = true
+	err = adapter.InsertIdentity(identity2)
+	rts.Require().Nil(err)
+
+	identity3 := domain.NewIdentity("local", user3.Email)
+	identity3.UserID = user3.ID
+	identity3.EmailVerified = true
+	err = adapter.InsertIdentity(identity3)
 	rts.Require().Nil(err)
 
 	ctx := context.Background()

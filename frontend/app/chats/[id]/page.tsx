@@ -197,15 +197,27 @@ const ChatPage = () => {
                                 : message,
                         ),
                     );
-                    pendingMessages.current.delete(data.clientID);
-                    messageStore.delete(data.clientID);
+                    pendingMessages.current.set(data.clienID, {
+                        status: "delivered",
+                        ...pendingMessages.current.get(data.clienID)!,
+                    });
+                    messageStore.update({
+                        status: "delivered",
+                        ...pendingMessages.current.get(data.clientID)!,
+                    });
                     return;
                 }
+
+                const incoming = data as MessageType;
+                if (pendingMessages.current.has(incoming.ClientID)) {
+                    pendingMessages.current.delete(incoming.ClientID);
+                    messageStore.delete(incoming.ClientID);
+                    return;
+                }
+
                 setMessages((prev) => {
                     if (!chatID) return prev;
-                    const incoming = data as MessageType;
                     if (incoming.ChatID !== +chatID) return prev;
-                    if (prev.some((m) => m.ID === incoming.ID)) return prev;
                     return [...prev, incoming];
                 });
             };

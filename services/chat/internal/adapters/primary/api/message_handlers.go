@@ -38,6 +38,7 @@ type websocketMsg struct {
 	Content  string `json:"content"`
 	ClientID string `json:"clientID"`
 	SenderID uint   `json:"senderID"`
+	ServerID uint   `json:"serverID"`
 }
 
 func (h *handler) readLoop(conn *websocket.Conn, userID uint) {
@@ -119,10 +120,9 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg websocket
 		"id":       message.ID,
 	})
 
+	message.ClientID = msg.ClientID
+
 	for _, p := range participants {
-		if p.UserID == userID {
-			continue
-		}
 		h.hub.SendToUser(p.UserID, message)
 	}
 

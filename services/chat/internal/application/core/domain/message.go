@@ -29,6 +29,7 @@ type Message struct {
 	Deleted     bool
 	Status      MessageStatus
 	MessageType MessageType
+	ClientID    string
 }
 
 func NewMessage(chatID, senderID uint, content string, messageType MessageType) *Message {

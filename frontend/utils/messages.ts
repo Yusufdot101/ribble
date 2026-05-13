@@ -1,7 +1,7 @@
 import { api, BASE_CHAT_SERVICE_API_URL } from "./api";
 
 export interface MessageType {
-    ClientID?: string;
+    ClientID: string;
     ID: number;
     ChatID: number;
     SenderID: number;
