@@ -98,7 +98,7 @@ func (asvc *AuthService) ActivateAccount(tokenString string, identityID uint) (s
 			return err
 		}
 
-		err = asvc.repo.ActivateIdentity(identity.ID)
+		err = repo.ActivateIdentity(identity.ID)
 		if err != nil {
 			if errors.Is(err, domain.ErrRecordNotFound) {
 				err = domain.ErrAccountAlreadyActivated
@@ -107,7 +107,7 @@ func (asvc *AuthService) ActivateAccount(tokenString string, identityID uint) (s
 		}
 
 		// delete other unverified identities
-		err = asvc.repo.DeleteUnverifiedIdentities(local.LocalProviderName, identity.Sub)
+		err = repo.DeleteUnverifiedIdentities(local.LocalProviderName, identity.Sub)
 		if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
 			return err
 		}

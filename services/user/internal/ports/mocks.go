@@ -943,6 +943,63 @@ func (_c *MockIdentityRepository_ActivateIdentity_Call) RunAndReturn(run func(id
 	return _c
 }
 
+// DeleteUnverifiedIdentities provides a mock function for the type MockIdentityRepository
+func (_mock *MockIdentityRepository) DeleteUnverifiedIdentities(provider string, sub string) error {
+	ret := _mock.Called(provider, sub)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteUnverifiedIdentities")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = returnFunc(provider, sub)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockIdentityRepository_DeleteUnverifiedIdentities_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUnverifiedIdentities'
+type MockIdentityRepository_DeleteUnverifiedIdentities_Call struct {
+	*mock.Call
+}
+
+// DeleteUnverifiedIdentities is a helper method to define mock.On call
+//   - provider string
+//   - sub string
+func (_e *MockIdentityRepository_Expecter) DeleteUnverifiedIdentities(provider interface{}, sub interface{}) *MockIdentityRepository_DeleteUnverifiedIdentities_Call {
+	return &MockIdentityRepository_DeleteUnverifiedIdentities_Call{Call: _e.mock.On("DeleteUnverifiedIdentities", provider, sub)}
+}
+
+func (_c *MockIdentityRepository_DeleteUnverifiedIdentities_Call) Run(run func(provider string, sub string)) *MockIdentityRepository_DeleteUnverifiedIdentities_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockIdentityRepository_DeleteUnverifiedIdentities_Call) Return(err error) *MockIdentityRepository_DeleteUnverifiedIdentities_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockIdentityRepository_DeleteUnverifiedIdentities_Call) RunAndReturn(run func(provider string, sub string) error) *MockIdentityRepository_DeleteUnverifiedIdentities_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // FindIdentityByProviderAndSub provides a mock function for the type MockIdentityRepository
 func (_mock *MockIdentityRepository) FindIdentityByProviderAndSub(provider string, sub string) (*domain.UserIdentity, error) {
 	ret := _mock.Called(provider, sub)
@@ -1425,6 +1482,63 @@ func (_c *MockRepository_DeleteTokenByStringAndUse_Call) Return(err error) *Mock
 }
 
 func (_c *MockRepository_DeleteTokenByStringAndUse_Call) RunAndReturn(run func(tokenString string, tokenUse domain.TokenUse) error) *MockRepository_DeleteTokenByStringAndUse_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteUnverifiedIdentities provides a mock function for the type MockRepository
+func (_mock *MockRepository) DeleteUnverifiedIdentities(provider string, sub string) error {
+	ret := _mock.Called(provider, sub)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteUnverifiedIdentities")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = returnFunc(provider, sub)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockRepository_DeleteUnverifiedIdentities_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUnverifiedIdentities'
+type MockRepository_DeleteUnverifiedIdentities_Call struct {
+	*mock.Call
+}
+
+// DeleteUnverifiedIdentities is a helper method to define mock.On call
+//   - provider string
+//   - sub string
+func (_e *MockRepository_Expecter) DeleteUnverifiedIdentities(provider interface{}, sub interface{}) *MockRepository_DeleteUnverifiedIdentities_Call {
+	return &MockRepository_DeleteUnverifiedIdentities_Call{Call: _e.mock.On("DeleteUnverifiedIdentities", provider, sub)}
+}
+
+func (_c *MockRepository_DeleteUnverifiedIdentities_Call) Run(run func(provider string, sub string)) *MockRepository_DeleteUnverifiedIdentities_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockRepository_DeleteUnverifiedIdentities_Call) Return(err error) *MockRepository_DeleteUnverifiedIdentities_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockRepository_DeleteUnverifiedIdentities_Call) RunAndReturn(run func(provider string, sub string) error) *MockRepository_DeleteUnverifiedIdentities_Call {
 	_c.Call.Return(run)
 	return _c
 }
