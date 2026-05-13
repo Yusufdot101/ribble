@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/local"
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/domain"
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
 )
@@ -105,12 +106,18 @@ func (asvc *AuthService) ActivateAccount(tokenString string, identityID uint) (s
 			return err
 		}
 
+		// delete other unverified identities
+		err = asvc.repo.DeleteUnverifiedIdentities(local.LocalProviderName, identity.Sub)
+		if err != nil && !errors.Is(err, domain.ErrRecordNotFound) {
+			return err
+		}
+
 		err = asvc.tsvc.DeleteTokenByStringAndUse(token.TokenString, domain.ACTIVATE)
 		if err != nil {
 			return err
 		}
 
-		refreshToken, err := asvc.tsvc.New(domain.UUID, domain.REFRESH, identity.UserID)
+		refreshToken, err = asvc.tsvc.New(domain.UUID, domain.REFRESH, identity.UserID)
 		if err != nil {
 			return err
 		}

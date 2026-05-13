@@ -14,6 +14,7 @@ type IdentityRepository interface {
 	InsertUser(user *domain.User) error
 	WithTx(fn func(repo Repository) error) error
 	ActivateIdentity(identityID uint) error
+	DeleteUnverifiedIdentities(provider, sub string) error
 }
 
 type Repository interface {

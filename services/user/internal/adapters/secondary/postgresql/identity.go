@@ -110,3 +110,19 @@ func (a *Adapter) ActivateIdentity(identityID uint) error {
 
 	return nil
 }
+
+func (a *Adapter) DeleteUnverifiedIdentities(provider, sub string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	res := a.DB.WithContext(ctx).
+		Where("provider = ? AND sub = ? AND email_verified = false", provider, sub).
+		Delete(&UserIdentity{})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return domain.ErrRecordNotFound
+	}
+	return nil
+}
