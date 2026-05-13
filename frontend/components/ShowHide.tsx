@@ -8,8 +8,10 @@ function ShowHide({ handleClick, show }: Props) {
         <button
             type="button"
             aria-label={show ? "Hide password" : "Show password"}
-            onClick={handleClick}
-            className="h-[28px] w-10 max-[900]:h-[24px] absolute right-0 top-0 translate-y-[10px]"
+            onClick={() => {
+                handleClick();
+            }}
+            className="h-[28px] w-10 max-[900]:h-[24px] absolute right-0 top-0 translate-y-[10px] cursor-pointer"
         >
             {show ? (
                 <svg
@@ -61,7 +63,6 @@ function ShowHide({ handleClick, show }: Props) {
                     xmlns="http://www.w3.org/2000/svg"
                     stroke="white"
                     className="text-foreground w-full h-full"
-                    onClick={handleClick}
                 >
                     <g id="SVGRepo_bgCarrier" strokeWidth="0" />
                     <g

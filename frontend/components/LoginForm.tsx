@@ -96,7 +96,9 @@ const LoginForm = () => {
                         />
                         <ShowHide
                             show={showPassword}
-                            handleClick={() => setShowPassword((prev) => !prev)}
+                            handleClick={() => {
+                                setShowPassword((prev) => !prev);
+                            }}
                         />
                     </div>
                 </div>
