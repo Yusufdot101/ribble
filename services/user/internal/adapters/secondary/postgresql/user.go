@@ -109,16 +109,17 @@ func (a *Adapter) SearchUsers(ctx context.Context, query string, ids []uint32) (
 
 	tx := a.DB.WithContext(ctx).
 		Joins("JOIN user_identities ON users.id = user_identities.user_id").
+		Distinct("users.id, users.name, users.email, users.created_at, users.updated_at, users.deleted_at").
 		Where("users.id IN ? AND user_identities.email_verified = true", ids)
 
 	var userModels []User
+
 	if query != "" {
 		searchTerm := "%" + query + "%"
 		tx = tx.Where(`
 			users.email ILIKE ? OR users.name ILIKE ?
-			`, searchTerm, searchTerm).Find(&userModels)
+			`, searchTerm, searchTerm)
 	}
-
 	if err := tx.Find(&userModels).Error; err != nil {
 		return nil, err
 	}
@@ -140,6 +141,7 @@ func (a *Adapter) GetContacts(ctx context.Context, query string, excludeIds []ui
 	tx := a.DB.WithContext(ctx).
 		Joins("JOIN user_identities ON users.id = user_identities.user_id").
 		Model(&User{}).
+		Distinct("users.id, users.name, users.email, users.created_at, users.updated_at, users.deleted_at").
 		Where("users.id != ? AND user_identities.email_verified = true", currentUserID)
 
 	if query != "" {
