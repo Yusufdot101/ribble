@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+    ChatType,
     ConversationDataType,
     getChatByUserIDs,
     getConversations,
@@ -31,11 +32,19 @@ const Sidebar = () => {
     const [coversationData, setConverastionData] =
         useState<ConversationDataType>();
 
-    const handleUserClick = async (user: UserType) => {
-        setActiveUser(user.id);
-        setActiveChat(-1);
-        const chat = await getChatByUserIDs([user.id]);
-        if (!chat) return;
+    const updateGroups = (chat: ChatType) => {
+        setConverastionData((prev) => {
+            return prev
+                ? {
+                      ...prev,
+                      groups: [...(prev.groups ?? []), chat],
+                  }
+                : prev;
+        });
+        setActiveChat(chat.id);
+    };
+
+    const updateChats = (chat: ChatType, user: UserType) => {
         setConverastionData((prev) => {
             return prev
                 ? {
@@ -50,6 +59,15 @@ const Sidebar = () => {
                 : prev;
         });
         setActiveChat(chat.id);
+    };
+
+    const handleUserClick = async (user: UserType) => {
+        setActiveUser(user.id);
+        setActiveChat(-1);
+        const chat = await getChatByUserIDs([user.id]);
+        if (!chat) return;
+        setActiveChat(chat.id);
+        updateChats(chat, user);
         router.push(`/chats/${chat.id}`);
     };
 
@@ -107,6 +125,9 @@ const Sidebar = () => {
 
             <CreateGroup
                 handleClose={() => setIsCreatingGroup(false)}
+                handleUpdateGroups={(chat: ChatType) => {
+                    updateGroups(chat);
+                }}
                 createGroupOpen={isCreatingGroup}
             />
         </div>

@@ -4,16 +4,21 @@ import { getUsersByEmail, UserType } from "@/utils/users";
 import { useEffect, useState } from "react";
 import BackArrowButton from "./BackArrowButton";
 import XButton from "./XButton";
-import { getChatByUserIDs } from "@/utils/chats";
+import { ChatType, getChatByUserIDs } from "@/utils/chats";
 import { useRouter } from "next/navigation";
 import SearchBar from "./SearchBar";
 
 interface Props {
     handleClose: () => void;
+    handleUpdateGroups: (chat: ChatType) => void;
     createGroupOpen: boolean;
 }
 
-const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
+const CreateGroup = ({
+    handleClose,
+    handleUpdateGroups,
+    createGroupOpen,
+}: Props) => {
     const [selectedUsers, setSelectedUsers] = useState<UserType[]>([]);
     const handleClick = async (clickedUser: UserType) => {
         setSelectedUsers((prev) => {
@@ -88,8 +93,9 @@ const CreateGroup = ({ handleClose, createGroupOpen }: Props) => {
             true,
         );
         if (!chat) return;
-        router.push(`/chats/${chat.id}`);
+        handleUpdateGroups(chat);
         handleClose();
+        router.push(`/chats/${chat.id}`);
     };
 
     return (

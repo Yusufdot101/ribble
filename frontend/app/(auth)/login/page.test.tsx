@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { it, beforeEach, expect, vi } from "vitest";
 import { useAuthStore } from "@/store/useAuthStore";
 import Login from "./page";

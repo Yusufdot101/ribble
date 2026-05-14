@@ -1,7 +1,9 @@
 "use client";
+
 import BackArrowButton from "@/components/BackArrowButton";
 import Message from "@/components/Message";
 import MessageInput, { WebsocketMsg } from "@/components/MessageInput";
+import Menu from "@/components/Menu";
 import { useAuthStore } from "@/store/useAuthStore";
 import { BASE_CHAT_SERVICE_API_URL } from "@/utils/api";
 import { ChatType, getChatByID, getChatUsers } from "@/utils/chats";
@@ -12,41 +14,63 @@ import {
     syncChatMessages,
 } from "@/utils/messages";
 import { UserType } from "@/utils/users";
-import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import Menu from "@/components/Menu";
 import { getUserPermissions, PermissionType } from "@/utils/permissions";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 const ChatPage = () => {
     const isOnline = useOnlineStatus();
-    const newMessageID = (): string => {
-        return crypto.randomUUID();
-    };
-
-    const newNumberID = (): number => {
-        return Math.floor(Math.random() * 100_000_000) + 1;
-    };
-
     const params = useParams();
     const chatID = params.id;
+    const accessToken = useAuthStore((state) => state.accessToken);
+    const loggedInUserID = useAuthStore((state) => state.userID);
+    const router = useRouter();
+
     const [messages, setMessages] = useState<MessageType[]>([]);
     const messagesRef = useRef(messages);
     const pendingMessages = useRef(new Map<string, WebsocketMsg>());
+
     const [chat, setChat] = useState<ChatType>();
     const [chatUsers, setChatUsers] = useState<UserType[]>([]);
+    const [permissions, setPermissions] = useState<PermissionType[]>([]);
+
     const socketRef = useRef<WebSocket | null>(null);
+    const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const messagesContainer = useRef<HTMLDivElement | null>(null);
-    const loggedInUserID = useAuthStore((state) => state.userID);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const [menuIsOpen, setMenuIsOpen] = useState(false);
+    const [selectedMessageID, setSelectedMessageID] = useState<number>();
+    const [isEditingMessage, setIsEditingMessage] = useState(false);
+    const [editingMessageID, setEditingMessageID] = useState<number>();
+
+    const newMessageID = (): string => crypto.randomUUID();
+    const newNumberID = (): number =>
+        Math.floor(Math.random() * 100_000_000) + 1;
+
+    useEffect(() => {
+        messagesRef.current = messages;
+    }, [messages]);
 
     useEffect(() => {
         if (!chatID) return;
+
+        let cancelled = false;
+
         (async () => {
-            const { messages } = await getChatMessages(+chatID);
+            const chatNum = +chatID;
+            if (chatNum <= 0) return;
+
+            const { messages } = await getChatMessages(chatNum);
+            if (cancelled) return;
             setMessages(messages);
 
-            // add local messages
-            const savedMessages = await messageStore.getByChat(+chatID);
+            pendingMessages.current.clear();
+
+            const savedMessages = await messageStore.getByChat(chatNum);
+            if (cancelled) return;
+
             const queuedMessages = savedMessages.map((message, i) => ({
                 Content: message.content,
                 ChatID: message.chatID,
@@ -68,56 +92,92 @@ const ChatPage = () => {
 
             setMessages((prev) => [...prev, ...queuedMessages]);
 
-            const chat = await getChatByID(+chatID);
+            const chat = await getChatByID(chatNum);
+            if (cancelled) return;
             setChat(chat);
 
-            const chatUsers = await getChatUsers(+chatID);
-            if (!chatUsers) return;
-            setChatUsers(chatUsers);
+            const chatUsers = await getChatUsers(chatNum);
+            if (cancelled) return;
+            setChatUsers(chatUsers ?? []);
         })();
+
+        return () => {
+            cancelled = true;
+        };
     }, [chatID]);
 
-    const accessToken = useAuthStore((state) => state.accessToken);
+    useEffect(() => {
+        (() => setPermissions([]))();
 
-    const manualClose = useRef(false);
-    const retry = useRef(1);
-    const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const closeSocket = useCallback(() => {
-        console.log("closed");
-        manualClose.current = true;
-        if (reconnectTimer.current) {
-            clearTimeout(reconnectTimer.current);
-            reconnectTimer.current = null;
-        }
-        socketRef.current?.close();
-    }, []);
+        if (!chatID) return;
 
-    const connect = useCallback(
-        function run() {
-            console.log("running");
-            manualClose.current = false;
-            if (!accessToken || !chatID || !BASE_CHAT_SERVICE_API_URL) return;
+        const chatNum = +chatID;
+        if (chatNum <= 0) return;
+
+        let cancelled = false;
+
+        (async () => {
+            const { permissions } = await getUserPermissions(chatNum);
+            if (cancelled) return;
+            setPermissions(permissions ?? []);
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [chatID]);
+
+    const hasPermission = (permissionName: string): boolean => {
+        return permissions.some(
+            (permission) => permission.name === permissionName,
+        );
+    };
+
+    useEffect(() => {
+        if (!accessToken || !chatID || !BASE_CHAT_SERVICE_API_URL) return;
+
+        let disposed = false;
+        let retryNum = 1000;
+        let socket: WebSocket | null = null;
+
+        const clearReconnectTimer = () => {
+            if (reconnectTimer.current) {
+                clearTimeout(reconnectTimer.current);
+                reconnectTimer.current = null;
+            }
+        };
+
+        const connect = () => {
+            if (disposed) return;
+
+            if (!chatID) return;
+            const chatNum = +chatID;
+            if (chatNum <= 0) return;
+
             const wsUrl = new URL(BASE_CHAT_SERVICE_API_URL);
             wsUrl.protocol = wsUrl.protocol === "https:" ? "wss:" : "ws:";
             wsUrl.pathname = `${wsUrl.pathname.replace(/\/$/, "")}/ws`;
 
-            const socket = new WebSocket(wsUrl.toString());
+            socket = new WebSocket(wsUrl.toString());
             socketRef.current = socket;
 
             socket.onopen = async () => {
-                console.log("connected");
-                retry.current = 1;
-                socket.send(
-                    JSON.stringify({
-                        token: accessToken,
-                    }),
-                );
+                if (disposed || socketRef.current !== socket) return;
+
+                retryNum = 1;
+
+                socket?.send(JSON.stringify({ token: accessToken }));
+
                 const lastMessage = messagesRef.current.at(-1);
                 if (!chatID || !lastMessage) return;
+
                 const { messages: missedMessages } = await syncChatMessages(
-                    +chatID,
+                    chatNum,
                     lastMessage.ID,
                 );
+
+                if (disposed || socketRef.current !== socket) return;
+
                 setMessages((prev) => {
                     const seen = new Set(prev.map((m) => m.ID));
                     const uniqueMissed = missedMessages.filter(
@@ -127,21 +187,31 @@ const ChatPage = () => {
                 });
 
                 for (const [, pendingMessage] of pendingMessages.current) {
-                    socketRef.current?.send(JSON.stringify(pendingMessage));
+                    if (
+                        disposed ||
+                        socketRef.current !== socket ||
+                        pendingMessage.status !== "pending"
+                    ) {
+                        return;
+                    }
+                    socket?.send(JSON.stringify(pendingMessage));
                 }
             };
 
             socket.onmessage = (event) => {
+                if (disposed || socketRef.current !== socket) return;
+
                 const data = JSON.parse(event.data);
-                console.log("receieved: ", data);
+                console.log("received:", data);
+
                 if (data.type === "error") {
                     console.error(data.message);
                     return;
                 }
 
                 if (data.type === "messageDeleted") {
-                    setMessages((prev) => {
-                        return prev.map((msg) =>
+                    setMessages((prev) =>
+                        prev.map((msg) =>
                             msg.ID === data.messageID
                                 ? {
                                       ...msg,
@@ -149,14 +219,14 @@ const ChatPage = () => {
                                       Content: data.content,
                                   }
                                 : msg,
-                        );
-                    });
+                        ),
+                    );
                     return;
                 }
 
                 if (data.type === "messageEdited") {
-                    setMessages((prev) => {
-                        return prev.map((msg) =>
+                    setMessages((prev) =>
+                        prev.map((msg) =>
                             msg.ID === data.messageID
                                 ? {
                                       ...msg,
@@ -164,8 +234,8 @@ const ChatPage = () => {
                                       UpdatedAt: data.updatedAt,
                                   }
                                 : msg,
-                        );
-                    });
+                        ),
+                    );
                     return;
                 }
 
@@ -177,10 +247,12 @@ const ChatPage = () => {
                                 : message,
                         ),
                     );
+
                     const msg = pendingMessages.current.get(data.clientID);
                     if (msg) {
                         messageStore.update({ ...msg, status: "failed" });
                     }
+
                     pendingMessages.current.delete(data.clientID);
                     return;
                 }
@@ -197,18 +269,25 @@ const ChatPage = () => {
                                 : message,
                         ),
                     );
-                    pendingMessages.current.set(data.clienID, {
-                        status: "delivered",
-                        ...pendingMessages.current.get(data.clienID)!,
-                    });
-                    messageStore.update({
-                        status: "delivered",
-                        ...pendingMessages.current.get(data.clientID)!,
-                    });
+
+                    const pending = pendingMessages.current.get(data.clientID);
+                    if (pending) {
+                        pendingMessages.current.set(data.clientID, {
+                            ...pending,
+                            status: "delivered",
+                        });
+
+                        messageStore.update({
+                            ...pending,
+                            status: "delivered",
+                        });
+                    }
+
                     return;
                 }
 
                 const incoming = data as MessageType;
+
                 if (pendingMessages.current.has(incoming.ClientID)) {
                     pendingMessages.current.delete(incoming.ClientID);
                     messageStore.delete(incoming.ClientID);
@@ -223,20 +302,37 @@ const ChatPage = () => {
             };
 
             socket.onclose = () => {
-                if (manualClose.current === true) return;
-                reconnectTimer.current = setTimeout(() => {
-                    run();
-                }, retry.current * 1000);
+                if (disposed || socketRef.current !== socket) return;
 
-                retry.current = Math.min(retry.current * 2, 60);
+                clearReconnectTimer();
+
+                reconnectTimer.current = setTimeout(() => {
+                    if (disposed) return;
+                    connect();
+                }, retryNum * 1000);
+
+                retryNum = Math.min(retryNum * 2, 30);
             };
 
             socket.onerror = (err) => {
+                if (disposed || socketRef.current !== socket) return;
                 console.error("socket error", err);
             };
-        },
-        [accessToken, chatID],
-    );
+        };
+
+        connect();
+
+        return () => {
+            disposed = true;
+            clearReconnectTimer();
+
+            if (socketRef.current === socket) {
+                socketRef.current = null;
+            }
+
+            socket?.close();
+        };
+    }, [accessToken, chatID]);
 
     const sendMessage = (message: string) => {
         if (!chatID || message.trim() === "" || !loggedInUserID) return;
@@ -245,20 +341,19 @@ const ChatPage = () => {
         if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
         const clientID = newMessageID();
-
         const creationDate = new Date().toISOString();
+
         const msg: WebsocketMsg = {
             status: "pending",
             chatID: +chatID,
             senderID: loggedInUserID,
-            clientID: clientID,
+            clientID,
             content: message,
             type: "message",
             CreatedAt: creationDate,
         };
 
         setMessages((prev) => {
-            if (!chatID) return prev;
             const newMessage: MessageType = {
                 ClientID: clientID,
                 Status: "pending",
@@ -271,56 +366,21 @@ const ChatPage = () => {
                 SenderID: loggedInUserID,
                 UpdatedAt: creationDate,
             };
+
             return [...prev, newMessage];
         });
+
         pendingMessages.current.set(clientID, msg);
         messageStore.add(msg);
         socket.send(JSON.stringify(msg));
     };
 
     useEffect(() => {
-        connect();
-        return () => {
-            closeSocket();
-        };
-    }, [accessToken, chatID, closeSocket, connect]);
-
-    useEffect(() => {
         messagesContainer.current?.scrollTo({
             top: messagesContainer.current.scrollHeight,
             behavior: "smooth",
         });
-        messagesRef.current = messages;
     }, [messages]);
-
-    const [menuIsOpen, setMenuIsOpen] = useState(false);
-    const [selectedMessageID, setSelectedMessageID] = useState<number>();
-
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    const [isEditingMessage, setIsEditingMessage] = useState(false);
-    const [editingMessageID, setEditingMessageID] = useState<number>();
-
-    const router = useRouter();
-
-    const [permissions, setPermissions] = useState<PermissionType[]>([]);
-    useEffect(() => {
-        (() => setPermissions([]))();
-        if (!chatID) return;
-        if (+chatID <= 0) return;
-        (async () => {
-            const { permissions } = await getUserPermissions(+chatID);
-            setPermissions(permissions ?? []);
-        })();
-    }, [chatID]);
-
-    const hasPermission = (permissionName: string): boolean => {
-        return (
-            permissions.filter(
-                (permission) => permission.name === permissionName,
-            ).length !== 0
-        );
-    };
 
     return (
         <div
@@ -349,6 +409,7 @@ const ChatPage = () => {
                         text="Chat"
                     />
                 </div>
+
                 <div className="flex-1 flex">
                     {chatID && (
                         <Menu

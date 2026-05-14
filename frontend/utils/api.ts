@@ -2,9 +2,11 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { refreshAccessToken } from "./refreshAccessToken";
 
 export const BASE_USER_SERVICE_API_URL =
-    process.env.NEXT_PUBLIC_BASE_USER_SERVICE_API_URL;
+    process.env.NEXT_PUBLIC_BASE_USER_SERVICE_API_URL ??
+    "http://localhost:8080";
 export const BASE_CHAT_SERVICE_API_URL =
-    process.env.NEXT_PUBLIC_BASE_CHAT_SERVICE_API_URL;
+    process.env.NEXT_PUBLIC_BASE_CHAT_SERVICE_API_URL ??
+    "http://localhost:8081";
 
 export const api = async (path: string, options: RequestInit = {}) => {
     const { accessToken } = useAuthStore.getState();
