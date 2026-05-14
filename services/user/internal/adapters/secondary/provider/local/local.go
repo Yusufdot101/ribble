@@ -176,7 +176,7 @@ type EmailClaims struct {
 
 func (l *LocalProvider) sendMail(email, token string, identityID uint) error {
 	go func() {
-		url := fmt.Sprintf("%s/auth/verify?token=%s&identity=%d", config.GetServiceURL(), token, identityID)
+		url := fmt.Sprintf("%s/verify?token=%s&identity=%d", config.GetFrontendURL(), token, identityID)
 		data := struct {
 			ActivationURL string
 		}{

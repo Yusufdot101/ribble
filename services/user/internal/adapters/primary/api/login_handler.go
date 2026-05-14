@@ -86,7 +86,8 @@ func (h *handler) verify(c *gin.Context) {
 
 	c.SetCookie("refreshToken", refreshToken, int(config.GetRefreshTokenTTL().Seconds()), "/", "", config.RefreshTokenIsSecure(), true)
 	c.JSON(http.StatusCreated, response.Response[string]{
-		Data: accessToken,
+		Message: "account activated successfully",
+		Data:    accessToken,
 	})
 }
 
