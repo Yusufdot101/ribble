@@ -137,7 +137,7 @@ const ChatPage = () => {
         if (!accessToken || !chatID || !BASE_CHAT_SERVICE_API_URL) return;
 
         let disposed = false;
-        let retryNum = 1000;
+        let retryNum = 1;
         let socket: WebSocket | null = null;
 
         const clearReconnectTimer = () => {
@@ -169,30 +169,27 @@ const ChatPage = () => {
                 socket?.send(JSON.stringify({ token: accessToken }));
 
                 const lastMessage = messagesRef.current.at(-1);
-                if (!chatID || !lastMessage) return;
-
-                const { messages: missedMessages } = await syncChatMessages(
-                    chatNum,
-                    lastMessage.ID,
-                );
-
-                if (disposed || socketRef.current !== socket) return;
-
-                setMessages((prev) => {
-                    const seen = new Set(prev.map((m) => m.ID));
-                    const uniqueMissed = missedMessages.filter(
-                        (m) => !seen.has(m.ID),
+                if (lastMessage) {
+                    const { messages: missedMessages } = await syncChatMessages(
+                        chatNum,
+                        lastMessage.ID,
                     );
-                    return [...prev, ...uniqueMissed];
-                });
+
+                    if (disposed || socketRef.current !== socket) return;
+
+                    setMessages((prev) => {
+                        const seen = new Set(prev.map((m) => m.ID));
+                        const uniqueMissed = missedMessages.filter(
+                            (m) => !seen.has(m.ID),
+                        );
+                        return [...prev, ...uniqueMissed];
+                    });
+                }
 
                 for (const [, pendingMessage] of pendingMessages.current) {
-                    if (
-                        disposed ||
-                        socketRef.current !== socket ||
-                        pendingMessage.status !== "pending"
-                    ) {
-                        return;
+                    if (disposed || socketRef.current !== socket) return;
+                    if (pendingMessage.status !== "pending") {
+                        continue;
                     }
                     socket?.send(JSON.stringify(pendingMessage));
                 }
