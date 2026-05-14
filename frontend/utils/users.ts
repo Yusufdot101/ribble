@@ -72,7 +72,7 @@ export const verifyAccount = async (
         }
         const body = await res.json();
         if (body.message) {
-            alert(body.mesasge);
+            alert(body.message);
         }
 
         const accessToken = body.data;
