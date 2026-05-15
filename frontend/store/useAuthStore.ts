@@ -1,3 +1,4 @@
+import { socketManager } from "@/utils/socket-manager";
 import { create } from "zustand";
 
 type AuthStore = {
@@ -17,10 +18,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
     setAccessToken: (token: string) => set({ accessToken: token }),
     setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn: isLoggedIn }),
     setUserID: (userID: number) => set({ userID: userID }),
-    clearAccessToken: () =>
+    clearAccessToken: () => {
+        socketManager.close();
         set({
             accessToken: null,
             isLoggedIn: false,
             userID: null,
-        }),
+        });
+    },
 }));

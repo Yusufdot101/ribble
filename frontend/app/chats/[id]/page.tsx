@@ -5,7 +5,6 @@ import Message from "@/components/Message";
 import MessageInput, { WebsocketMsg } from "@/components/MessageInput";
 import Menu from "@/components/Menu";
 import { useAuthStore } from "@/store/useAuthStore";
-import { BASE_CHAT_SERVICE_API_URL } from "@/utils/api";
 import { ChatType, getChatByID, getChatUsers } from "@/utils/chats";
 import { messageStore } from "@/utils/messagesStore";
 import {
@@ -17,13 +16,13 @@ import { UserType } from "@/utils/users";
 import { getUserPermissions, PermissionType } from "@/utils/permissions";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSocket } from "@/providers/socket-provider";
 
 const ChatPage = () => {
     const isOnline = useOnlineStatus();
     const params = useParams();
     const chatID = params.id;
-    const accessToken = useAuthStore((state) => state.accessToken);
     const loggedInUserID = useAuthStore((state) => state.userID);
     const router = useRouter();
 
@@ -35,8 +34,6 @@ const ChatPage = () => {
     const [chatUsers, setChatUsers] = useState<UserType[]>([]);
     const [permissions, setPermissions] = useState<PermissionType[]>([]);
 
-    const socketRef = useRef<WebSocket | null>(null);
-    const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const messagesContainer = useRef<HTMLDivElement | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -44,6 +41,8 @@ const ChatPage = () => {
     const [selectedMessageID, setSelectedMessageID] = useState<number>();
     const [isEditingMessage, setIsEditingMessage] = useState(false);
     const [editingMessageID, setEditingMessageID] = useState<number>();
+
+    const socket = useSocket();
 
     const newMessageID = (): string => crypto.randomUUID();
     const newNumberID = (): number =>
@@ -133,208 +132,150 @@ const ChatPage = () => {
         );
     };
 
-    useEffect(() => {
-        if (!accessToken || !chatID || !BASE_CHAT_SERVICE_API_URL) return;
+    const handleOpen = useCallback(async () => {
+        if (!chatID) return;
+        const chatNum = +chatID;
+        if (chatNum <= 0) return;
 
-        let disposed = false;
-        let retryNum = 1;
-        let socket: WebSocket | null = null;
+        const lastMessage = messagesRef.current.at(-1);
+        if (lastMessage) {
+            const { messages: missedMessages } = await syncChatMessages(
+                chatNum,
+                lastMessage.ID,
+            );
 
-        const clearReconnectTimer = () => {
-            if (reconnectTimer.current) {
-                clearTimeout(reconnectTimer.current);
-                reconnectTimer.current = null;
+            setMessages((prev) => {
+                const seen = new Set(prev.map((m) => m.ID));
+                const uniqueMissed = missedMessages.filter(
+                    (m) => !seen.has(m.ID),
+                );
+                return [...prev, ...uniqueMissed];
+            });
+        }
+
+        for (const [, pendingMessage] of pendingMessages.current) {
+            if (pendingMessage.status !== "pending") {
+                continue;
             }
-        };
+            socket?.send(JSON.stringify(pendingMessage));
+        }
+    }, [chatID, socket]);
 
-        const connect = () => {
-            if (disposed) return;
+    const handleMessage = useCallback(
+        (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
 
-            if (!chatID) return;
-            const chatNum = +chatID;
-            if (chatNum <= 0) return;
+            if (data.type === "error") {
+                console.error(data.message);
+                return;
+            }
 
-            const wsUrl = new URL(BASE_CHAT_SERVICE_API_URL);
-            wsUrl.protocol = wsUrl.protocol === "https:" ? "wss:" : "ws:";
-            wsUrl.pathname = `${wsUrl.pathname.replace(/\/$/, "")}/ws`;
+            if (data.type === "messageDeleted") {
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.ID === data.messageID
+                            ? {
+                                  ...msg,
+                                  Deleted: true,
+                                  Content: data.content,
+                              }
+                            : msg,
+                    ),
+                );
+                return;
+            }
 
-            socket = new WebSocket(wsUrl.toString());
-            socketRef.current = socket;
+            if (data.type === "messageEdited") {
+                setMessages((prev) =>
+                    prev.map((msg) =>
+                        msg.ID === data.messageID
+                            ? {
+                                  ...msg,
+                                  Content: data.newContent,
+                                  UpdatedAt: data.updatedAt,
+                              }
+                            : msg,
+                    ),
+                );
+                return;
+            }
 
-            socket.onopen = async () => {
-                if (disposed || socketRef.current !== socket) return;
+            if (data.type === "nack") {
+                setMessages((prev) =>
+                    prev.map((message) =>
+                        message.ClientID === data.clientID
+                            ? { ...message, Status: "failed" }
+                            : message,
+                    ),
+                );
 
-                retryNum = 1;
+                const msg = pendingMessages.current.get(data.clientID);
+                if (msg) {
+                    messageStore.update({ ...msg, status: "failed" });
+                }
 
-                socket?.send(JSON.stringify({ token: accessToken }));
+                pendingMessages.current.delete(data.clientID);
+                return;
+            }
 
-                const lastMessage = messagesRef.current.at(-1);
-                if (lastMessage) {
-                    const { messages: missedMessages } = await syncChatMessages(
-                        chatNum,
-                        lastMessage.ID,
-                    );
+            if (data.type === "ack") {
+                setMessages((prev) =>
+                    prev.map((message) =>
+                        message.ClientID === data.clientID
+                            ? {
+                                  ...message,
+                                  Status: "delivered",
+                                  ID: data.id,
+                              }
+                            : message,
+                    ),
+                );
 
-                    if (disposed || socketRef.current !== socket) return;
+                const pending = pendingMessages.current.get(data.clientID);
+                if (pending) {
+                    pendingMessages.current.set(data.clientID, {
+                        ...pending,
+                        status: "delivered",
+                    });
 
-                    setMessages((prev) => {
-                        const seen = new Set(prev.map((m) => m.ID));
-                        const uniqueMissed = missedMessages.filter(
-                            (m) => !seen.has(m.ID),
-                        );
-                        return [...prev, ...uniqueMissed];
+                    messageStore.update({
+                        ...pending,
+                        status: "delivered",
                     });
                 }
 
-                for (const [, pendingMessage] of pendingMessages.current) {
-                    if (disposed || socketRef.current !== socket) return;
-                    if (pendingMessage.status !== "pending") {
-                        continue;
-                    }
-                    socket?.send(JSON.stringify(pendingMessage));
-                }
-            };
-
-            socket.onmessage = (event) => {
-                if (disposed || socketRef.current !== socket) return;
-
-                const data = JSON.parse(event.data);
-                console.log("received:", data);
-
-                if (data.type === "error") {
-                    console.error(data.message);
-                    return;
-                }
-
-                if (data.type === "messageDeleted") {
-                    setMessages((prev) =>
-                        prev.map((msg) =>
-                            msg.ID === data.messageID
-                                ? {
-                                      ...msg,
-                                      Deleted: true,
-                                      Content: data.content,
-                                  }
-                                : msg,
-                        ),
-                    );
-                    return;
-                }
-
-                if (data.type === "messageEdited") {
-                    setMessages((prev) =>
-                        prev.map((msg) =>
-                            msg.ID === data.messageID
-                                ? {
-                                      ...msg,
-                                      Content: data.newContent,
-                                      UpdatedAt: data.updatedAt,
-                                  }
-                                : msg,
-                        ),
-                    );
-                    return;
-                }
-
-                if (data.type === "nack") {
-                    setMessages((prev) =>
-                        prev.map((message) =>
-                            message.ClientID === data.clientID
-                                ? { ...message, Status: "failed" }
-                                : message,
-                        ),
-                    );
-
-                    const msg = pendingMessages.current.get(data.clientID);
-                    if (msg) {
-                        messageStore.update({ ...msg, status: "failed" });
-                    }
-
-                    pendingMessages.current.delete(data.clientID);
-                    return;
-                }
-
-                if (data.type === "ack") {
-                    setMessages((prev) =>
-                        prev.map((message) =>
-                            message.ClientID === data.clientID
-                                ? {
-                                      ...message,
-                                      Status: "delivered",
-                                      ID: data.id,
-                                  }
-                                : message,
-                        ),
-                    );
-
-                    const pending = pendingMessages.current.get(data.clientID);
-                    if (pending) {
-                        pendingMessages.current.set(data.clientID, {
-                            ...pending,
-                            status: "delivered",
-                        });
-
-                        messageStore.update({
-                            ...pending,
-                            status: "delivered",
-                        });
-                    }
-
-                    return;
-                }
-
-                const incoming = data as MessageType;
-
-                if (pendingMessages.current.has(incoming.ClientID)) {
-                    pendingMessages.current.delete(incoming.ClientID);
-                    messageStore.delete(incoming.ClientID);
-                    return;
-                }
-
-                setMessages((prev) => {
-                    if (!chatID) return prev;
-                    if (incoming.ChatID !== +chatID) return prev;
-                    return [...prev, incoming];
-                });
-            };
-
-            socket.onclose = () => {
-                if (disposed || socketRef.current !== socket) return;
-
-                clearReconnectTimer();
-
-                reconnectTimer.current = setTimeout(() => {
-                    if (disposed) return;
-                    connect();
-                }, retryNum * 1000);
-
-                retryNum = Math.min(retryNum * 2, 30);
-            };
-
-            socket.onerror = (err) => {
-                if (disposed || socketRef.current !== socket) return;
-                console.error("socket error", err);
-            };
-        };
-
-        connect();
-
-        return () => {
-            disposed = true;
-            clearReconnectTimer();
-
-            if (socketRef.current === socket) {
-                socketRef.current = null;
+                return;
             }
 
-            socket?.close();
+            const incoming = data as MessageType;
+
+            if (pendingMessages.current.has(incoming.ClientID)) {
+                pendingMessages.current.delete(incoming.ClientID);
+                messageStore.delete(incoming.ClientID);
+                return;
+            }
+
+            setMessages((prev) => {
+                if (!chatID) return prev;
+                if (incoming.ChatID !== +chatID) return prev;
+                return [...prev, incoming];
+            });
+        },
+        [chatID],
+    );
+
+    useEffect(() => {
+        socket?.addEventListener("open", handleOpen);
+        socket?.addEventListener("message", handleMessage);
+        return () => {
+            socket?.removeEventListener("open", handleOpen);
+            socket?.removeEventListener("message", handleMessage);
         };
-    }, [accessToken, chatID]);
+    }, [socket, handleMessage, handleOpen]);
 
     const sendMessage = (message: string) => {
         if (!chatID || message.trim() === "" || !loggedInUserID) return;
 
-        const socket = socketRef.current;
         if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
         const clientID = newMessageID();
