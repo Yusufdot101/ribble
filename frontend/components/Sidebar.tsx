@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     ChatType,
@@ -15,22 +15,21 @@ import ContactsSection from "./ContactsSection";
 import ChatsSection from "./ChatsSection";
 import GroupsSection from "./GroupsSection";
 import { UserType } from "@/utils/users";
+import { useSocket } from "@/providers/socket-provider";
 
 const Sidebar = () => {
     const [activeUser, setActiveUser] = useState<number>();
     const [activeChat, setActiveChat] = useState<number>();
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(false);
+    const [coversationData, setConverastionData] =
+        useState<ConversationDataType>();
 
     const handleChatClick = async (chatID: number) => {
         setActiveChat(chatID);
         setActiveUser(-1);
         router.push(`/chats/${chatID}`);
     };
-
-    const [isLoading, setIsLoading] = useState(false);
-
-    const [coversationData, setConverastionData] =
-        useState<ConversationDataType>();
 
     const updateGroups = (chat: ChatType) => {
         setConverastionData((prev) => {
@@ -41,10 +40,9 @@ const Sidebar = () => {
                   }
                 : prev;
         });
-        setActiveChat(chat.id);
     };
 
-    const updateChats = (chat: ChatType, user: UserType) => {
+    const updateChats = (chat: ChatType, userIDs: number[]) => {
         setConverastionData((prev) => {
             return prev
                 ? {
@@ -52,14 +50,41 @@ const Sidebar = () => {
                       chats: [...(prev.chats ?? []), chat],
                       contacts: [
                           ...prev.contacts.filter(
-                              (contact) => contact.id !== user.id,
+                              (contact) => !userIDs.includes(contact.id),
                           ),
                       ],
                   }
                 : prev;
         });
-        setActiveChat(chat.id);
     };
+
+    const socket = useSocket();
+
+    const handleMessage = useCallback((event: MessageEvent) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "error") {
+            console.error(data.message);
+            return;
+        }
+
+        if (data.type === "chatCreated") {
+            const chat = data.payload.chat as ChatType;
+            const userIDs = data.payload.userIds as number[];
+            if (chat.isGroup) {
+                updateGroups(chat);
+            } else {
+                updateChats(chat, userIDs);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        socket?.addEventListener("message", handleMessage);
+        return () => {
+            socket?.removeEventListener("message", handleMessage);
+        };
+    }, [socket, handleMessage]);
 
     const handleUserClick = async (user: UserType) => {
         setActiveUser(user.id);
@@ -67,7 +92,7 @@ const Sidebar = () => {
         const chat = await getChatByUserIDs([user.id]);
         if (!chat) return;
         setActiveChat(chat.id);
-        updateChats(chat, user);
+        // updateChats(chat, user);
         router.push(`/chats/${chat.id}`);
     };
 
@@ -126,7 +151,7 @@ const Sidebar = () => {
             <CreateGroup
                 handleClose={() => setIsCreatingGroup(false)}
                 handleUpdateGroups={(chat: ChatType) => {
-                    updateGroups(chat);
+                    setActiveChat(chat.id);
                 }}
                 createGroupOpen={isCreatingGroup}
             />

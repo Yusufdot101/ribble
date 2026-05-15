@@ -39,6 +39,7 @@ type websocketMsg struct {
 	ClientID string `json:"clientID"`
 	SenderID uint   `json:"senderID"`
 	ServerID uint   `json:"serverID"`
+	Payload  any    `json:"payload"`
 }
 
 func (h *handler) readLoop(conn *websocket.Conn, userID uint) {

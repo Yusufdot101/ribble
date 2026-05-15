@@ -79,6 +79,21 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 			})
 			return
 		}
+		payload := struct {
+			Chat    *domain.Chat `json:"chat"`
+			UserIDs []uint       `json:"userIds"`
+		}{
+			Chat:    chat,
+			UserIDs: userIDs,
+		}
+		msg := websocketMsg{
+			Type:    "chatCreated",
+			Payload: payload,
+		}
+
+		for _, user := range userIDs {
+			h.hub.SendToUser(user, msg)
+		}
 	}
 
 	ctx.JSON(http.StatusOK, response.Response[Chat]{
