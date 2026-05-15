@@ -36,6 +36,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             if (!ws) return;
             setSocket(ws);
 
+            // Remove old handlers if they exist
+            ws.onopen = null;
+            ws.onmessage = null;
+            ws.onerror = null;
+            ws.onclose = null;
+
             const sendToken = () => {
                 if (disposedRef.current) return;
                 if (ws.readyState !== WebSocket.OPEN) return;
@@ -49,12 +55,16 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             };
 
             ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                console.log("received:", data);
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log("received:", data);
 
-                if (data.type === "error") {
-                    console.error(data.message);
-                    return;
+                    if (data.type === "error") {
+                        console.error(data.message);
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Failed to parse WebSocket message:", err);
                 }
             };
 

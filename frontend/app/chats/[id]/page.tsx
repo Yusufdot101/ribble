@@ -137,11 +137,14 @@ const ChatPage = () => {
         const chatNum = +chatID;
         if (chatNum <= 0) return;
 
-        const lastMessage = messagesRef.current.at(-1);
-        if (lastMessage) {
+        const lastAckedID = messagesRef.current.reduce(
+            (max, message) => (message.ID > max ? message.ID : max),
+            0,
+        );
+        if (lastAckedID > 0) {
             const { messages: missedMessages } = await syncChatMessages(
                 chatNum,
-                lastMessage.ID,
+                lastAckedID,
             );
 
             setMessages((prev) => {
@@ -265,6 +268,11 @@ const ChatPage = () => {
     );
 
     useEffect(() => {
+        if (!socket) return;
+        if (socket.readyState === WebSocket.OPEN) {
+            handleOpen();
+        }
+
         socket?.addEventListener("open", handleOpen);
         socket?.addEventListener("message", handleMessage);
         return () => {

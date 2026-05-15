@@ -19,11 +19,16 @@ export const useAuthStore = create<AuthStore>((set) => ({
     setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn: isLoggedIn }),
     setUserID: (userID: number) => set({ userID: userID }),
     clearAccessToken: () => {
-        socketManager.close();
-        set({
-            accessToken: null,
-            isLoggedIn: false,
-            userID: null,
-        });
+        try {
+            socketManager.close();
+        } catch (err) {
+            console.error("Failed to close socket:", err);
+        } finally {
+            set({
+                accessToken: null,
+                isLoggedIn: false,
+                userID: null,
+            });
+        }
     },
 }));
