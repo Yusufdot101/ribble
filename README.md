@@ -8,7 +8,7 @@
 
 ## 🌊 What is Ripple?
 
-Ripple is a real-time chat application where messages flow instantly — no refresh, no delay. Create rooms, invite people, and just talk. Built as a deep dive into WebSockets, event-driven architecture, and full-stack development.
+Ripple is a real-time chat application where messages flow instantly — no refresh, no delay. Create groups, invite people, and just talk. Built as a deep dive into WebSockets, event-driven architecture, and full-stack development.
 
 > Think Discord, but stripped down to what actually matters.
 
@@ -17,10 +17,10 @@ Ripple is a real-time chat application where messages flow instantly — no refr
 ## ✨ Features
 
 - ⚡ **Real-time messaging** — powered by WebSockets, zero polling
-- 🏠 **Chat rooms** — create and join public or private rooms
+- 🏠 **Chats** — create and join chats
 - 👥 **Online indicators** — see who's active in real time
 - 🔐 **Auth** — JWT-based login and registration
-- 📜 **Message history** — persisted and loaded on room join
+- 📜 **Message history** — persisted and loaded on chat join
 - 🔔 **Typing indicators** — "someone is typing..." done right
 - 📱 **Responsive UI** — works on mobile and desktop
 
