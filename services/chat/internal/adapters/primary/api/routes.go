@@ -41,6 +41,6 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	messageGroup.DELETE(":messageId", middleware.RequireAuthentication(h.deleteMessage))
 	messageGroup.PATCH(":messageId", middleware.RequireAuthentication(h.editMessage))
 
-	r.GET("/ws", h.newMessage)
+	r.GET("/ws", h.newWebsocket)
 	return r
 }
