@@ -2,7 +2,6 @@ package api
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,48 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
-
-func (h *handler) newMessage(ctx *gin.Context) {
-	conn, userID, err := h.authenticateWS(ctx)
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		if err := conn.Close(); err != nil {
-			log.Println("error closing connection:", err)
-		}
-	}()
-
-	h.hub.addClient(userID, conn)
-	defer h.hub.removeClient(userID, conn)
-
-	h.readLoop(conn, userID)
-}
-
-type websocketMsg struct {
-	Type     string `json:"type"`
-	ChatID   uint   `json:"chatID"`
-	Content  string `json:"content"`
-	ClientID string `json:"clientID"`
-	SenderID uint   `json:"senderID"`
-	ServerID uint   `json:"serverID"`
-	Payload  any    `json:"payload"`
-}
-
-func (h *handler) readLoop(conn *websocket.Conn, userID uint) {
-	for {
-		var msg websocketMsg
-		if err := conn.ReadJSON(&msg); err != nil {
-			log.Println("error: ", err)
-			break
-		}
-
-		if err := h.handleMessage(conn, userID, msg); err != nil {
-			log.Println("message error:", err)
-		}
-	}
-}
 
 func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg websocketMsg) error {
 	if msg.ChatID == 0 || strings.TrimSpace(msg.Content) == "" {

@@ -79,6 +79,49 @@ func (h *hub) SendToUser(userID uint, msg any) {
 	}
 }
 
+func (h *handler) newWebsocket(ctx *gin.Context) {
+	conn, userID, err := h.authenticateWS(ctx)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if err := conn.Close(); err != nil {
+			log.Println("error closing connection:", err)
+		}
+	}()
+
+	h.hub.addClient(userID, conn)
+	defer h.hub.removeClient(userID, conn)
+
+	h.readLoop(conn, userID)
+}
+
+type websocketMsg struct {
+	Type     string `json:"type"`
+	ChatID   uint   `json:"chatID"`
+	Content  string `json:"content"`
+	ClientID string `json:"clientID"`
+	SenderID uint   `json:"senderID"`
+	ServerID uint   `json:"serverID"`
+	Payload  any    `json:"payload"`
+}
+
+func (h *handler) readLoop(conn *websocket.Conn, userID uint) {
+	for {
+		var msg websocketMsg
+		if err := conn.ReadJSON(&msg); err != nil {
+			log.Println("error: ", err)
+			break
+		}
+
+		// TODO: switch statements for different messages, eg, change permissions, new message etc
+		if err := h.handleMessage(conn, userID, msg); err != nil {
+			log.Println("message error:", err)
+		}
+	}
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
