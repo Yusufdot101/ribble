@@ -79,14 +79,11 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 			})
 			return
 		}
-		payload := struct {
-			Chat    *domain.Chat `json:"chat"`
-			UserIDs []uint       `json:"userIds"`
-		}{
-			Chat:    chat,
-			UserIDs: userIDs,
+		payload := map[string]any{
+			"chat":    chat,
+			"userIds": userIDs,
 		}
-		msg := websocketMsg{
+		msg := outgoingMsg{
 			Type:    "chatCreated",
 			Payload: payload,
 		}

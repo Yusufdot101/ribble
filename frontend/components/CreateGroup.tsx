@@ -4,7 +4,7 @@ import { getUsersByEmail, UserType } from "@/utils/users";
 import { useEffect, useState } from "react";
 import BackArrowButton from "./BackArrowButton";
 import XButton from "./XButton";
-import { ChatType, getChatByUserIDs } from "@/utils/chats";
+import { ChatType, getChatByUserIds } from "@/utils/chats";
 import { useRouter } from "next/navigation";
 import SearchBar from "./SearchBar";
 
@@ -27,9 +27,9 @@ const CreateGroup = ({
                 : [...prev, clickedUser];
         });
     };
-    const removeUser = (userID: number) => {
+    const removeUser = (userId: number) => {
         setSelectedUsers((prev) => {
-            return prev.filter((user) => user.id !== userID);
+            return prev.filter((user) => user.id !== userId);
         });
     };
 
@@ -85,7 +85,7 @@ const CreateGroup = ({
         rolePermissions.set("admin", enabledAdminPermissions);
         rolePermissions.set("member", enabledMemberPermissions);
 
-        const chat = await getChatByUserIDs(
+        const chat = await getChatByUserIds(
             undefined,
             rolePermissions,
             userRoles,

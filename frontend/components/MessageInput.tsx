@@ -6,27 +6,28 @@ interface Props {
     handleSend: (message: string) => void;
 }
 
-export type WebsocketMsg = {
-    status?: "pending" | "delivered" | "failed";
-    clientID: string;
-    senderID: number;
-    chatID: number;
+export type outgoingMsg = {
     type: string;
-    content: string;
-    CreatedAt?: string;
+    payload: unknown;
+};
+
+export type incomingMsg = {
+    Type: string;
+    Payload: Map<string, unknown>;
+    Message: unknown;
 };
 
 export interface MessageType {
-    ClientID?: string;
-    ID: number;
-    ChatID: number;
-    SenderID: number;
-    Content: string;
-    CreatedAt: string;
-    UpdatedAt: string;
-    DeletedAt: string | null;
-    Deleted: boolean;
-    Status: "pending" | "delivered" | "failed";
+    clientID?: string;
+    id: number;
+    chatID: number;
+    senderID: number;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    deleted: boolean;
+    status: "pending" | "delivered" | "failed";
 }
 
 const MessageInput = ({ handleSend }: Props) => {

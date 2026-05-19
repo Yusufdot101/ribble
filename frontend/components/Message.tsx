@@ -32,10 +32,10 @@ const Message = ({
     username,
     hasPermission,
 }: Props) => {
-    const userID = useAuthStore((state) => state.userID);
-    const messageIsEdited = message.CreatedAt !== message.UpdatedAt;
+    const userId = useAuthStore((state) => state.userId);
+    const messageIsEdited = message.createdAt !== message.updatedAt;
     const date = new Date(
-        messageIsEdited ? message.UpdatedAt : message.CreatedAt,
+        messageIsEdited ? message.updatedAt : message.createdAt,
     );
     const formattedDate = new Intl.DateTimeFormat("en-GB", {
         year: "numeric",
@@ -54,19 +54,19 @@ const Message = ({
 
     const handleDelete = () => {
         if (!confirm("Do you want delete this message? ")) return;
-        deleteMessage(message.ChatID, message.ID);
+        deleteMessage(message.chatId, message.id);
     };
 
-    const [newContent, setNewContent] = useState(message.Content);
+    const [newContent, setNewContent] = useState(message.content);
     useEffect(() => {
         if (isEditing) {
-            (() => setNewContent(message.Content))();
+            (() => setNewContent(message.content))();
         }
-    }, [isEditing, message.Content]);
+    }, [isEditing, message.content]);
     const isEditingCurrentMessage =
-        isEditing && editingMessageID === message.ID;
+        isEditing && editingMessageID === message.id;
 
-    const createdDate = new Date(message.CreatedAt);
+    const createdDate = new Date(message.createdAt);
     const currentDate = new Date();
     const diff = currentDate.getTime() - createdDate.getTime();
     const ONE_HOUR = 60 * 60 * 1000;
@@ -76,8 +76,8 @@ const Message = ({
         if (!createdlessThanHourAgo || newContent.trim() === "") return;
 
         const success = await editMessage(
-            message.ChatID,
-            message.ID,
+            message.chatId,
+            message.id,
             newContent,
         );
         if (!success) return;
@@ -86,23 +86,23 @@ const Message = ({
 
     return (
         <div
-            className={`${isEditingCurrentMessage ? "w-full" : ""} ${message.MessageType === "information message" ? "w-full" : message.SenderID === userID ? "ml-auto" : "mr-auto"} flex flex-col rounded-[4px]`}
+            className={`${isEditingCurrentMessage ? "w-full" : ""} ${message.messageType === "information message" ? "w-full" : message.senderId === userId ? "ml-auto" : "mr-auto"} flex flex-col rounded-[4px]`}
             onKeyDown={(e) => {
                 if (e.key === "Escape") {
                     handleCancelMessageEdit();
                     return;
                 }
-                if (message.Deleted) return;
+                if (message.deleted) return;
                 if (e.key !== "Delete") return;
                 e.preventDefault();
 
                 if (
-                    (message.SenderID !== userID &&
+                    (message.senderId !== userId &&
                         !hasPermission("delete messages")) ||
-                    message.MessageType === "information message"
+                    message.messageType === "information message"
                 )
                     return;
-                handleRightClick(message.ID);
+                handleRightClick(message.id);
 
                 const rect = containerRef.current?.getBoundingClientRect();
                 if (!rect) return;
@@ -125,14 +125,14 @@ const Message = ({
                 });
             }}
             onContextMenu={(e) => {
-                if (message.Deleted) return;
+                if (message.deleted) return;
                 if (
-                    (message.SenderID !== userID &&
+                    (message.senderId !== userId &&
                         !hasPermission("delete messages")) ||
-                    message.MessageType === "information message"
+                    message.messageType === "information message"
                 )
                     return;
-                handleRightClick(message.ID);
+                handleRightClick(message.id);
                 e.preventDefault();
 
                 refs.setPositionReference({
@@ -154,14 +154,14 @@ const Message = ({
             <div
                 tabIndex={0}
                 hidden={isEditingCurrentMessage}
-                className={`${message.MessageType === "information message" ? "w-full bg-foreground/10 justify-center items-center text-center" : message.SenderID === userID ? "bg-accent/80 w-fit" : "bg-foreground/20 w-fit"} flex flex-col py-[4px] px-[8px] rounded-[4px]`}
+                className={`${message.messageType === "information message" ? "w-full bg-foreground/10 justify-center items-center text-center" : message.senderId === userId ? "bg-accent/80 w-fit" : "bg-foreground/20 w-fit"} flex flex-col py-[4px] px-[8px] rounded-[4px]`}
             >
                 {username &&
-                    message.SenderID !== userID &&
-                    message.MessageType !== "information message" && (
+                    message.senderId !== userId &&
+                    message.messageType !== "information message" && (
                         <span className="text-[12px]">{username}</span>
                     )}
-                {message.Deleted ? (
+                {message.deleted ? (
                     <div className="flex items-center gap-x-[4px]">
                         <svg
                             viewBox="0 0 24 24"
@@ -185,21 +185,21 @@ const Message = ({
                                 ></path>
                             </g>
                         </svg>
-                        <p className="whitespace-pre-wrap">{message.Content}</p>
+                        <p className="whitespace-pre-wrap">{message.content}</p>
                     </div>
                 ) : (
-                    <p className="whitespace-pre-wrap">{message.Content}</p>
+                    <p className="whitespace-pre-wrap">{message.content}</p>
                 )}
                 <div className="flex gap-x-[4px] items-center">
                     <span className="text-[12px] opacity-75 text-right">
-                        {messageIsEdited && !message.Deleted ? "Edited " : ""}
+                        {messageIsEdited && !message.deleted ? "Edited " : ""}
                         {formattedDate}
                     </span>
 
                     <MessageStatus message={message} />
                 </div>
 
-                {menuIsOpen && selectedMessageID === message.ID && (
+                {menuIsOpen && selectedMessageID === message.id && (
                     <div
                         ref={refs.setFloating ?? undefined}
                         style={{
@@ -215,12 +215,12 @@ const Message = ({
                             Delete
                         </button>
                         {createdlessThanHourAgo &&
-                        message.SenderID === userID ? (
+                        message.senderId === userId ? (
                             <button
                                 aria-label="edit message"
                                 className="hover:bg-blue-500 hover:text-foreground cursor-pointer duration-300 rounded-[2px] p-[4px]"
                                 onClick={() => {
-                                    handleClickEdit(message.ID);
+                                    handleClickEdit(message.id);
                                 }}
                             >
                                 EDIT
@@ -273,7 +273,7 @@ const Message = ({
                     </div>
                 </div>
             )}
-            {message.Status === "failed" && message.SenderID === userID && (
+            {message.status === "failed" && message.senderId === userId && (
                 <span className="text-red-500 text-right">Not delivered</span>
             )}
         </div>

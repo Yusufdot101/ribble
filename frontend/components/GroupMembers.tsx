@@ -17,14 +17,14 @@ import { useRouter } from "next/navigation";
 interface Props {
     handleClose: () => void;
     groupMembersIsOpen: boolean;
-    chatID: number;
+    chatId: number;
     hasPermission: (permissionName: string) => boolean;
 }
 
 const GroupMembers = ({
     handleClose,
     groupMembersIsOpen,
-    chatID,
+    chatId,
     hasPermission,
 }: Props) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +46,7 @@ const GroupMembers = ({
             return;
 
         const success = await banUser(
-            chatID,
+            chatId,
             clickedUser.id,
             banReason,
             banDurationFrame,
@@ -62,7 +62,7 @@ const GroupMembers = ({
         if (!clickedUser) return;
         if (!confirm(`are you sure you want to unban ${clickedUser?.name}`))
             return;
-        const success = await unbanUser(chatID, clickedUser.id);
+        const success = await unbanUser(chatId, clickedUser.id);
         if (!success) return;
         setMenuIsOpen(false);
         setBanMenuIsOpen(false);
@@ -73,9 +73,9 @@ const GroupMembers = ({
         async (value: string = "") => {
             setIsLoading(true);
             try {
-                let users = await getChatUsers(chatID);
+                let users = await getChatUsers(chatId);
                 const { users: bannedUsers } = await getBannedUsers(
-                    chatID,
+                    chatId,
                     value,
                 );
 
@@ -89,7 +89,7 @@ const GroupMembers = ({
                 setIsLoading(false);
             }
         },
-        [chatID],
+        [chatId],
     );
 
     const handleRightClick = (user: UserType) => {
@@ -101,9 +101,9 @@ const GroupMembers = ({
         (() => searchUsers())();
     }, [searchUsers]);
 
-    const handleRemove = async (userID: number) => {
+    const handleRemove = async (userId: number) => {
         if (
-            (userID === loggedInUserID &&
+            (userId === loggedInUserId &&
                 !confirm(`are you sure you want to exist this group`)) ||
             !clickedUser ||
             !confirm(
@@ -112,13 +112,13 @@ const GroupMembers = ({
         ) {
             return;
         }
-        await removeUserFromGroup(chatID, userID);
-        setUsers((prev) => prev.filter((user) => user.id !== userID));
+        await removeUserFromGroup(chatId, userId);
+        setUsers((prev) => prev.filter((user) => user.id !== userId));
         setMenuIsOpen(false);
         handleClose();
     };
 
-    const loggedInUserID = useAuthStore((state) => state.userID);
+    const loggedInUserId = useAuthStore((state) => state.userId);
     const router = useRouter();
 
     return (
@@ -155,7 +155,7 @@ const GroupMembers = ({
                             }}
                             selectedUsers={[]}
                             excludeUsers={
-                                loggedInUserID ? [loggedInUserID] : []
+                                loggedInUserId ? [loggedInUserId] : []
                             }
                         />
                     </div>
@@ -353,8 +353,8 @@ const GroupMembers = ({
 
             <button
                 onClick={() => {
-                    if (!loggedInUserID) return;
-                    handleRemove(loggedInUserID);
+                    if (!loggedInUserId) return;
+                    handleRemove(loggedInUserId);
                 }}
                 className="w-full bg-red-500 p-[4px] rounded-[4px] cursor-pointer hover:bg-red-600 active:bg-red-500 duration-300"
             >

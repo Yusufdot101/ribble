@@ -4,20 +4,20 @@ import { create } from "zustand";
 type AuthStore = {
     accessToken: string | null;
     isLoggedIn: boolean;
-    userID: number | null;
+    userId: number | null;
     setAccessToken: (token: string) => void;
     setIsLoggedIn: (isLoggedIn: boolean) => void;
-    setUserID: (userID: number) => void;
+    setUserId: (userId: number) => void;
     clearAccessToken: () => void;
 };
 
 export const useAuthStore = create<AuthStore>((set) => ({
     accessToken: null,
     isLoggedIn: false,
-    userID: null,
+    userId: null,
     setAccessToken: (token: string) => set({ accessToken: token }),
     setIsLoggedIn: (isLoggedIn: boolean) => set({ isLoggedIn: isLoggedIn }),
-    setUserID: (userID: number) => set({ userID: userID }),
+    setUserId: (userId: number) => set({ userId: userId }),
     clearAccessToken: () => {
         try {
             socketManager.close();
@@ -27,7 +27,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
             set({
                 accessToken: null,
                 isLoggedIn: false,
-                userID: null,
+                userId: null,
             });
         }
     },

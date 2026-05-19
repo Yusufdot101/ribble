@@ -19,17 +19,17 @@ const (
 )
 
 type Message struct {
-	ID          uint
-	ChatID      uint
-	SenderID    uint
-	Content     string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
-	Deleted     bool
-	Status      MessageStatus
-	MessageType MessageType
-	ClientID    string
+	ID          uint          `json:"id"`
+	ChatID      uint          `json:"chatId"`
+	SenderID    uint          `json:"senderId"`
+	Content     string        `json:"content"`
+	CreatedAt   time.Time     `json:"createdAt"`
+	UpdatedAt   time.Time     `json:"updatedAt"`
+	DeletedAt   *time.Time    `json:"deletedAt"`
+	Deleted     bool          `json:"deleted"`
+	Status      MessageStatus `json:"status"`
+	MessageType MessageType   `json:"messageType"`
+	ClientID    string        `json:"clientId"`
 }
 
 func NewMessage(chatID, senderID uint, content string, messageType MessageType) *Message {

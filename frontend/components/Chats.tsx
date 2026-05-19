@@ -4,7 +4,7 @@ import ChatCard from "./ChatCard";
 
 interface Props {
     selectedChats: number[];
-    handleChatClick: (chatID: number) => void;
+    handleChatClick: (chatId: number) => void;
     chats: ChatType[];
     isLoading: boolean;
 }

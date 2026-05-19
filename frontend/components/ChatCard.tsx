@@ -7,12 +7,12 @@ import { useEffect, useState } from "react";
 interface Props {
     activeChats: number[];
     chat: ChatType;
-    handleClick: (chatID: number) => void;
+    handleClick: (chatId: number) => void;
 }
 
 const ChatCard = ({ activeChats, chat, handleClick }: Props) => {
     const [chatUser, setChatUser] = useState<UserType>();
-    const loggedInUserID = useAuthStore((state) => state.userID);
+    const loggedInUserId = useAuthStore((state) => state.userId);
 
     useEffect(() => {
         let cancelled = false;
@@ -21,7 +21,7 @@ const ChatCard = ({ activeChats, chat, handleClick }: Props) => {
             if (!chatUsers) return;
             if (cancelled || !chatUsers || chatUsers.length === 0) return;
             setChatUser(
-                chatUsers[0].id === loggedInUserID
+                chatUsers[0].id === loggedInUserId
                     ? (chatUsers[1] ?? chatUsers[0])
                     : chatUsers[0],
             );
@@ -29,7 +29,7 @@ const ChatCard = ({ activeChats, chat, handleClick }: Props) => {
         return () => {
             cancelled = true;
         };
-    }, [chat.id, loggedInUserID]);
+    }, [chat.id, loggedInUserId]);
 
     return (
         <div

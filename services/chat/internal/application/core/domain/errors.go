@@ -16,5 +16,6 @@ var (
 
 	ErrBannedUser = errors.New("user is banned from chat")
 
-	ErrInvalidAction = errors.New("invalid action")
+	ErrInvalidAction  = errors.New("invalid action")
+	ErrInvalidPayload = errors.New("invalid payload")
 )

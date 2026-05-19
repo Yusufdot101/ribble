@@ -10,10 +10,10 @@ import { addUsersToGroup } from "@/utils/groups";
 interface Props {
     handleClose: () => void;
     addToGroupIsOpen: boolean;
-    chatID: number;
+    chatId: number;
 }
 
-const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatID }: Props) => {
+const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatId }: Props) => {
     const [selectedUsers, setSelectedUsers] = useState<UserType[]>([]);
     const handleClick = async (clickedUser: UserType) => {
         setSelectedUsers((prev) => {
@@ -22,9 +22,9 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatID }: Props) => {
                 : [...prev, clickedUser];
         });
     };
-    const removeUser = (userID: number) => {
+    const removeUser = (userId: number) => {
         setSelectedUsers((prev) => {
-            return prev.filter((user) => user.id !== userID);
+            return prev.filter((user) => user.id !== userId);
         });
     };
 
@@ -35,13 +35,13 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatID }: Props) => {
         async (email: string = "") => {
             setIsLoading(true);
             try {
-                const { users } = await getAddableChatUsers(chatID, email);
+                const { users } = await getAddableChatUsers(chatId, email);
                 setUsers(users ?? []);
             } finally {
                 setIsLoading(false);
             }
         },
-        [chatID],
+        [chatId],
     );
 
     useEffect(() => {
@@ -51,7 +51,7 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatID }: Props) => {
     const addToGroup = async () => {
         if (selectedUsers.length === 0) return;
         await addUsersToGroup(
-            chatID,
+            chatId,
             selectedUsers.map((user) => user.id),
         );
         handleClose();

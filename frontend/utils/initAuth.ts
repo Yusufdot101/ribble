@@ -40,7 +40,7 @@ export const initAuth = async () => {
         }
 
         useAuthStore.getState().setAccessToken(token);
-        useAuthStore.getState().setUserID(userId);
+        useAuthStore.getState().setUserId(userId);
         useAuthStore.getState().setIsLoggedIn(true);
     } catch (error) {
         console.error(error);

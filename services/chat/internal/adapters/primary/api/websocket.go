@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -97,19 +98,20 @@ func (h *handler) newWebsocket(ctx *gin.Context) {
 	h.readLoop(conn, userID)
 }
 
-type websocketMsg struct {
-	Type     string `json:"type"`
-	ChatID   uint   `json:"chatID"`
-	Content  string `json:"content"`
-	ClientID string `json:"clientID"`
-	SenderID uint   `json:"senderID"`
-	ServerID uint   `json:"serverID"`
-	Payload  any    `json:"payload"`
+type incomingMsg struct {
+	Type    string          `json:"type"`
+	Payload json.RawMessage `json:"payload"`
+}
+
+type outgoingMsg struct {
+	Type    string         `json:"type"`
+	Payload map[string]any `json:"payload"`
+	Message any            `json:"message"`
 }
 
 func (h *handler) readLoop(conn *websocket.Conn, userID uint) {
 	for {
-		var msg websocketMsg
+		var msg incomingMsg
 		if err := conn.ReadJSON(&msg); err != nil {
 			log.Println("error: ", err)
 			break

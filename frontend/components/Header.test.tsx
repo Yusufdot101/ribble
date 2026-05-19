@@ -13,7 +13,7 @@ beforeEach(() => {
     useAuthStore.setState({
         accessToken: null,
         isLoggedIn: false,
-        userID: null,
+        userId: null,
     });
 });
 

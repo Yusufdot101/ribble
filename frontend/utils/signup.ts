@@ -44,14 +44,14 @@ export const signup = async (
             return false;
         }
 
-        const userID = payload.sub;
-        if (userID === "") {
+        const userId = payload.sub;
+        if (userId === "") {
             console.error("invalid user ID in JWT");
             useAuthStore.getState().clearAccessToken();
             return false;
         }
 
-        useAuthStore.getState().setUserID(userID);
+        useAuthStore.getState().setUserId(userId);
         useAuthStore.getState().setAccessToken(accessToken);
         useAuthStore.getState().setIsLoggedIn(true);
         return true;
