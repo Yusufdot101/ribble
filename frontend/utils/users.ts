@@ -40,12 +40,12 @@ type getAddableChatUsersResponse = {
     users: UserType[];
 };
 export const getAddableChatUsers = async (
-    chatID: number,
+    chatId: number,
     email: string,
 ): Promise<getAddableChatUsersResponse> => {
     try {
         const res = await api(
-            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/addable-users?q=${encodeURIComponent(email)}`,
+            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/addable-users?q=${encodeURIComponent(email)}`,
         );
         if (!res || !res.ok) {
             return { users: [] };
@@ -94,15 +94,15 @@ export const verifyAccount = async (
             return false;
         }
 
-        const userID = payload.sub;
-        if (userID === "") {
+        const userId = payload.sub;
+        if (userId === "") {
             console.error("invalid user ID in JWT");
             useAuthStore.getState().clearAccessToken();
             return false;
         }
 
         const authStore = useAuthStore.getState();
-        authStore.setUserID(userID);
+        authStore.setUserId(userId);
         authStore.setAccessToken(accessToken);
         authStore.setIsLoggedIn(true);
         return true;

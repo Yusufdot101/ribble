@@ -57,14 +57,15 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 		return
 	}
 
-	msg := &struct {
-		Type      string `json:"type"`
-		MessageID uint   `json:"messageID"`
-		Content   string `json:"content"`
-	}{
-		Type:      "messageDeleted",
-		MessageID: message.ID,
-		Content:   message.Content,
+	msg := outgoingMsg{
+		Type:    "messageDeleted",
+		Message: "message deleted successfully",
+		Payload: map[string]any{
+			"id":        message.ID,
+			"content":   message.Content,
+			"updatedAt": message.UpdatedAt,
+			"deleted":   true,
+		},
 	}
 	for _, p := range participants {
 		h.hub.SendToUser(p.UserID, msg)

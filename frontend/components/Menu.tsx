@@ -4,12 +4,12 @@ import AddUsersToGroup from "./AddUsersToGroup";
 import GroupMembers from "./GroupMembers";
 
 type Props = {
-    chatID: number;
+    chatId: number;
     currentGroupUsers: number[];
     hasPermission: (permissionName: string) => boolean;
 };
 
-const Menu = ({ chatID, hasPermission }: Props) => {
+const Menu = ({ chatId, hasPermission }: Props) => {
     const [menuIsOpen, setMenuIsOpen] = useState(false);
 
     const [addToGroupIsOpen, setAddToGroupIsOpen] = useState(false);
@@ -72,13 +72,13 @@ const Menu = ({ chatID, hasPermission }: Props) => {
             <AddUsersToGroup
                 addToGroupIsOpen={addToGroupIsOpen}
                 handleClose={handleClose}
-                chatID={chatID}
+                chatId={chatId}
             />
 
             <GroupMembers
                 groupMembersIsOpen={groupMembersIsOpen}
                 handleClose={handleCloseGroupMembers}
-                chatID={chatID}
+                chatId={chatId}
                 hasPermission={hasPermission}
             />
         </div>

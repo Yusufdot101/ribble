@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -86,8 +87,20 @@ func (h *handler) addToGroup(c *gin.Context) {
 		return
 	}
 
+	msg := outgoingMsg{
+		Type:    "messageDeleted",
+		Message: "users added successfully",
+		Payload: map[string]any{
+			"chatId":    message.ChatID,
+			"id":        message.ID,
+			"content":   message.Content,
+			"updatedAt": message.UpdatedAt,
+			"deleted":   true,
+		},
+	}
+
 	for _, p := range participants {
-		h.hub.SendToUser(p.UserID, message)
+		h.hub.SendToUser(p.UserID, msg)
 	}
 }
 
@@ -355,13 +368,20 @@ func (h *handler) getBannedUsers(c *gin.Context) {
 
 func (h *handler) updateUserRole(c *gin.Context) {
 	var req struct {
-		UserID uint   `json:"userId" binding:"required"`
-		Action string `json:"action" binding:"required"`
+		NewRole string `json:"newRole" binding:"required"`
 	}
 
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
 			Error: "invalid request",
+		})
+		return
+	}
+
+	userID, err := strconv.ParseUint(c.Param("userId"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid user id",
 		})
 		return
 	}
@@ -376,7 +396,7 @@ func (h *handler) updateUserRole(c *gin.Context) {
 
 	currentUserID := context.UserIDFromContext(c)
 
-	err = h.csvc.UpdateChatUser(chatID, req.UserID, currentUserID, req.Action)
+	err = h.csvc.UpdateChatUser(chatID, uint(userID), currentUserID, req.NewRole)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, domain.ErrInvalidAction) {
@@ -395,4 +415,47 @@ func (h *handler) updateUserRole(c *gin.Context) {
 	c.JSON(http.StatusOK, response.Response[any]{
 		Message: "user role updated successfully",
 	})
+
+	users, err := h.csvc.SearchUsers("", []uint{currentUserID})
+	if err != nil {
+		log.Printf("error getting current user: %v\n", err)
+		return
+	}
+	if len(users) == 0 {
+		log.Printf("current user not found: %d\n", currentUserID)
+		return
+	}
+	currentUser := users[0]
+
+	updatedUsers, err := h.csvc.SearchUsers("", []uint{uint(userID)})
+	if err != nil {
+		log.Printf("error getting updated users: %v\n", err)
+		return
+	}
+
+	names := make([]string, 0, len(updatedUsers))
+	for _, u := range updatedUsers {
+		names = append(names, u.Name)
+	}
+	usernames := strings.Join(names, ", ")
+
+	message, err := h.csvc.NewMessage(currentUserID, chatID, fmt.Sprintf("%s made %s %s(s)", currentUser.Name, usernames, req.NewRole), domain.SystemMessage)
+	if err != nil {
+		log.Printf("error sending system message: %v\n", err)
+		return
+	}
+
+	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
+	if err != nil {
+		log.Printf("error getting chat participants: %v\n", err)
+		return
+	}
+
+	msg := outgoingMsg{
+		Type:    "updatedUsersRoles",
+		Payload: map[string]any{"message": message},
+	}
+	for _, p := range participants {
+		h.hub.SendToUser(p.UserID, msg)
+	}
 }

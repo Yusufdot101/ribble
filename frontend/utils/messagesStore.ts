@@ -1,4 +1,4 @@
-import { WebsocketMsg } from "@/components/MessageInput";
+import { MessageType } from "./messages";
 
 const DB_NAME = "chatDB";
 const STORE_NAME = "messages";
@@ -17,10 +17,10 @@ function openDB(): Promise<IDBDatabase> {
 
             if (!db.objectStoreNames.contains(STORE_NAME)) {
                 const store = db.createObjectStore(STORE_NAME, {
-                    keyPath: "clientID",
+                    keyPath: "clientId",
                 });
 
-                store.createIndex("chatId", "chatID", { unique: false });
+                store.createIndex("chatId", "chatId", { unique: false });
             }
         };
 
@@ -36,7 +36,7 @@ function openDB(): Promise<IDBDatabase> {
     return dbPromise;
 }
 
-async function add(msg: WebsocketMsg): Promise<void> {
+async function add(msg: MessageType): Promise<void> {
     const db = await openDB();
 
     return new Promise((resolve, reject) => {
@@ -50,7 +50,7 @@ async function add(msg: WebsocketMsg): Promise<void> {
     });
 }
 
-async function getAll(): Promise<WebsocketMsg[]> {
+async function getAll(): Promise<MessageType[]> {
     const db = await openDB();
 
     return new Promise((resolve, reject) => {
@@ -64,7 +64,7 @@ async function getAll(): Promise<WebsocketMsg[]> {
     });
 }
 
-async function getByChat(chatID: number): Promise<WebsocketMsg[]> {
+async function getByChat(chatId: number): Promise<MessageType[]> {
     const db = await openDB();
 
     return new Promise((resolve, reject) => {
@@ -72,25 +72,25 @@ async function getByChat(chatID: number): Promise<WebsocketMsg[]> {
         const store = tx.objectStore(STORE_NAME);
         const index = store.index("chatId");
 
-        const req = index.getAll(chatID);
+        const req = index.getAll(chatId);
 
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error);
     });
 }
 
-async function update(msg: WebsocketMsg): Promise<void> {
+async function update(msg: MessageType): Promise<void> {
     return add(msg);
 }
 
-async function remove(clientID: string): Promise<void> {
+async function remove(clientId: string): Promise<void> {
     const db = await openDB();
 
     return new Promise((resolve, reject) => {
         const tx = db.transaction(STORE_NAME, "readwrite");
         const store = tx.objectStore(STORE_NAME);
 
-        const req = store.delete(clientID);
+        const req = store.delete(clientId);
 
         req.onsuccess = () => resolve();
         req.onerror = () => reject(req.error);

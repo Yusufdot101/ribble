@@ -2,7 +2,7 @@
 
 import BackArrowButton from "@/components/BackArrowButton";
 import Message from "@/components/Message";
-import MessageInput, { WebsocketMsg } from "@/components/MessageInput";
+import MessageInput, { outgoingMsg } from "@/components/MessageInput";
 import Menu from "@/components/Menu";
 import { useAuthStore } from "@/store/useAuthStore";
 import { ChatType, getChatByID, getChatUsers } from "@/utils/chats";
@@ -22,13 +22,13 @@ import { useSocket } from "@/providers/socket-provider";
 const ChatPage = () => {
     const isOnline = useOnlineStatus();
     const params = useParams();
-    const chatID = params.id;
-    const loggedInUserID = useAuthStore((state) => state.userID);
+    const chatId = params.id;
+    const loggedInUserId = useAuthStore((state) => state.userId);
     const router = useRouter();
 
     const [messages, setMessages] = useState<MessageType[]>([]);
     const messagesRef = useRef(messages);
-    const pendingMessages = useRef(new Map<string, WebsocketMsg>());
+    const pendingMessages = useRef(new Map<string, MessageType>());
 
     const [chat, setChat] = useState<ChatType>();
     const [chatUsers, setChatUsers] = useState<UserType[]>([]);
@@ -46,19 +46,19 @@ const ChatPage = () => {
 
     const newMessageID = (): string => crypto.randomUUID();
     const newNumberID = (): number =>
-        Math.floor(Math.random() * 100_000_000) + 1;
+        Math.floor(Math.random() * 1_000_000_000) + 1;
 
     useEffect(() => {
         messagesRef.current = messages;
     }, [messages]);
 
     useEffect(() => {
-        if (!chatID) return;
+        if (!chatId) return;
 
         let cancelled = false;
 
         (async () => {
-            const chatNum = +chatID;
+            const chatNum = +chatId;
             if (chatNum <= 0) return;
 
             const { messages } = await getChatMessages(chatNum);
@@ -69,27 +69,13 @@ const ChatPage = () => {
 
             const savedMessages = await messageStore.getByChat(chatNum);
             if (cancelled) return;
-
-            const queuedMessages = savedMessages.map((message, i) => ({
-                Content: message.content,
-                ChatID: message.chatID,
-                Status: message.status ?? "pending",
-                ClientID: message.clientID,
-                SenderID: message.senderID,
-                CreatedAt: message.CreatedAt ?? "",
-                Deleted: false,
-                ID: -(i + 1),
-                DeletedAt: null,
-                UpdatedAt: message.CreatedAt ?? "",
-            }));
-
             for (const msg of savedMessages) {
                 if (msg.status === "pending") {
-                    pendingMessages.current.set(msg.clientID, msg);
+                    pendingMessages.current.set(msg.clientId, msg);
                 }
             }
 
-            setMessages((prev) => [...prev, ...queuedMessages]);
+            setMessages((prev) => [...prev, ...savedMessages]);
 
             const chat = await getChatByID(chatNum);
             if (cancelled) return;
@@ -103,14 +89,14 @@ const ChatPage = () => {
         return () => {
             cancelled = true;
         };
-    }, [chatID]);
+    }, [chatId]);
 
     useEffect(() => {
         (() => setPermissions([]))();
 
-        if (!chatID) return;
+        if (!chatId) return;
 
-        const chatNum = +chatID;
+        const chatNum = +chatId;
         if (chatNum <= 0) return;
 
         let cancelled = false;
@@ -124,7 +110,7 @@ const ChatPage = () => {
         return () => {
             cancelled = true;
         };
-    }, [chatID]);
+    }, [chatId]);
 
     const hasPermission = (permissionName: string): boolean => {
         return permissions.some(
@@ -133,12 +119,12 @@ const ChatPage = () => {
     };
 
     const handleOpen = useCallback(async () => {
-        if (!chatID) return;
-        const chatNum = +chatID;
+        if (!chatId) return;
+        const chatNum = +chatId;
         if (chatNum <= 0) return;
 
         const lastAckedID = messagesRef.current.reduce(
-            (max, message) => (message.ID > max ? message.ID : max),
+            (max, message) => (message.id > max ? message.id : max),
             0,
         );
         if (lastAckedID > 0) {
@@ -148,9 +134,9 @@ const ChatPage = () => {
             );
 
             setMessages((prev) => {
-                const seen = new Set(prev.map((m) => m.ID));
+                const seen = new Set(prev.map((m) => m.id));
                 const uniqueMissed = missedMessages.filter(
-                    (m) => !seen.has(m.ID),
+                    (m) => !seen.has(m.id),
                 );
                 return [...prev, ...uniqueMissed];
             });
@@ -162,25 +148,31 @@ const ChatPage = () => {
             }
             socket?.send(JSON.stringify(pendingMessage));
         }
-    }, [chatID, socket]);
+    }, [chatId, socket]);
 
     const handleMessage = useCallback(
         (event: MessageEvent) => {
             const data = JSON.parse(event.data);
-
-            if (data.type === "error") {
-                console.error(data.message);
+            if (
+                ![
+                    "message",
+                    "messageDeleted",
+                    "messageEdited",
+                    "ack",
+                    "nack",
+                ].includes(data.type)
+            )
                 return;
-            }
 
             if (data.type === "messageDeleted") {
+                const payload = data.payload;
                 setMessages((prev) =>
                     prev.map((msg) =>
-                        msg.ID === data.messageID
+                        msg.id === payload.id
                             ? {
                                   ...msg,
-                                  Deleted: true,
-                                  Content: data.content,
+                                  deleted: true,
+                                  content: payload.content,
                               }
                             : msg,
                     ),
@@ -189,13 +181,15 @@ const ChatPage = () => {
             }
 
             if (data.type === "messageEdited") {
+                const payload = data.payload;
+                console.log("payload: ", payload);
                 setMessages((prev) =>
                     prev.map((msg) =>
-                        msg.ID === data.messageID
+                        msg.id === payload.id
                             ? {
                                   ...msg,
-                                  Content: data.newContent,
-                                  UpdatedAt: data.updatedAt,
+                                  content: payload.content,
+                                  updatedAt: payload.updatedAt,
                               }
                             : msg,
                     ),
@@ -204,39 +198,41 @@ const ChatPage = () => {
             }
 
             if (data.type === "nack") {
+                const clientId = data.payload.clientId;
                 setMessages((prev) =>
                     prev.map((message) =>
-                        message.ClientID === data.clientID
+                        message.clientId === clientId
                             ? { ...message, Status: "failed" }
                             : message,
                     ),
                 );
 
-                const msg = pendingMessages.current.get(data.clientID);
+                const msg = pendingMessages.current.get(clientId);
                 if (msg) {
                     messageStore.update({ ...msg, status: "failed" });
                 }
 
-                pendingMessages.current.delete(data.clientID);
+                pendingMessages.current.delete(clientId);
                 return;
             }
 
             if (data.type === "ack") {
-                setMessages((prev) =>
-                    prev.map((message) =>
-                        message.ClientID === data.clientID
+                const clientId = data.payload.clientId;
+                setMessages((prev) => {
+                    return prev.map((message) =>
+                        message.clientId === clientId
                             ? {
                                   ...message,
-                                  Status: "delivered",
-                                  ID: data.id,
+                                  status: "delivered",
+                                  id: data.payload.id,
                               }
                             : message,
-                    ),
-                );
+                    );
+                });
 
-                const pending = pendingMessages.current.get(data.clientID);
+                const pending = pendingMessages.current.get(clientId);
                 if (pending) {
-                    pendingMessages.current.set(data.clientID, {
+                    pendingMessages.current.set(clientId, {
                         ...pending,
                         status: "delivered",
                     });
@@ -250,21 +246,22 @@ const ChatPage = () => {
                 return;
             }
 
-            const incoming = data as MessageType;
+            const payload = data.payload;
+            const incoming = payload.message as MessageType;
 
-            if (pendingMessages.current.has(incoming.ClientID)) {
-                pendingMessages.current.delete(incoming.ClientID);
-                messageStore.delete(incoming.ClientID);
+            if (pendingMessages.current.has(payload.clientId)) {
+                pendingMessages.current.delete(payload.clientId);
+                messageStore.delete(payload.clientId);
                 return;
             }
 
             setMessages((prev) => {
-                if (!chatID) return prev;
-                if (incoming.ChatID !== +chatID) return prev;
+                if (!chatId) return prev;
+                if (incoming.chatId !== +chatId) return prev;
                 return [...prev, incoming];
             });
         },
-        [chatID],
+        [chatId],
     );
 
     useEffect(() => {
@@ -282,43 +279,38 @@ const ChatPage = () => {
     }, [socket, handleMessage, handleOpen]);
 
     const sendMessage = (message: string) => {
-        if (!chatID || message.trim() === "" || !loggedInUserID) return;
+        if (!chatId || message.trim() === "" || !loggedInUserId) return;
 
         if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
-        const clientID = newMessageID();
+        const clientId = newMessageID();
         const creationDate = new Date().toISOString();
 
-        const msg: WebsocketMsg = {
+        const msg: MessageType = {
             status: "pending",
-            chatID: +chatID,
-            senderID: loggedInUserID,
-            clientID,
+            chatId: +chatId,
+            senderId: loggedInUserId,
+            clientId: clientId,
             content: message,
-            type: "message",
-            CreatedAt: creationDate,
+            createdAt: creationDate,
+            deleted: false,
+            id: -newNumberID(),
+            updatedAt: creationDate,
+            deletedAt: null,
         };
 
         setMessages((prev) => {
-            const newMessage: MessageType = {
-                ClientID: clientID,
-                Status: "pending",
-                ChatID: +chatID,
-                ID: -newNumberID(),
-                Content: msg.content,
-                CreatedAt: msg.CreatedAt ?? creationDate,
-                Deleted: false,
-                DeletedAt: null,
-                SenderID: loggedInUserID,
-                UpdatedAt: creationDate,
-            };
-
-            return [...prev, newMessage];
+            return [...prev, msg];
         });
 
-        pendingMessages.current.set(clientID, msg);
+        pendingMessages.current.set(clientId, msg);
         messageStore.add(msg);
-        socket.send(JSON.stringify(msg));
+
+        const websocketMsg: outgoingMsg = {
+            type: "newMessage",
+            payload: msg,
+        };
+        socket.send(JSON.stringify(websocketMsg));
     };
 
     useEffect(() => {
@@ -357,9 +349,9 @@ const ChatPage = () => {
                 </div>
 
                 <div className="flex-1 flex">
-                    {chatID && (
+                    {chatId && (
                         <Menu
-                            chatID={+chatID}
+                            chatId={+chatId}
                             currentGroupUsers={chatUsers.map((user) => user.id)}
                             hasPermission={hasPermission}
                         />
@@ -372,7 +364,7 @@ const ChatPage = () => {
                     {chat?.name !== ""
                         ? chat?.name
                         : chatUsers
-                              .filter((user) => user.id !== loggedInUserID)
+                              .filter((user) => user.id !== loggedInUserId)
                               .map((user) => (
                                   <div key={user.id}>{user.name}</div>
                               ))}
@@ -384,7 +376,7 @@ const ChatPage = () => {
                 className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-y-[8px] p-[4px]"
             >
                 {messages
-                    .sort((a, b) => a.CreatedAt.localeCompare(b.CreatedAt))
+                    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
                     .map((message) => (
                         <Message
                             hasPermission={hasPermission}
@@ -395,7 +387,7 @@ const ChatPage = () => {
                                 setMenuIsOpen(true);
                                 setSelectedMessageID(messageID);
                             }}
-                            key={message.ID}
+                            key={message.id}
                             message={message}
                             editingMessageID={editingMessageID}
                             isEditing={isEditingMessage}
@@ -410,7 +402,7 @@ const ChatPage = () => {
                                 chat?.isGroup
                                     ? chatUsers.filter(
                                           (user) =>
-                                              user.id === message.SenderID,
+                                              user.id === message.senderId,
                                       )[0]?.name
                                     : undefined
                             }

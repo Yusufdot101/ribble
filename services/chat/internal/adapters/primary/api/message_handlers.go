@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,75 +15,99 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg websocketMsg) error {
-	if msg.ChatID == 0 || strings.TrimSpace(msg.Content) == "" {
-		_ = conn.WriteJSON(map[string]string{
-			"type":     "nack",
-			"message":  "invalid message",
-			"clientID": msg.ClientID,
-		})
+type MessagePayload struct {
+	ClientID string `json:"clientId"`
+	Content  string `json:"content"`
+	ChatID   uint   `json:"chatId"`
+}
+
+func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg incomingMsg) error {
+	var p MessagePayload
+	err := json.Unmarshal(msg.Payload, &p)
+	if err != nil {
+		return domain.ErrInvalidPayload
+	}
+	log.Println("msg: ", msg)
+
+	payload := map[string]any{
+		"clientId": p.ClientID,
+	}
+	if p.ChatID == 0 || strings.TrimSpace(p.Content) == "" || msg.Type != "newMessage" {
+		res := outgoingMsg{
+			Type:    "nack",
+			Payload: payload,
+			Message: "invalid request",
+		}
+		_ = conn.WriteJSON(res)
 		return nil
 	}
 
-	userHasPermission, err := h.csvc.UserHasPermission(userID, msg.ChatID, domain.SendMessage)
+	userHasPermission, err := h.csvc.UserHasPermission(userID, p.ChatID, domain.SendMessage)
 	if err != nil {
-		_ = conn.WriteJSON(map[string]string{
-			"type":     "nack",
-			"message":  "not permitted",
-			"clientID": msg.ClientID,
-		})
+		res := outgoingMsg{
+			Type:    "nack",
+			Payload: payload,
+			Message: "not permitted",
+		}
+		_ = conn.WriteJSON(res)
 		return nil
 	}
 
 	if !userHasPermission {
-		_ = conn.WriteJSON(map[string]string{
-			"type":     "nack",
-			"message":  "not allowed to write messages",
-			"clientID": msg.ClientID,
-		})
+		res := outgoingMsg{
+			Type:    "nack",
+			Payload: payload,
+			Message: "not allowed to write messages",
+		}
+		_ = conn.WriteJSON(res)
 		return nil
 	}
 
-	participants, err := h.csvc.GetChatParticipants(msg.ChatID, userID)
+	participants, err := h.csvc.GetChatParticipants(p.ChatID, userID)
 	if err != nil {
-		_ = conn.WriteJSON(map[string]string{
-			"type":     "nack",
-			"message":  "chat not found",
-			"clientID": msg.ClientID,
-		})
+		res := outgoingMsg{
+			Type:    "nack",
+			Payload: payload,
+			Message: "chat not found",
+		}
+		_ = conn.WriteJSON(res)
 		return nil
 	}
 
 	if !userIsInChat(userID, participants) {
-		_ = conn.WriteJSON(map[string]string{
-			"type":     "nack",
-			"message":  "not a participant of this chat",
-			"clientID": msg.ClientID,
-		})
-		return fmt.Errorf("user not in chat")
+		res := outgoingMsg{
+			Type:    "nack",
+			Payload: payload,
+			Message: "not a participant of this chat",
+		}
+		_ = conn.WriteJSON(res)
+		return fmt.Errorf("user not in chat: %w", err)
 	}
 
-	message, err := h.csvc.NewMessage(userID, msg.ChatID, msg.Content, domain.StandardMessage)
+	message, err := h.csvc.NewMessage(userID, p.ChatID, p.Content, domain.StandardMessage)
 	if err != nil {
-		_ = conn.WriteJSON(map[string]string{
-			"type":     "nack",
-			"clientID": msg.ClientID,
-			"message":  "failed to send message",
-		})
+		res := outgoingMsg{
+			Type:    "nack",
+			Payload: payload,
+			Message: "failed to send message",
+		}
+		_ = conn.WriteJSON(res)
 		return nil
 	}
 
-	_ = conn.WriteJSON(map[string]any{
-		"type":     "ack",
-		"clientID": msg.ClientID,
-		"message":  "message delivered",
-		"id":       message.ID,
-	})
+	payload["id"] = message.ID
+	res := outgoingMsg{
+		Type:    "ack",
+		Payload: payload,
+		Message: "message delivered",
+	}
 
-	message.ClientID = msg.ClientID
+	_ = conn.WriteJSON(res)
 
+	res.Type = "message"
+	res.Payload["message"] = message
 	for _, p := range participants {
-		h.hub.SendToUser(p.UserID, message)
+		h.hub.SendToUser(p.UserID, res)
 	}
 
 	return nil

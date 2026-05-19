@@ -1,17 +1,17 @@
 import { api, BASE_CHAT_SERVICE_API_URL } from "./api";
 
 export interface MessageType {
-    ClientID: string;
-    ID: number;
-    ChatID: number;
-    SenderID: number;
-    Content: string;
-    CreatedAt: string;
-    UpdatedAt: string;
-    DeletedAt: string | null;
-    Deleted: boolean;
-    Status: "pending" | "delivered" | "failed";
-    MessageType?: string;
+    clientId: string;
+    id: number;
+    chatId: number;
+    senderId: number;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    deleted: boolean;
+    status: "pending" | "delivered" | "failed";
+    messageType?: string;
 }
 
 type GetChatMessagesResponse = {
@@ -19,10 +19,10 @@ type GetChatMessagesResponse = {
 };
 
 export const getChatMessages = async (
-    chatID: number,
+    chatId: number,
 ): Promise<GetChatMessagesResponse> => {
     try {
-        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/messages`;
+        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/messages`;
         const res = await api(baseURL);
         if (!res || !res.ok) return { messages: [] };
         const body = await res.json();
@@ -43,11 +43,11 @@ export const getChatMessages = async (
 };
 
 export const syncChatMessages = async (
-    chatID: number,
+    chatId: number,
     lastMessageID: number,
 ): Promise<GetChatMessagesResponse> => {
     try {
-        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/messages/sync?lastMessageId=${lastMessageID}`;
+        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/messages/sync?lastMessageId=${lastMessageID}`;
         const res = await api(baseURL);
         if (!res || !res.ok) return { messages: [] };
         const body = await res.json();
@@ -67,9 +67,9 @@ export const syncChatMessages = async (
     }
 };
 
-export const deleteMessage = async (chatID: number, messageID: number) => {
+export const deleteMessage = async (chatId: number, messageID: number) => {
     try {
-        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/messages`;
+        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/messages`;
         const res = await api(`${baseURL}/${messageID}`, {
             method: "DELETE",
         });
@@ -87,12 +87,12 @@ export const deleteMessage = async (chatID: number, messageID: number) => {
 };
 
 export const editMessage = async (
-    chatID: number,
+    chatId: number,
     messageID: number,
     newContent: string,
 ): Promise<boolean | undefined> => {
     try {
-        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/messages`;
+        const baseURL = `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/messages`;
         const res = await api(`${baseURL}/${messageID}`, {
             method: "PATCH",
             body: JSON.stringify({ newContent }),

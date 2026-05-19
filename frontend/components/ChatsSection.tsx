@@ -3,7 +3,7 @@ import Chats from "./Chats";
 
 type Props = {
     selectedChats: number[];
-    handleChatClick: (chatID: number) => void;
+    handleChatClick: (chatId: number) => void;
     chats: ChatType[];
     isLoading: boolean;
 };

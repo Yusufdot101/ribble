@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/response"
@@ -74,16 +73,14 @@ func (h *handler) editMessage(ctx *gin.Context) {
 		return
 	}
 
-	msg := &struct {
-		Type       string    `json:"type"`
-		MessageID  uint      `json:"messageID"`
-		NewContent string    `json:"newContent"`
-		UpdatedAt  time.Time `json:"updatedAt"`
-	}{
-		Type:       "messageEdited",
-		MessageID:  message.ID,
-		NewContent: message.Content,
-		UpdatedAt:  message.UpdatedAt,
+	msg := outgoingMsg{
+		Type:    "messageEdited",
+		Message: "message edited successfully",
+		Payload: map[string]any{
+			"id":        message.ID,
+			"content":   message.Content,
+			"updatedAt": message.UpdatedAt,
+		},
 	}
 	for _, p := range participants {
 		h.hub.SendToUser(p.UserID, msg)

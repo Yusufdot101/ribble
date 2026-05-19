@@ -9,12 +9,12 @@ type GetUserPermissionsResponse = {
     permissions: PermissionType[];
 };
 export const getUserPermissions = async (
-    chatID: number,
+    chatId: number,
 ): Promise<GetUserPermissionsResponse> => {
     try {
         // /chats/:chatId/permissions
         const res = await api(
-            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/permissions`,
+            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/permissions`,
         );
         if (!res) return { permissions: [] };
         const body = await res.json();

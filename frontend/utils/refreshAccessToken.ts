@@ -32,6 +32,6 @@ export async function refreshAccessToken() {
     }
 
     useAuthStore.getState().setAccessToken(token);
-    useAuthStore.getState().setUserID(userId);
+    useAuthStore.getState().setUserId(userId);
     useAuthStore.getState().setIsLoggedIn(true);
 }

@@ -53,15 +53,15 @@ export const login = async (
             return false;
         }
 
-        const userID = payload.sub;
-        if (userID === "") {
+        const userId = payload.sub;
+        if (userId === "") {
             console.error("invalid user ID in JWT");
             useAuthStore.getState().clearAccessToken();
             return false;
         }
 
         const authStore = useAuthStore.getState();
-        authStore.setUserID(userID);
+        authStore.setUserId(userId);
         authStore.setAccessToken(accessToken);
         authStore.setIsLoggedIn(true);
         return true;

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
     ChatType,
     ConversationDataType,
-    getChatByUserIDs,
+    getChatByUserIds,
     getConversations,
 } from "@/utils/chats";
 import CreateGroupButton from "./CreateGroupButton";
@@ -25,10 +25,10 @@ const Sidebar = () => {
     const [coversationData, setConverastionData] =
         useState<ConversationDataType>();
 
-    const handleChatClick = async (chatID: number) => {
-        setActiveChat(chatID);
+    const handleChatClick = async (chatId: number) => {
+        setActiveChat(chatId);
         setActiveUser(-1);
-        router.push(`/chats/${chatID}`);
+        router.push(`/chats/${chatId}`);
     };
 
     const updateGroups = (chat: ChatType) => {
@@ -42,15 +42,15 @@ const Sidebar = () => {
         });
     };
 
-    const updateChats = (chat: ChatType, userIDs: number[]) => {
+    const updateChats = (chat: ChatType, userIds: number[]) => {
         setConverastionData((prev) => {
             return prev
                 ? {
                       ...prev,
                       chats: [...(prev.chats ?? []), chat],
-                      contacts: [
+                      contacts: prev.contacts && [
                           ...prev.contacts.filter(
-                              (contact) => !userIDs.includes(contact.id),
+                              (contact) => !userIds.includes(contact.id),
                           ),
                       ],
                   }
@@ -69,12 +69,13 @@ const Sidebar = () => {
         }
 
         if (data.type === "chatCreated") {
-            const chat = data.payload.chat as ChatType;
-            const userIDs = data.payload.userIds as number[];
+            const payload = data.payload;
+            const chat = payload.chat as ChatType;
+            const userIds = payload.userIds as number[];
             if (chat.isGroup) {
                 updateGroups(chat);
             } else {
-                updateChats(chat, userIDs);
+                updateChats(chat, userIds);
             }
         }
     }, []);
@@ -89,10 +90,9 @@ const Sidebar = () => {
     const handleUserClick = async (user: UserType) => {
         setActiveUser(user.id);
         setActiveChat(-1);
-        const chat = await getChatByUserIDs([user.id]);
+        const chat = await getChatByUserIds([user.id]);
         if (!chat) return;
         setActiveChat(chat.id);
-        // updateChats(chat, user);
         router.push(`/chats/${chat.id}`);
     };
 

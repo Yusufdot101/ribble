@@ -1,13 +1,13 @@
 import { api, BASE_CHAT_SERVICE_API_URL } from "./api";
 import { UserType } from "./users";
 
-export const addUsersToGroup = async (chatID: number, userIDs: number[]) => {
+export const addUsersToGroup = async (chatId: number, userIds: number[]) => {
     const res = await api(
-        `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/addToGroup`,
+        `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/addToGroup`,
         {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userIDs }),
+            body: JSON.stringify({ userIds }),
         },
     );
 
@@ -20,9 +20,9 @@ export const addUsersToGroup = async (chatID: number, userIDs: number[]) => {
     }
 };
 
-export const removeUserFromGroup = async (chatID: number, userID: number) => {
+export const removeUserFromGroup = async (chatId: number, userId: number) => {
     const res = await api(
-        `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/users/${userID}`,
+        `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/users/${userId}`,
         { method: "DELETE" },
     );
 
@@ -60,18 +60,18 @@ function addTime(value: number, unit: string): Date {
 }
 
 export const banUser = async (
-    chatID: number,
-    userID: number,
+    chatId: number,
+    userId: number,
     reason: string,
     timeFrame: string,
     timeValue: number,
 ): Promise<boolean | undefined> => {
     const expiry =
         timeValue !== -1 ? addTime(timeValue, timeFrame).toISOString() : "";
-    const res = await api(`${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/bans`, {
+    const res = await api(`${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/bans`, {
         method: "POST",
         body: JSON.stringify({
-            userId: userID,
+            userId: userId,
             reason: reason,
             expiresAt: expiry !== "" ? expiry : undefined,
         }),
@@ -97,12 +97,12 @@ type ChatUsers = {
 };
 
 export const getBannedUsers = async (
-    chatID: number,
+    chatId: number,
     query: string,
 ): Promise<ChatUsers> => {
     try {
         const res = await api(
-            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/bans?q=${encodeURIComponent(query)}`,
+            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/bans?q=${encodeURIComponent(query)}`,
         );
         if (!res) {
             throw new Error("No response from chat service");
@@ -122,11 +122,11 @@ export const getBannedUsers = async (
 };
 
 export const unbanUser = async (
-    chatID: number,
-    userID: number,
+    chatId: number,
+    userId: number,
 ): Promise<boolean | undefined> => {
     const res = await api(
-        `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/bans/${userID}`,
+        `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/bans/${userId}`,
         {
             method: "DELETE",
         },

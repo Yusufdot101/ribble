@@ -7,7 +7,7 @@ type Props = {
 const MessageStatus = ({ message }: Props) => {
     return (
         <>
-            {message.Status === "delivered" && (
+            {message.status === "delivered" && (
                 <svg
                     viewBox="0 -0.5 25 25"
                     fill="none"
@@ -33,7 +33,7 @@ const MessageStatus = ({ message }: Props) => {
                 </svg>
             )}
 
-            {message.Status === "failed" && (
+            {message.status === "failed" && (
                 <svg
                     viewBox="0 -0.5 25 25"
                     fill="none"
@@ -56,7 +56,7 @@ const MessageStatus = ({ message }: Props) => {
                 </svg>
             )}
 
-            {message.Status === "pending" && (
+            {message.status === "pending" && (
                 <svg
                     viewBox="0 0 24 24"
                     fill="none"

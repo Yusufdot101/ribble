@@ -7,15 +7,15 @@ export interface ChatType {
     isGroup: boolean;
 }
 
-export const getChatByUserIDs = async (
-    userIDs?: number[],
+export const getChatByUserIds = async (
+    userIds?: number[],
     rolePermissions?: Map<string, string[]>,
     userRoles?: Map<number, string>,
     chatName?: string,
     isGroup?: boolean,
 ): Promise<ChatType | undefined> => {
     try {
-        if (!userIDs && (!rolePermissions || !userRoles)) return;
+        if (!userIds && (!rolePermissions || !userRoles)) return;
 
         if (!rolePermissions) {
             rolePermissions = new Map<string, string[]>();
@@ -25,8 +25,8 @@ export const getChatByUserIDs = async (
 
         if (!userRoles) {
             userRoles = new Map<number, string>();
-            if (!userIDs) return;
-            for (const user of userIDs) {
+            if (!userIds) return;
+            for (const user of userIds) {
                 userRoles.set(user, "member");
             }
         }
@@ -58,10 +58,10 @@ export const getChatByUserIDs = async (
 };
 
 export const getChatByID = async (
-    chatID: number,
+    chatId: number,
 ): Promise<ChatType | undefined> => {
     try {
-        const res = await api(`${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}`);
+        const res = await api(`${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}`);
         if (!res) return;
         const body = await res.json();
         if (body.error) {
@@ -76,11 +76,11 @@ export const getChatByID = async (
 };
 
 export const getChatUsers = async (
-    chatID: number,
+    chatId: number,
 ): Promise<UserType[] | undefined> => {
     try {
         const res = await api(
-            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatID}/users`,
+            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/users`,
         );
         if (!res) return;
         const body = await res.json();

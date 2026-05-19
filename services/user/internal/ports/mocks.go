@@ -16,9 +16,10 @@ import (
 func NewMockAuthService(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockAuthService {
+},
+) *MockAuthService {
 	mock := &MockAuthService{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
@@ -382,9 +383,10 @@ func (_c *MockAuthService_VerifyUsers_Call) RunAndReturn(run func(ctx context.Co
 func NewMockMailer(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockMailer {
+},
+) *MockMailer {
 	mock := &MockMailer{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
@@ -472,9 +474,10 @@ func (_c *MockMailer_Send_Call) RunAndReturn(run func(recipient string, template
 func NewMockAuthProviderRegistry(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockAuthProviderRegistry {
+},
+) *MockAuthProviderRegistry {
 	mock := &MockAuthProviderRegistry{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
@@ -623,9 +626,10 @@ func (_c *MockAuthProviderRegistry_GetProvider_Call) RunAndReturn(run func(provi
 func NewMockProvider(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockProvider {
+},
+) *MockProvider {
 	mock := &MockProvider{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
@@ -718,9 +722,10 @@ func (_c *MockProvider_Authenticate_Call) RunAndReturn(run func(ctx context.Cont
 func NewMockOAuthProvider(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockOAuthProvider {
+},
+) *MockOAuthProvider {
 	mock := &MockOAuthProvider{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
@@ -870,9 +875,10 @@ func (_c *MockOAuthProvider_GetAuthURL_Call) RunAndReturn(run func(state string,
 func NewMockIdentityRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockIdentityRepository {
+},
+) *MockIdentityRepository {
 	mock := &MockIdentityRepository{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
@@ -1356,9 +1362,10 @@ func (_c *MockIdentityRepository_WithTx_Call) RunAndReturn(run func(fn func(repo
 func NewMockRepository(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockRepository {
+},
+) *MockRepository {
 	mock := &MockRepository{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
@@ -2302,9 +2309,10 @@ func (_c *MockRepository_WithTx_Call) RunAndReturn(run func(fn func(repo Reposit
 func NewMockTokenService(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockTokenService {
+},
+) *MockTokenService {
 	mock := &MockTokenService{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 
@@ -2639,9 +2647,10 @@ func (_c *MockTokenService_Save_Call) RunAndReturn(run func(token *domain.Token)
 func NewMockUserService(t interface {
 	mock.TestingT
 	Cleanup(func())
-}) *MockUserService {
+},
+) *MockUserService {
 	mock := &MockUserService{}
-	mock.Mock.Test(t)
+	mock.Test(t)
 
 	t.Cleanup(func() { mock.AssertExpectations(t) })
 

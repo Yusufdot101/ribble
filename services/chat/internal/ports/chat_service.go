@@ -34,5 +34,5 @@ type ChatService interface {
 	UnbanUser(chatID, currentUserID, userID uint) error
 	GetBannedUsers(chatID uint, query string) ([]*userpb.User, error)
 
-	UpdateChatUser(chatID, userID, currentUserID uint, action string) error
+	UpdateChatUser(chatID, userID, currentUserID uint, newRole string) error
 }
