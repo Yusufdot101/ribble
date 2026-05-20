@@ -91,26 +91,25 @@ const ChatPage = () => {
         };
     }, [chatId]);
 
-    useEffect(() => {
-        (() => setPermissions([]))();
-
-        if (!chatId) return;
-
-        const chatNum = +chatId;
-        if (chatNum <= 0) return;
-
-        let cancelled = false;
-
-        (async () => {
-            const { permissions } = await getUserPermissions(chatNum);
+    const fetchPermissions = useCallback(
+        async (cancelled: boolean = false) => {
+            (() => setPermissions([]))();
+            if (!chatId) return;
+            const chatNum = +chatId;
+            if (chatNum <= 0) return;
             if (cancelled) return;
-            setPermissions(permissions ?? []);
-        })();
-
+            const { permissions } = await getUserPermissions(chatNum);
+            (() => setPermissions(permissions ?? []))();
+        },
+        [chatId],
+    );
+    useEffect(() => {
+        let cancelled = false;
+        fetchPermissions(cancelled);
         return () => {
             cancelled = true;
         };
-    }, [chatId]);
+    }, [fetchPermissions]);
 
     const hasPermission = (permissionName: string): boolean => {
         return permissions.some(
@@ -156,16 +155,32 @@ const ChatPage = () => {
             if (
                 ![
                     "message",
-                    "messageDeleted",
-                    "messageEdited",
                     "ack",
                     "nack",
+                    "usersAdded",
+                    "userRemoved",
+                    "userBanned",
                 ].includes(data.type)
             )
                 return;
 
-            if (data.type === "messageDeleted") {
-                const payload = data.payload;
+            const payload = data.payload;
+            if (data.subType === "usersAdded") {
+                const users = payload.addedUsers as UserType[];
+                setChatUsers((prev) => [
+                    ...prev,
+                    ...users.filter((user) => user.id !== loggedInUserId),
+                ]);
+            }
+
+            if (["userBanned", "userRemoved"].includes(data.subType)) {
+                const removedUser = payload.target as UserType;
+                setChatUsers((prev) =>
+                    prev.filter((user) => user.id !== removedUser.id),
+                );
+            }
+
+            if (data.subType === "messageDeleted") {
                 setMessages((prev) =>
                     prev.map((msg) =>
                         msg.id === payload.id
@@ -180,9 +195,7 @@ const ChatPage = () => {
                 return;
             }
 
-            if (data.type === "messageEdited") {
-                const payload = data.payload;
-                console.log("payload: ", payload);
+            if (data.subType === "messageEdited") {
                 setMessages((prev) =>
                     prev.map((msg) =>
                         msg.id === payload.id
@@ -198,7 +211,7 @@ const ChatPage = () => {
             }
 
             if (data.type === "nack") {
-                const clientId = data.payload.clientId;
+                const clientId = payload.clientId;
                 setMessages((prev) =>
                     prev.map((message) =>
                         message.clientId === clientId
@@ -217,7 +230,7 @@ const ChatPage = () => {
             }
 
             if (data.type === "ack") {
-                const clientId = data.payload.clientId;
+                const clientId = payload.clientId;
                 setMessages((prev) => {
                     return prev.map((message) =>
                         message.clientId === clientId
@@ -246,7 +259,7 @@ const ChatPage = () => {
                 return;
             }
 
-            const payload = data.payload;
+            if (!payload.message) return;
             const incoming = payload.message as MessageType;
 
             if (pendingMessages.current.has(payload.clientId)) {
@@ -261,7 +274,7 @@ const ChatPage = () => {
                 return [...prev, incoming];
             });
         },
-        [chatId],
+        [chatId, loggedInUserId],
     );
 
     useEffect(() => {
@@ -354,6 +367,7 @@ const ChatPage = () => {
                             chatId={+chatId}
                             currentGroupUsers={chatUsers.map((user) => user.id)}
                             hasPermission={hasPermission}
+                            reloadPermissions={() => fetchPermissions()}
                         />
                     )}
                 </div>

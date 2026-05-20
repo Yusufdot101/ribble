@@ -13,6 +13,7 @@ export type UserType = {
     name: string;
     email: string;
     createdAt: string;
+    role: string;
 };
 
 type getUsersByEmailResponse = {
@@ -105,6 +106,40 @@ export const verifyAccount = async (
         authStore.setUserId(userId);
         authStore.setAccessToken(accessToken);
         authStore.setIsLoggedIn(true);
+        return true;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+};
+
+export const changeMemberRole = async (
+    newRole: string,
+    userId: number,
+    chatId: number,
+): Promise<boolean> => {
+    try {
+        const res = await api(
+            `${BASE_CHAT_SERVICE_API_URL}/chats/${chatId}/users/${userId}`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ newRole }),
+            },
+        );
+        if (!res || !res.ok) {
+            return false;
+        }
+        const body = await res.json();
+        if (body.error) {
+            alert(body.error);
+            return false;
+        }
+        if (body.message) {
+            alert(body.message);
+        }
         return true;
     } catch (error) {
         console.error(error);

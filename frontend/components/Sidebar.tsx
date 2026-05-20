@@ -16,12 +16,14 @@ import ChatsSection from "./ChatsSection";
 import GroupsSection from "./GroupsSection";
 import { UserType } from "@/utils/users";
 import { useSocket } from "@/providers/socket-provider";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const Sidebar = () => {
     const [activeUser, setActiveUser] = useState<number>();
     const [activeChat, setActiveChat] = useState<number>();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const loggedInUserId = useAuthStore((state) => state.userId);
     const [coversationData, setConverastionData] =
         useState<ConversationDataType>();
 
@@ -60,25 +62,63 @@ const Sidebar = () => {
 
     const socket = useSocket();
 
-    const handleMessage = useCallback((event: MessageEvent) => {
-        const data = JSON.parse(event.data);
+    const handleMessage = useCallback(
+        (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
 
-        if (data.type === "error") {
-            console.error(data.message);
-            return;
-        }
-
-        if (data.type === "chatCreated") {
-            const payload = data.payload;
-            const chat = payload.chat as ChatType;
-            const userIds = payload.userIds as number[];
-            if (chat.isGroup) {
-                updateGroups(chat);
-            } else {
-                updateChats(chat, userIds);
+            if (data.type === "error") {
+                console.error(data.message);
+                return;
             }
-        }
-    }, []);
+
+            const payload = data.payload;
+            if (data.subType === "chatCreated") {
+                const chat = payload.chat as ChatType;
+                const userIds = payload.userIds as number[];
+                if (chat.isGroup) {
+                    updateGroups(chat);
+                } else {
+                    updateChats(chat, userIds);
+                }
+            }
+
+            if (["userRemoved", "userBanned"].includes(data.subType)) {
+                const removedUser = payload.target as UserType;
+                if (removedUser.id === loggedInUserId) {
+                    setConverastionData((prev) => {
+                        return {
+                            ...prev,
+                            groups: prev
+                                ? prev.groups.filter(
+                                      (group) => group.id !== payload.chatId,
+                                  )
+                                : [],
+
+                            chats: prev?.chats ?? [],
+                            contacts: prev?.contacts ?? [],
+                        };
+                    });
+                    return;
+                }
+            }
+
+            if (data.subType === "usersAdded") {
+                const addedUsers = payload.addedUsers as UserType[];
+                if (addedUsers.some((user) => user.id === loggedInUserId)) {
+                    setConverastionData((prev) => {
+                        return {
+                            ...prev,
+                            groups: [...(prev?.groups ?? []), payload.chat],
+                            chats: prev?.chats ?? [],
+                            contacts: prev?.contacts ?? [],
+                        };
+                    });
+                    return;
+                }
+            }
+        },
+        [loggedInUserId],
+    );
 
     useEffect(() => {
         socket?.addEventListener("message", handleMessage);

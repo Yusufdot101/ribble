@@ -22,15 +22,18 @@ const UserCard = ({
                 e.preventDefault();
                 handleRightClick(user);
             }}
-            className={`${activeUsers?.includes(user.id) ? "bg-foreground/20" : "hover:bg-foreground/10 focus:bg-foreground/10"} border-foreground p-[4px] cursor-pointer duration-300 h-[64px]`}
+            className={`${activeUsers?.includes(user.id) ? "bg-foreground/20" : "hover:bg-foreground/10 focus:bg-foreground/10"} border-foreground p-[4px] cursor-pointer duration-300 h-[64px] flex justify-between items-center`}
             onKeyDown={(e) => {
                 if (e.key === "Enter") {
                     handleClick(user);
                 }
             }}
         >
-            <p className="min-[620px]:text-[20px]">{user.name}</p>
-            <p className="min-[620px]:text-[16px]">{user.email}</p>
+            <div>
+                <p className="min-[620px]:text-[20px]">{user.name}</p>
+                <p className="min-[620px]:text-[16px]">{user.email}</p>
+            </div>
+            <p className="min-[620px]:text-[16px]">{user.role}</p>
         </div>
     );
 };

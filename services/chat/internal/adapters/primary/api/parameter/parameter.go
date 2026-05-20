@@ -12,5 +12,9 @@ func GetParameterValueUint(c *gin.Context, key string) (uint, error) {
 	if err != nil {
 		return 0, fmt.Errorf("invalid %s", key)
 	}
+
+	if value > uint64(^uint(0)) {
+		return 0, fmt.Errorf("invalid %s", key)
+	}
 	return uint(value), nil
 }

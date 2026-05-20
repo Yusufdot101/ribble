@@ -18,6 +18,7 @@ import (
 func wsError(conn *websocket.Conn, msg string) {
 	err := conn.WriteJSON(map[string]string{
 		"type":    "error",
+		"subType": "invalidJWT",
 		"message": msg,
 	})
 	if err != nil {
@@ -105,6 +106,7 @@ type incomingMsg struct {
 
 type outgoingMsg struct {
 	Type    string         `json:"type"`
+	SubType string         `json:"subType"`
 	Payload map[string]any `json:"payload"`
 	Message any            `json:"message"`
 }

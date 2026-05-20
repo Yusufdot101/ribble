@@ -6,6 +6,8 @@ import BackArrowButton from "./BackArrowButton";
 import XButton from "./XButton";
 import SearchBar from "./SearchBar";
 import { addUsersToGroup } from "@/utils/groups";
+import { useSocket } from "@/providers/socket-provider";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface Props {
     handleClose: () => void;
@@ -56,6 +58,67 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatId }: Props) => {
         );
         handleClose();
     };
+
+    const socket = useSocket();
+
+    const loggedInUserId = useAuthStore((state) => state.userId);
+
+    const handleMessage = useCallback(
+        (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "error") {
+                console.error(data.message);
+                return;
+            }
+
+            const payload = data.payload;
+            if (data.subType === "usersAdded") {
+                const users = payload.addedUsers as UserType[];
+                setUsers((prev) => {
+                    return prev.filter(
+                        (user) => !users.some((u) => u.id === user.id),
+                    );
+                });
+                setSelectedUsers((prev) => {
+                    return prev.filter(
+                        (user) => !users.some((u) => u.id === user.id),
+                    );
+                });
+            }
+
+            if (["userBanned"].includes(data.subType)) {
+                const bannedUser = payload.target as UserType;
+                setUsers((prev) => {
+                    return prev.filter((user) => user.id === bannedUser.id);
+                });
+            }
+
+            if (["userRemoved"].includes(data.subType)) {
+                const removedUser = payload.target as UserType;
+                if (removedUser.id === loggedInUserId) return;
+                setUsers((prev) => {
+                    return [...prev, removedUser];
+                });
+            }
+
+            if (["userUnbanned"].includes(data.subType)) {
+                const unbannedUser = payload.target as UserType;
+                if (unbannedUser.id === loggedInUserId) return;
+                setUsers((prev) => {
+                    return [...prev, unbannedUser];
+                });
+            }
+        },
+        [loggedInUserId],
+    );
+
+    useEffect(() => {
+        socket?.addEventListener("message", handleMessage);
+        return () => {
+            socket?.removeEventListener("message", handleMessage);
+        };
+    }, [socket, handleMessage]);
 
     return (
         <div

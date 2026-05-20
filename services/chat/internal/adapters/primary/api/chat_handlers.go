@@ -9,6 +9,7 @@ import (
 
 	userpb "github.com/Yusufdot101/ripple-proto/golang/user/v4"
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
+	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/parameter"
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/response"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/domain"
 	"github.com/gin-gonic/gin"
@@ -84,7 +85,8 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 			"userIds": userIDs,
 		}
 		msg := outgoingMsg{
-			Type:    "chatCreated",
+			Type:    "message",
+			SubType: "chatCreated",
 			Payload: payload,
 		}
 
@@ -137,29 +139,28 @@ func (h *handler) getChatByID(ctx *gin.Context) {
 	})
 }
 
-type ChatUsers struct {
-	Users []*userpb.User `json:"users"`
+type ChatUser struct {
+	*userpb.User
+	Role string `json:"role"`
+}
+
+type ChatMemberResponse struct {
+	Users []*ChatUser `json:"users"`
 }
 
 func (h *handler) getChatUsers(ctx *gin.Context) {
 	currentUserID := context.UserIDFromContext(ctx)
 
-	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, strconv.IntSize)
+	chatID, err := parameter.GetParameterValueUint(ctx, "chatId")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Response[any]{
 			Error: "invalid chat id",
 		})
 		return
 	}
-	if chatID > uint64(^uint(0)) {
-		ctx.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid chat id",
-		})
-		return
-	}
-	chatIDUint := uint(chatID)
 
-	chatUsers, err := h.csvc.GetChatUsers(chatIDUint, currentUserID)
+	// get participants
+	chatParticipants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
 	if err != nil {
 		if errors.Is(err, domain.ErrRecordNotFound) {
 			ctx.JSON(http.StatusForbidden, response.Response[any]{
@@ -173,11 +174,59 @@ func (h *handler) getChatUsers(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response.Response[ChatUsers]{
-		Data: ChatUsers{
-			Users: chatUsers,
+	// get users
+	chatUsers, err := h.csvc.GetChatUsers(chatID, currentUserID, chatParticipants)
+	if err != nil {
+		if errors.Is(err, domain.ErrRecordNotFound) {
+			ctx.JSON(http.StatusForbidden, response.Response[any]{
+				Error: "not a participant of this chat",
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: err.Error(),
+		})
+		return
+	}
+
+	// get roles
+	chatUsersRoles, err := h.csvc.GetChatUsersRoles(chatID, currentUserID, chatParticipants)
+	if err != nil {
+		if errors.Is(err, domain.ErrRecordNotFound) {
+			ctx.JSON(http.StatusForbidden, response.Response[any]{
+				Error: "not a participant of this chat",
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: err.Error(),
+		})
+		return
+	}
+	result := []*ChatUser{}
+	for _, user := range chatUsers {
+		role, exists := chatUsersRoles[uint(user.Id)]
+		if !exists {
+			ctx.JSON(http.StatusInternalServerError, response.Response[any]{
+				Error: "an error occurred, please try again later",
+			})
+			return
+		}
+		result = append(result, &ChatUser{
+			User: user,
+			Role: role,
+		})
+	}
+
+	ctx.JSON(http.StatusOK, response.Response[ChatMemberResponse]{
+		Data: ChatMemberResponse{
+			Users: result,
 		},
 	})
+}
+
+type AddableChatUsersResponse struct {
+	Users []*userpb.User `json:"users"`
 }
 
 func (h *handler) getAddableChatUsers(c *gin.Context) {
@@ -207,8 +256,8 @@ func (h *handler) getAddableChatUsers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Response[ChatUsers]{
-		Data: ChatUsers{
+	c.JSON(http.StatusOK, response.Response[AddableChatUsersResponse]{
+		Data: AddableChatUsersResponse{
 			Users: addableUsers,
 		},
 	})

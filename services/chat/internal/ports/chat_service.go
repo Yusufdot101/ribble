@@ -11,7 +11,7 @@ type ChatService interface {
 	NewChatWithParticipants(createChatRequest domain.CreateChatWithParticipantsRequestType) (*domain.Chat, error)
 	GetChatParticipants(chatID, currentUserID uint) ([]*domain.ChatParticipant, error)
 	GetParticipantsByChatIDs(chatIDs []uint) (map[uint][]domain.ChatParticipant, error)
-	GetChatUsers(chatID, currentUserID uint) ([]*userpb.User, error)
+	GetChatUsers(chatID, currentUserID uint, chatParticipants []*domain.ChatParticipant) ([]*userpb.User, error)
 	GetChatsByUserID(userID uint, query string) ([]*domain.Chat, error)
 	SearchUsers(query string, ids []uint) ([]*userpb.User, error)
 	GetContacts(currentUserID uint, excludeIDs []uint, query string) ([]*userpb.User, error)
@@ -35,4 +35,6 @@ type ChatService interface {
 	GetBannedUsers(chatID uint, query string) ([]*userpb.User, error)
 
 	UpdateChatUser(chatID, userID, currentUserID uint, newRole string) error
+
+	GetChatUsersRoles(chatID, currentUserID uint, chatUsers []*domain.ChatParticipant) (map[uint]string, error)
 }
