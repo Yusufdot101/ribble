@@ -15,7 +15,7 @@ export const getChatByUserIds = async (
     isGroup?: boolean,
 ): Promise<ChatType | undefined> => {
     try {
-        if (!userIds && (!rolePermissions || !userRoles)) return;
+        if (!userIds && !userRoles) return;
 
         if (!rolePermissions) {
             rolePermissions = new Map<string, string[]>();

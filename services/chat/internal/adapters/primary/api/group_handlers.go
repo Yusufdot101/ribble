@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -235,6 +234,9 @@ func (h *handler) banFromGroup(c *gin.Context) {
 
 	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, response.Response[any]{
+			Error: "failed to get chat participants",
+		})
 		log.Printf("error getting chat participants: %v\n", err)
 		return
 	}
@@ -429,10 +431,10 @@ func (h *handler) updateUserRole(c *gin.Context) {
 		return
 	}
 
-	userID, err := strconv.ParseUint(c.Param("userId"), 10, 64)
+	userID, err := parameter.GetParameterValueUint(c, "userId")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid user id",
+			Error: err.Error(),
 		})
 		return
 	}

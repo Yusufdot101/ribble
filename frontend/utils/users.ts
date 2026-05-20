@@ -26,7 +26,13 @@ export const getUsersByEmail = async (
         const res = await api(
             `${BASE_USER_SERVICE_API_URL}/users?email=${encodeURIComponent(email)}`,
         );
-        if (!res || !res.ok) {
+        if (!res) {
+            alert("No response from chat service");
+            return { users: [] };
+        }
+        if (!res.ok) {
+            const errBody = await res.text();
+            alert(errBody || `Failed to update member role (${res.status})`);
             return { users: [] };
         }
         const data = await res.json();

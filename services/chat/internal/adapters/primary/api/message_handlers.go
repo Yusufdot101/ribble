@@ -79,7 +79,7 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg incomingM
 			Message: "not a participant of this chat",
 		}
 		_ = conn.WriteJSON(res)
-		return fmt.Errorf("user not in chat: %w", err)
+		return fmt.Errorf("user %d not in chat %d", userID, p.ChatID)
 	}
 
 	message, err := h.csvc.NewMessage(userID, p.ChatID, p.Content, domain.StandardMessage)

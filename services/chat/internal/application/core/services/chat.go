@@ -479,7 +479,7 @@ func (csvc *ChatService) GetChatUsersRoles(chatID, currentUserID uint, chatUsers
 		if err != nil {
 			return nil, err
 		}
-		roles[role.ID] = role
+		roles[user.ChatRoleID] = role
 		usersRoles[user.UserID] = string(role.Name)
 	}
 	return usersRoles, nil

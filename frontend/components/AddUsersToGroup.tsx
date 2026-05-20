@@ -90,7 +90,7 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatId }: Props) => {
             if (["userBanned"].includes(data.subType)) {
                 const bannedUser = payload.target as UserType;
                 setUsers((prev) => {
-                    return prev.filter((user) => user.id === bannedUser.id);
+                    return prev.filter((user) => user.id !== bannedUser.id);
                 });
             }
 

@@ -17,7 +17,7 @@ func main() {
 	}
 
 	if err := repo.SeedRBAC(); err != nil {
-		log.Fatalf("failed to seed the db")
+		log.Fatalf("failed to seed the db: %v", err)
 	}
 
 	grpcClient, err := grpc.NewAdapter(config.GetGRPCUrl())

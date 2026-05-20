@@ -75,7 +75,13 @@ const ChatPage = () => {
                 }
             }
 
-            setMessages((prev) => [...prev, ...savedMessages]);
+            setMessages((prev) => {
+                const existingIds = new Set(prev.map((m) => m.clientId));
+                const uniqueSaved = savedMessages.filter(
+                    (m) => !existingIds.has(m.clientId),
+                );
+                return [...prev, ...uniqueSaved];
+            });
 
             const chat = await getChatByID(chatNum);
             if (cancelled) return;
@@ -215,7 +221,7 @@ const ChatPage = () => {
                 setMessages((prev) =>
                     prev.map((message) =>
                         message.clientId === clientId
-                            ? { ...message, Status: "failed" }
+                            ? { ...message, status: "failed" }
                             : message,
                     ),
                 );
