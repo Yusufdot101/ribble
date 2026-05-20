@@ -75,9 +75,10 @@ func (a *Adapter) GetChatUsers(chatID, currentUserID uint) ([]*domain.ChatPartic
 	chatParticipants := []*domain.ChatParticipant{}
 	for _, chatParticipantModel := range chatParticipantModels {
 		chatParticipant := &domain.ChatParticipant{
-			ID:     chatParticipantModel.ID,
-			UserID: chatParticipantModel.UserID,
-			ChatID: chatParticipantModel.ChatID,
+			ID:         chatParticipantModel.ID,
+			UserID:     chatParticipantModel.UserID,
+			ChatID:     chatParticipantModel.ChatID,
+			ChatRoleID: chatParticipantModel.ChatRoleID,
 		}
 		chatParticipants = append(chatParticipants, chatParticipant)
 	}

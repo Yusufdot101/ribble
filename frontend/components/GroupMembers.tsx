@@ -1,6 +1,6 @@
 "use client";
 import Contacts from "@/components/Contacts";
-import { UserType } from "@/utils/users";
+import { changeMemberRole, UserType } from "@/utils/users";
 import { useCallback, useEffect, useState } from "react";
 import BackArrowButton from "./BackArrowButton";
 import SearchBar from "./SearchBar";
@@ -13,12 +13,14 @@ import {
     unbanUser,
 } from "@/utils/groups";
 import { useRouter } from "next/navigation";
+import { useSocket } from "@/providers/socket-provider";
 
 interface Props {
     handleClose: () => void;
     groupMembersIsOpen: boolean;
     chatId: number;
     hasPermission: (permissionName: string) => boolean;
+    reloadPermissions: () => void;
 }
 
 const GroupMembers = ({
@@ -26,6 +28,7 @@ const GroupMembers = ({
     groupMembersIsOpen,
     chatId,
     hasPermission,
+    reloadPermissions,
 }: Props) => {
     const [isLoading, setIsLoading] = useState(false);
     const [users, setUsers] = useState<UserType[]>([]);
@@ -103,12 +106,16 @@ const GroupMembers = ({
 
     const handleRemove = async (userId: number) => {
         if (
-            (userId === loggedInUserId &&
-                !confirm(`are you sure you want to exist this group`)) ||
-            !clickedUser ||
-            !confirm(
-                `are you sure you want to remove ${clickedUser.name} from this group`,
-            )
+            userId === loggedInUserId &&
+            !confirm(`are you sure you want to exist this group`)
+        ) {
+            return;
+        } else if (
+            userId !== loggedInUserId &&
+            (!clickedUser ||
+                !confirm(
+                    `are you sure you want to remove ${clickedUser.name} from this group`,
+                ))
         ) {
             return;
         }
@@ -120,6 +127,96 @@ const GroupMembers = ({
 
     const loggedInUserId = useAuthStore((state) => state.userId);
     const router = useRouter();
+
+    const socket = useSocket();
+
+    const handleMessage = useCallback(
+        (event: MessageEvent) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "error") {
+                console.error(data.message);
+                return;
+            }
+
+            const payload = data.payload;
+            if (data.subType === "updatedUserRole") {
+                const userId = payload.userId;
+                if (loggedInUserId === userId) {
+                    reloadPermissions();
+                    return;
+                }
+                setUsers((prev) => {
+                    return prev.map((user) =>
+                        user.id === userId
+                            ? {
+                                  ...user,
+                                  role: payload.newRole,
+                              }
+                            : user,
+                    );
+                });
+            }
+
+            if (data.subType === "usersAdded") {
+                const users = payload.addedUsers as UserType[];
+                setUsers((prev) => [
+                    ...prev,
+                    ...users
+                        .filter((user) => user.id !== loggedInUserId)
+                        .map((user) => ({
+                            ...user,
+                            role: "member",
+                        })),
+                ]);
+            }
+
+            if (["userBanned"].includes(data.subType)) {
+                const bannedUser = payload.target as UserType;
+                if (bannedUser.id === loggedInUserId) {
+                    alert("you have been banned from the group");
+                    router.replace("/chats");
+                    return;
+                }
+                setUsers((prev) =>
+                    prev.filter((user) => user.id !== bannedUser.id),
+                );
+                setBannedUsers((prev) => [...(prev ?? []), bannedUser]);
+            }
+
+            if (["userUnbanned"].includes(data.subType)) {
+                const unbannedUser = payload.target as UserType;
+                setBannedUsers((prev) =>
+                    prev.filter((user) => user.id !== unbannedUser.id),
+                );
+            }
+
+            if (["userRemoved"].includes(data.subType)) {
+                const removedUser = payload.target as UserType;
+                const actor = payload.actor as UserType;
+                if (removedUser.id === loggedInUserId) {
+                    if (actor.id == loggedInUserId) {
+                        alert("you have left the group");
+                    } else {
+                        alert("you have been removed from the group");
+                    }
+                    router.replace("/chats");
+                    return;
+                }
+                setUsers((prev) =>
+                    prev.filter((user) => user.id !== removedUser.id),
+                );
+            }
+        },
+        [loggedInUserId, reloadPermissions, router],
+    );
+
+    useEffect(() => {
+        socket?.addEventListener("message", handleMessage);
+        return () => {
+            socket?.removeEventListener("message", handleMessage);
+        };
+    }, [socket, handleMessage]);
 
     return (
         <div
@@ -182,7 +279,8 @@ const GroupMembers = ({
             >
                 <div className="bg-background w-80 border-1 border-foreground rounded-[4px] flex flex-col justify-center">
                     {!clickedUserIsBanned &&
-                        hasPermission("remove users from group") && (
+                        hasPermission("remove users from group") &&
+                        clickedUser?.role !== "creator" && (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -202,24 +300,88 @@ const GroupMembers = ({
                             </button>
                         )}
 
-                    {!clickedUserIsBanned && hasPermission("ban users") && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setMenuIsOpen(false);
-                                setBanMenuIsOpen(true);
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key !== "Enter") return;
-                                e.stopPropagation();
-                                setMenuIsOpen(false);
-                                setBanMenuIsOpen(true);
-                            }}
-                            className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
-                        >
-                            Ban {clickedUser?.name}
-                        </button>
-                    )}
+                    {!clickedUserIsBanned &&
+                        hasPermission("ban users") &&
+                        clickedUser?.role !== "creator" && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMenuIsOpen(false);
+                                    setBanMenuIsOpen(true);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key !== "Enter") return;
+                                    e.stopPropagation();
+                                    setMenuIsOpen(false);
+                                    setBanMenuIsOpen(true);
+                                }}
+                                className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
+                            >
+                                Ban {clickedUser?.name}
+                            </button>
+                        )}
+
+                    {!clickedUserIsBanned &&
+                        hasPermission("promote members") &&
+                        clickedUser?.role === "member" && (
+                            <button
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    const success = await changeMemberRole(
+                                        "admin",
+                                        clickedUser.id,
+                                        chatId,
+                                    );
+                                    if (!success) return;
+                                    setMenuIsOpen(false);
+                                }}
+                                onKeyDown={async (e) => {
+                                    if (e.key !== "Enter") return;
+                                    e.stopPropagation();
+                                    const success = await changeMemberRole(
+                                        "admin",
+                                        clickedUser.id,
+                                        chatId,
+                                    );
+                                    if (!success) return;
+                                    setMenuIsOpen(false);
+                                }}
+                                className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
+                            >
+                                Assign {clickedUser?.name} as admin
+                            </button>
+                        )}
+
+                    {!clickedUserIsBanned &&
+                        hasPermission("demote admins") &&
+                        clickedUser?.role === "admin" && (
+                            <button
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    const success = await changeMemberRole(
+                                        "member",
+                                        clickedUser.id,
+                                        chatId,
+                                    );
+                                    if (!success) return;
+                                    setMenuIsOpen(false);
+                                }}
+                                onKeyDown={async (e) => {
+                                    if (e.key !== "Enter") return;
+                                    e.stopPropagation();
+                                    const success = await changeMemberRole(
+                                        "member",
+                                        clickedUser.id,
+                                        chatId,
+                                    );
+                                    if (!success) return;
+                                    setMenuIsOpen(false);
+                                }}
+                                className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
+                            >
+                                Dismiss {clickedUser?.name} as admin
+                            </button>
+                        )}
 
                     {clickedUserIsBanned && hasPermission("ban users") && (
                         <button

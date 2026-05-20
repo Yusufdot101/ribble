@@ -7,9 +7,10 @@ type Props = {
     chatId: number;
     currentGroupUsers: number[];
     hasPermission: (permissionName: string) => boolean;
+    reloadPermissions: () => void;
 };
 
-const Menu = ({ chatId, hasPermission }: Props) => {
+const Menu = ({ chatId, hasPermission, reloadPermissions }: Props) => {
     const [menuIsOpen, setMenuIsOpen] = useState(false);
 
     const [addToGroupIsOpen, setAddToGroupIsOpen] = useState(false);
@@ -80,6 +81,7 @@ const Menu = ({ chatId, hasPermission }: Props) => {
                 handleClose={handleCloseGroupMembers}
                 chatId={chatId}
                 hasPermission={hasPermission}
+                reloadPermissions={reloadPermissions}
             />
         </div>
     );

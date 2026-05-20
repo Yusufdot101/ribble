@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -27,7 +26,6 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg incomingM
 	if err != nil {
 		return domain.ErrInvalidPayload
 	}
-	log.Println("msg: ", msg)
 
 	payload := map[string]any{
 		"clientId": p.ClientID,
@@ -105,6 +103,7 @@ func (h *handler) handleMessage(conn *websocket.Conn, userID uint, msg incomingM
 	_ = conn.WriteJSON(res)
 
 	res.Type = "message"
+	res.SubType = "newMessage"
 	res.Payload["message"] = message
 	for _, p := range participants {
 		h.hub.SendToUser(p.UserID, res)

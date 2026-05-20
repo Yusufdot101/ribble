@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	userpb "github.com/Yusufdot101/ripple-proto/golang/user/v4"
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/parameter"
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/response"
@@ -87,15 +88,20 @@ func (h *handler) addToGroup(c *gin.Context) {
 		return
 	}
 
+	chat, err := h.csvc.GetChatByID(chatID, currentUserID)
+	if err != nil {
+		log.Printf("error getting chat by id: %v\n", err)
+		return
+	}
+
 	msg := outgoingMsg{
-		Type:    "messageDeleted",
+		Type:    "message",
+		SubType: "usersAdded",
 		Message: "users added successfully",
 		Payload: map[string]any{
-			"chatId":    message.ChatID,
-			"id":        message.ID,
-			"content":   message.Content,
-			"updatedAt": message.UpdatedAt,
-			"deleted":   true,
+			"message":    message,
+			"addedUsers": addedUsers,
+			"chat":       chat,
 		},
 	}
 
@@ -145,8 +151,12 @@ func (h *handler) removeFromGroup(c *gin.Context) {
 		return
 	}
 
+	statusText := "user removed from group successfully"
+	if currentUserID == userID {
+		statusText = "left the group successfully"
+	}
 	c.JSON(http.StatusOK, response.Response[any]{
-		Message: "user removed from group",
+		Message: statusText,
 	})
 
 	users, err := h.csvc.SearchUsers("", []uint{currentUserID, userID})
@@ -160,19 +170,21 @@ func (h *handler) removeFromGroup(c *gin.Context) {
 	}
 
 	var content string
+	var actor, target *userpb.User
 	if currentUserID == userID {
+		target = users[0]
+		actor = users[0]
 		content = fmt.Sprintf("%s left the group", users[0].Name)
 	} else {
-		var actorName, targetName string
 		for _, user := range users {
 			if user.Id == uint32(currentUserID) {
-				actorName = user.Name
+				actor = user
 			}
 			if user.Id == uint32(userID) {
-				targetName = user.Name
+				target = user
 			}
 		}
-		content = fmt.Sprintf("%s removed %s", actorName, targetName)
+		content = fmt.Sprintf("%s removed %s from the group", actor.Name, target.Name)
 	}
 
 	message, err := h.csvc.NewMessage(currentUserID, chatID, content, domain.SystemMessage)
@@ -181,8 +193,20 @@ func (h *handler) removeFromGroup(c *gin.Context) {
 		return
 	}
 
+	msg := outgoingMsg{
+		Type:    "message",
+		SubType: "userRemoved",
+		Message: "user removed from group",
+		Payload: map[string]any{
+			"message": message,
+			"target":  target,
+			"actor":   actor,
+			"chatId":  chatID,
+		},
+	}
+
 	for _, p := range participants {
-		h.hub.SendToUser(p.UserID, message)
+		h.hub.SendToUser(p.UserID, msg)
 	}
 }
 
@@ -206,6 +230,12 @@ func (h *handler) banFromGroup(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
 			Error: err.Error(),
 		})
+		return
+	}
+
+	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
+	if err != nil {
+		log.Printf("error getting chat participants: %v\n", err)
 		return
 	}
 
@@ -235,16 +265,16 @@ func (h *handler) banFromGroup(c *gin.Context) {
 		return
 	}
 
-	var actorName, targetName string
+	var actor, target *userpb.User
 	for _, user := range users {
 		if user.Id == uint32(currentUserID) {
-			actorName = user.Name
+			actor = user
 		}
 		if user.Id == uint32(req.UserID) {
-			targetName = user.Name
+			target = user
 		}
 	}
-	content := fmt.Sprintf("%s banned %s for %s", actorName, targetName, req.Reason)
+	content := fmt.Sprintf("%s banned %s for %s", actor.Name, target.Name, req.Reason)
 
 	message, err := h.csvc.NewMessage(currentUserID, chatID, content, domain.SystemMessage)
 	if err != nil {
@@ -252,14 +282,20 @@ func (h *handler) banFromGroup(c *gin.Context) {
 		return
 	}
 
-	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
-	if err != nil {
-		log.Printf("error getting chat participants: %v\n", err)
-		return
+	msg := outgoingMsg{
+		Type:    "message",
+		SubType: "userBanned",
+		Message: "user banned from group",
+		Payload: map[string]any{
+			"message": message,
+			"target":  target,
+			"actor":   actor,
+			"chatId":  chatID,
+		},
 	}
 
 	for _, p := range participants {
-		h.hub.SendToUser(p.UserID, message)
+		h.hub.SendToUser(p.UserID, msg)
 	}
 }
 
@@ -308,16 +344,16 @@ func (h *handler) unbanFromGroup(c *gin.Context) {
 		return
 	}
 
-	var actorName, targetName string
+	var actor, target *userpb.User
 	for _, user := range users {
 		if user.Id == uint32(currentUserID) {
-			actorName = user.Name
+			actor = user
 		}
 		if user.Id == uint32(userID) {
-			targetName = user.Name
+			target = user
 		}
 	}
-	content := fmt.Sprintf("%s unbanned %s", actorName, targetName)
+	content := fmt.Sprintf("%s unbanned %s", actor.Name, target.Name)
 
 	message, err := h.csvc.NewMessage(currentUserID, chatID, content, domain.SystemMessage)
 	if err != nil {
@@ -331,9 +367,24 @@ func (h *handler) unbanFromGroup(c *gin.Context) {
 		return
 	}
 
-	for _, p := range participants {
-		h.hub.SendToUser(p.UserID, message)
+	msg := outgoingMsg{
+		Type:    "message",
+		SubType: "userUnbanned",
+		Message: "user unbanned from group",
+		Payload: map[string]any{
+			"message": message,
+			"target":  target,
+			"chatId":  chatID,
+		},
 	}
+
+	for _, p := range participants {
+		h.hub.SendToUser(p.UserID, msg)
+	}
+}
+
+type BannedChatMemberResponse struct {
+	Users []*userpb.User `json:"users"`
 }
 
 func (h *handler) getBannedUsers(c *gin.Context) {
@@ -359,8 +410,8 @@ func (h *handler) getBannedUsers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Response[ChatUsers]{
-		Data: ChatUsers{
+	c.JSON(http.StatusOK, response.Response[BannedChatMemberResponse]{
+		Data: BannedChatMemberResponse{
 			Users: bannedUsers,
 		},
 	})
@@ -439,7 +490,7 @@ func (h *handler) updateUserRole(c *gin.Context) {
 	}
 	usernames := strings.Join(names, ", ")
 
-	message, err := h.csvc.NewMessage(currentUserID, chatID, fmt.Sprintf("%s made %s %s(s)", currentUser.Name, usernames, req.NewRole), domain.SystemMessage)
+	message, err := h.csvc.NewMessage(currentUserID, chatID, fmt.Sprintf("%s changed %s to %s(s)", currentUser.Name, usernames, req.NewRole), domain.SystemMessage)
 	if err != nil {
 		log.Printf("error sending system message: %v\n", err)
 		return
@@ -451,9 +502,15 @@ func (h *handler) updateUserRole(c *gin.Context) {
 		return
 	}
 
+	payload := map[string]any{
+		"message": message,
+		"newRole": req.NewRole,
+		"userId":  userID,
+	}
 	msg := outgoingMsg{
-		Type:    "updatedUsersRoles",
-		Payload: map[string]any{"message": message},
+		Type:    "message",
+		SubType: "updatedUserRole",
+		Payload: payload,
 	}
 	for _, p := range participants {
 		h.hub.SendToUser(p.UserID, msg)

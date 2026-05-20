@@ -74,7 +74,8 @@ func (h *handler) editMessage(ctx *gin.Context) {
 	}
 
 	msg := outgoingMsg{
-		Type:    "messageEdited",
+		Type:    "message",
+		SubType: "messageEdited",
 		Message: "message edited successfully",
 		Payload: map[string]any{
 			"id":        message.ID,

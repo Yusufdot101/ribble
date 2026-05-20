@@ -172,11 +172,7 @@ func (csvc *ChatService) GetParticipantsByChatIDs(chatIDs []uint) (map[uint][]do
 	return csvc.repo.GetParticipantsByChatIDs(chatIDs)
 }
 
-func (csvc *ChatService) GetChatUsers(chatID, currentUserID uint) ([]*userpb.User, error) {
-	chatParticipants, err := csvc.GetChatParticipants(chatID, currentUserID)
-	if err != nil {
-		return nil, err
-	}
+func (csvc *ChatService) GetChatUsers(chatID, currentUserID uint, chatParticipants []*domain.ChatParticipant) ([]*userpb.User, error) {
 	userIDs := []uint{}
 	for _, user := range chatParticipants {
 		userIDs = append(userIDs, user.UserID)
@@ -469,4 +465,22 @@ func (csvc *ChatService) UpdateChatUser(chatID, userID, currentUserID uint, newR
 	}
 
 	return csvc.repo.GrantUsersChatRoles([]uint{userID}, chatID, roleName)
+}
+
+func (csvc *ChatService) GetChatUsersRoles(chatID, currentUserID uint, chatUsers []*domain.ChatParticipant) (map[uint]string, error) {
+	roles := make(map[uint]*domain.Role)
+	usersRoles := make(map[uint]string)
+	for _, user := range chatUsers {
+		if role, exists := roles[user.ChatRoleID]; exists {
+			usersRoles[user.UserID] = string(role.Name)
+			continue
+		}
+		role, err := csvc.repo.GetRoleByChatRoleID(user.ChatRoleID)
+		if err != nil {
+			return nil, err
+		}
+		roles[role.ID] = role
+		usersRoles[user.UserID] = string(role.Name)
+	}
+	return usersRoles, nil
 }
