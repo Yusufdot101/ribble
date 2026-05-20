@@ -12,22 +12,24 @@ export type outgoingMsg = {
 };
 
 export type incomingMsg = {
-    Type: string;
-    Payload: Map<string, unknown>;
-    Message: unknown;
+    type: string;
+    subType?: string;
+    payload: Record<string, unknown>;
+    message: unknown;
 };
 
 export interface MessageType {
-    clientID?: string;
+    clientId?: string;
     id: number;
-    chatID: number;
-    senderID: number;
+    chatId: number;
+    senderId: number;
     content: string;
     createdAt: string;
     updatedAt: string;
     deletedAt: string | null;
     deleted: boolean;
     status: "pending" | "delivered" | "failed";
+    messageType?: string;
 }
 
 const MessageInput = ({ handleSend }: Props) => {

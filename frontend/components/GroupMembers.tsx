@@ -107,7 +107,7 @@ const GroupMembers = ({
     const handleRemove = async (userId: number) => {
         if (
             userId === loggedInUserId &&
-            !confirm(`are you sure you want to exist this group`)
+            !confirm(`are you sure you want to exit this group`)
         ) {
             return;
         } else if (
