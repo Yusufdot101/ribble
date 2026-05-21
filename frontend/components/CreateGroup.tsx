@@ -7,6 +7,7 @@ import XButton from "./XButton";
 import { ChatType, getChatByUserIds } from "@/utils/chats";
 import { useRouter } from "next/navigation";
 import SearchBar from "./SearchBar";
+import { useAuthStore } from "@/store/useAuthStore";
 
 interface Props {
     handleClose: () => void;
@@ -35,12 +36,13 @@ const CreateGroup = ({
 
     const [isLoading, setIsLoading] = useState(false);
 
+    const loggedInUserId = useAuthStore((state) => state.userId);
     const [users, setUsers] = useState<UserType[]>([]);
     const searchUsers = async (email: string = "") => {
         setIsLoading(true);
         try {
             const { users } = await getUsersByEmail(email);
-            setUsers(users ?? []);
+            setUsers(users?.filter((user) => user.id !== loggedInUserId) ?? []);
         } finally {
             setIsLoading(false);
         }
