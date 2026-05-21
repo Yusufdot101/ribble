@@ -32,7 +32,7 @@ export default function RootLayout({
             <body className="min-h-screen h-screen flex flex-col px-[24px] py-[16px] gap-y-[12px]">
                 <Header />
                 <SocketProvider>
-                    <div className="flex-1 flex flex-col min-h-0">
+                    <div className="flex-1 flex flex-col min-h-0 overflow-y-clip">
                         {children}
                     </div>
                 </SocketProvider>

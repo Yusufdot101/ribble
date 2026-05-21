@@ -342,7 +342,7 @@ const ChatPage = () => {
     return (
         <div
             ref={containerRef}
-            className="flex-1 min-h-0 flex flex-col gap-y-[8px] overflow-x-clip"
+            className="flex-1 min-h-0 flex flex-col gap-y-[8px] overflow-x-clip relative"
             onClick={() => {
                 setMenuIsOpen(false);
             }}
@@ -360,14 +360,14 @@ const ChatPage = () => {
             </div>
 
             <div className="flex">
-                <div className="flex h-[32px] gap-x-[8px] items-center min-[900px]:hidden">
+                <div className="flex h-[32px] gap-x-[8px] items-center min-[900px]:hidden z-10">
                     <BackArrowButton
                         handleClick={() => router.back()}
                         text="Chat"
                     />
                 </div>
 
-                <div className="flex-1 flex">
+                <div className="absolute w-full flex-1 flex">
                     {chatId && (
                         <Menu
                             chatId={+chatId}

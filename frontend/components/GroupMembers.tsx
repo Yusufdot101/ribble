@@ -95,7 +95,20 @@ const GroupMembers = ({
         [chatId],
     );
 
+    const hasAnyPermission = (() => {
+        const usedPermissions = [
+            "remove users from group",
+            "ban users",
+            "promote members",
+            "demote admins",
+        ];
+        for (const permission of usedPermissions) {
+            if (hasPermission(permission)) return true;
+        }
+        return false;
+    })();
     const handleRightClick = (user: UserType) => {
+        if (!hasAnyPermission) return;
         setClickedUser(user);
         setMenuIsOpen(true);
     };
@@ -220,7 +233,7 @@ const GroupMembers = ({
 
     return (
         <div
-            className={`${groupMembersIsOpen ? "translate-x-0" : "translate-x-full"} transition-transform absolute w-full bg-background top-1/2 translate-y-1/2 duration-300 flex-1 flex overflow-x-hidden z-10 flex-col gap-y-[1px]`}
+            className={`${groupMembersIsOpen ? "translate-x-0" : "translate-x-full"} transition-transform absolute w-full h-screen overflow-y-hidden bg-background duration-300 flex-1 flex overflow-x-hidden z-10 flex-col gap-y-[1px]`}
             onClick={() => setMenuIsOpen(false)}
             onKeyDown={(e) => {
                 if (e.key !== "Escape") return;
@@ -235,13 +248,23 @@ const GroupMembers = ({
                     />
                 </div>
 
-                <div className="flex flex-col gap-y-[8px] relative flex-1">
+                <div className="flex flex-col gap-y-[8px] relative flex-1 h-full bg-red">
                     <SearchBar
                         placeholder="Search group members"
                         handleEnter={searchUsers}
                     />
 
-                    <div className="h-full max-h-[200px] overflow-y-scroll">
+                    <button
+                        onClick={() => {
+                            if (!loggedInUserId) return;
+                            handleRemove(loggedInUserId);
+                        }}
+                        className="w-full bg-red-500 p-[4px] rounded-[4px] cursor-pointer hover:bg-red-600 active:bg-red-500 duration-300"
+                    >
+                        Exit group
+                    </button>
+
+                    <div className="flex-1 overflow-y-auto h-full">
                         <Contacts
                             isLoading={isLoading}
                             users={users}
@@ -256,26 +279,30 @@ const GroupMembers = ({
                             }
                         />
                     </div>
+
+                    <div className="flex-1 flex flex-col justify-between overflow-y-auto">
+                        <p className="w-full text-center text-red-500">
+                            Banned Users
+                        </p>
+                        <div className="h-full flex-1 min-h-0 overflow-y-auto">
+                            <Contacts
+                                isLoading={isLoading}
+                                users={bannedUsers}
+                                handleUserClick={() => {}}
+                                handleUserRightClick={(user: UserType) => {
+                                    handleRightClick(user);
+                                    setClickedUserIsBanned(true);
+                                }}
+                                selectedUsers={[]}
+                                excludeUsers={[]}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="h-full max-h-[200px] overflow-y-scroll">
-                <p className="w-full text-center">Banned Users</p>
-                <Contacts
-                    isLoading={isLoading}
-                    users={bannedUsers}
-                    handleUserClick={() => {}}
-                    handleUserRightClick={(user: UserType) => {
-                        handleRightClick(user);
-                        setClickedUserIsBanned(true);
-                    }}
-                    selectedUsers={[]}
-                    excludeUsers={[]}
-                />
-            </div>
-
             <div
-                className={`${menuIsOpen ? "max-h-96 p-[4px]" : "max-h-0 invisible p-0"} z-1 duration-300 flex justify-center items-center absolute overflow-hidden h-full w-full bg-background/80`}
+                className={`${menuIsOpen ? "p-[4px] min-h-screen" : "max-h-0 invisible p-0"} z-1 duration-0 flex justify-center items-center absolute overflow-hidden w-full bg-background/80`}
             >
                 <div className="bg-background w-80 border-1 border-foreground rounded-[4px] flex flex-col justify-center">
                     {!clickedUserIsBanned &&
@@ -334,6 +361,7 @@ const GroupMembers = ({
                                     );
                                     if (!success) return;
                                     setMenuIsOpen(false);
+                                    handleClose();
                                 }}
                                 onKeyDown={async (e) => {
                                     if (e.key !== "Enter") return;
@@ -345,6 +373,7 @@ const GroupMembers = ({
                                     );
                                     if (!success) return;
                                     setMenuIsOpen(false);
+                                    handleClose();
                                 }}
                                 className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
                             >
@@ -365,6 +394,7 @@ const GroupMembers = ({
                                     );
                                     if (!success) return;
                                     setMenuIsOpen(false);
+                                    handleClose();
                                 }}
                                 onKeyDown={async (e) => {
                                     if (e.key !== "Enter") return;
@@ -376,6 +406,7 @@ const GroupMembers = ({
                                     );
                                     if (!success) return;
                                     setMenuIsOpen(false);
+                                    handleClose();
                                 }}
                                 className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300 p-[4px]"
                             >
@@ -512,16 +543,6 @@ const GroupMembers = ({
                     )}
                 </div>
             </div>
-
-            <button
-                onClick={() => {
-                    if (!loggedInUserId) return;
-                    handleRemove(loggedInUserId);
-                }}
-                className="w-full bg-red-500 p-[4px] rounded-[4px] cursor-pointer hover:bg-red-600 active:bg-red-500 duration-300"
-            >
-                Exit group
-            </button>
         </div>
     );
 };

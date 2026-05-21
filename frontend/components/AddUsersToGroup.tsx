@@ -122,7 +122,7 @@ const AddUsersToGroup = ({ handleClose, addToGroupIsOpen, chatId }: Props) => {
 
     return (
         <div
-            className={`${addToGroupIsOpen ? "translate-x-0" : "translate-x-full"} transition-transform absolute w-full bg-background z-10 top-1/2 translate-y-1/2 duration-300 flex-1 flex overflow-x-hidden`}
+            className={`${addToGroupIsOpen ? "translate-x-0" : "translate-x-full"} transition-transform absolute w-full overflow-y-auto bg-background z-10 duration-300 flex-1 flex overflow-x-hidden`}
         >
             <div className="h-full transition-transform duration-300 ease-in-out flex flex-1 flex-col gap-y-[8px]">
                 <div className="flex w-full h-[32px] gap-x-[8px] items-center">

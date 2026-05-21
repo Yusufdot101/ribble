@@ -27,13 +27,13 @@ const Menu = ({ chatId, hasPermission, reloadPermissions }: Props) => {
         <div className="relative flex flex-col max-h-screen flex-1">
             <button
                 onClick={() => setMenuIsOpen((prev) => !prev)}
-                className="cursor-pointer ml-auto hover:text-accent duration-300 active:text-foreground"
+                className="cursor-pointer ml-auto hover:text-accent duration-300 active:text-foreground z-100"
             >
                 Menu
             </button>
 
             <div
-                className={`${menuIsOpen ? "max-h-96 p-[4px]" : "max-h-0 invisible p-0"} z-10 duration-300 w-50 border-1 border-foreground rounded-[4px] flex flex-col bg-background gap-y-[4px] absolute right-0 overflow-hidden top-[28px]`}
+                className={`${menuIsOpen ? "max-h-96 p-[4px]" : "max-h-0 invisible p-0"} z-100 duration-300 w-50 border-1 border-foreground rounded-[4px] flex flex-col bg-background gap-y-[4px] absolute right-0 overflow-hidden top-[28px]`}
             >
                 {hasPermission("add users to group") && (
                     <button
