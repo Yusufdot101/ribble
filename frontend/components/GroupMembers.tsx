@@ -248,7 +248,7 @@ const GroupMembers = ({
                     />
                 </div>
 
-                <div className="flex flex-col gap-y-[8px] relative flex-1 h-full bg-red">
+                <div className="flex flex-col gap-y-[8px] relative flex-1 h-full">
                     <SearchBar
                         placeholder="Search group members"
                         handleEnter={searchUsers}
