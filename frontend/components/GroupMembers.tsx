@@ -108,7 +108,7 @@ const GroupMembers = ({
         return false;
     })();
     const handleRightClick = (user: UserType) => {
-        if (!hasAnyPermission) return;
+        if (!hasAnyPermission || user.role === "creator") return;
         setClickedUser(user);
         setMenuIsOpen(true);
     };
