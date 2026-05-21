@@ -58,7 +58,8 @@ func (h *handler) deleteMessage(ctx *gin.Context) {
 	}
 
 	msg := outgoingMsg{
-		Type:    "messageDeleted",
+		Type:    "message",
+		SubType: "messageDeleted",
 		Message: "message deleted successfully",
 		Payload: map[string]any{
 			"id":        message.ID,
