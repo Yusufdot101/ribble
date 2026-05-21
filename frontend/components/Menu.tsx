@@ -5,12 +5,13 @@ import GroupMembers from "./GroupMembers";
 
 type Props = {
     chatId: number;
+    isGroup: boolean;
     currentGroupUsers: number[];
     hasPermission: (permissionName: string) => boolean;
     reloadPermissions: () => void;
 };
 
-const Menu = ({ chatId, hasPermission, reloadPermissions }: Props) => {
+const Menu = ({ chatId, hasPermission, reloadPermissions, isGroup }: Props) => {
     const [menuIsOpen, setMenuIsOpen] = useState(false);
 
     const [addToGroupIsOpen, setAddToGroupIsOpen] = useState(false);
@@ -35,7 +36,7 @@ const Menu = ({ chatId, hasPermission, reloadPermissions }: Props) => {
             <div
                 className={`${menuIsOpen ? "max-h-96 p-[4px]" : "max-h-0 invisible p-0"} z-100 duration-300 w-50 border-1 border-foreground rounded-[4px] flex flex-col bg-background gap-y-[4px] absolute right-0 overflow-hidden top-[28px]`}
             >
-                {hasPermission("add users to group") && (
+                {hasPermission("add users to group") && isGroup && (
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
@@ -48,17 +49,19 @@ const Menu = ({ chatId, hasPermission, reloadPermissions }: Props) => {
                         Add member
                     </button>
                 )}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setAddToGroupIsOpen(false);
-                        setGroupMembersIsOpen((prev) => !prev);
-                        setMenuIsOpen(false);
-                    }}
-                    className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300"
-                >
-                    Group members
-                </button>
+                {isGroup && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setAddToGroupIsOpen(false);
+                            setGroupMembersIsOpen((prev) => !prev);
+                            setMenuIsOpen(false);
+                        }}
+                        className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300"
+                    >
+                        Group members
+                    </button>
+                )}
                 <button
                     onClick={(e) => {
                         e.stopPropagation();

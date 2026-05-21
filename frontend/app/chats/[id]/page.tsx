@@ -370,6 +370,7 @@ const ChatPage = () => {
                 <div className="absolute w-full flex-1 flex">
                     {chatId && (
                         <Menu
+                            isGroup={chat?.isGroup ?? false}
                             chatId={+chatId}
                             currentGroupUsers={chatUsers.map((user) => user.id)}
                             hasPermission={hasPermission}
