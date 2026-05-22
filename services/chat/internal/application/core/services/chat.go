@@ -54,20 +54,20 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 		// 2. create chat roles
 		for roleName, permissions := range createChatRequest.RolePermissions {
 			var chatRole *domain.ChatRole
+			var role domain.RoleType
+			chatRole = domain.NewChatRole(chat.ID)
 			switch roleName {
 			case "member":
-				chatRole = domain.NewChatRole(chat.ID)
-				err = repo.NewChatRole(chatRole, domain.Member)
+				role = domain.Member
 			case "admin":
-				chatRole = domain.NewChatRole(chat.ID)
-				err = repo.NewChatRole(chatRole, domain.Admin)
+				role = domain.Admin
 			case "creator":
-				chatRole = domain.NewChatRole(chat.ID)
-				err = repo.NewChatRole(chatRole, domain.Creator)
+				role = domain.Creator
 			default:
 				return fmt.Errorf("%w: %s", domain.ErrInvalidRole, roleName)
 			}
 
+			err = repo.NewChatRole(chatRole, role)
 			if err != nil {
 				return err
 			}
@@ -90,11 +90,13 @@ func (csvc *ChatService) NewChatWithParticipants(createChatRequest domain.Create
 					permission = domain.PromoteMembers
 				case "demote admins":
 					permission = domain.DemoteAdmins
+				case "update permissions":
+					permission = domain.UpdatePermissions
 				default:
 					return fmt.Errorf("%w: %s", domain.ErrInvalidPermission, permissionName)
 				}
 
-				err = repo.GrantChatRolePermission(chatRole.ID, permission)
+				err = repo.GrantChatRolePermission(role, chat.ID, permission)
 				if err != nil {
 					return err
 				}
@@ -483,4 +485,58 @@ func (csvc *ChatService) GetChatUsersRoles(chatID, currentUserID uint, chatUsers
 		usersRoles[user.UserID] = string(role.Name)
 	}
 	return usersRoles, nil
+}
+
+func isValidRole(roleName string) bool {
+	validRoles := []domain.RoleType{domain.Member, domain.Admin, domain.Creator}
+	for _, role := range validRoles {
+		if roleName == string(role) {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidPermission(permissionName string) bool {
+	validPermissions := []domain.PermissionType{
+		domain.SendMessage, domain.AddToGroup, domain.RemoveUserFromGroup, domain.DeleteMessages,
+		domain.BanUsers, domain.PromoteMembers, domain.DemoteAdmins,
+	}
+
+	for _, permission := range validPermissions {
+		if permissionName == string(permission) {
+			return true
+		}
+	}
+	return false
+}
+
+func (csvc *ChatService) GrantRolePermission(
+	currentUserID, chatID uint, roleName, permissionName string,
+) error {
+	if !isValidRole(roleName) {
+		return domain.ErrInvalidRole
+	}
+	if !isValidPermission(permissionName) {
+		return domain.ErrInvalidPermission
+	}
+	if has, err := csvc.UserHasPermission(currentUserID, chatID, domain.UpdatePermissions); !has || err != nil {
+		return domain.ErrNotPermitted
+	}
+	return csvc.repo.GrantChatRolePermission(domain.RoleType(roleName), chatID, domain.PermissionType(permissionName))
+}
+
+func (csvc *ChatService) RevokeRolePermission(
+	currentUserID, chatID uint, roleName, permissionName string,
+) error {
+	if !isValidRole(roleName) {
+		return domain.ErrInvalidRole
+	}
+	if !isValidPermission(permissionName) {
+		return domain.ErrInvalidPermission
+	}
+	if has, err := csvc.UserHasPermission(currentUserID, chatID, domain.UpdatePermissions); !has || err != nil {
+		return domain.ErrNotPermitted
+	}
+	return csvc.repo.RevokeChatRolePermission(domain.RoleType(roleName), chatID, domain.PermissionType(permissionName))
 }

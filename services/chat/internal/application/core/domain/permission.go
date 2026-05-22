@@ -9,8 +9,9 @@ const (
 	DeleteMessages      PermissionType = "delete messages"
 	BanUsers            PermissionType = "ban users"
 
-	PromoteMembers PermissionType = "promote members"
-	DemoteAdmins   PermissionType = "demote admins"
+	PromoteMembers    PermissionType = "promote members"
+	DemoteAdmins      PermissionType = "demote admins"
+	UpdatePermissions PermissionType = "update permissions"
 )
 
 type Permission struct {

@@ -74,7 +74,7 @@ func (rts *RepositoryTestSuite) TestGrantChatRolePermission() {
 	rts.Require().Nil(err)
 
 	// grant permission to chat role
-	err = adapater.GrantChatRolePermission(chatRole.ID, permission.Name)
+	err = adapater.GrantChatRolePermission(role.Name, chat.ID, permission.Name)
 	rts.Require().Nil(err)
 }
 

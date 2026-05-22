@@ -56,6 +56,7 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 	createChatRequest.RolePermissions["creator"] = append(
 		createChatRequest.RolePermissions["creator"],
 		string(domain.PromoteMembers), string(domain.DemoteAdmins),
+		string(domain.UpdatePermissions),
 	)
 
 	userIDs := slices.Collect(maps.Keys(createChatRequest.UserRoles))

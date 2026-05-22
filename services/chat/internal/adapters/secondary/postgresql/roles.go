@@ -72,7 +72,7 @@ func (a *Adapter) NewChatRole(chatRole *domain.ChatRole, roleName domain.RoleTyp
 	return nil
 }
 
-func (a *Adapter) GrantChatRolePermission(chatRoleID uint, permission domain.PermissionType) error {
+func (a *Adapter) GrantChatRolePermission(roleName domain.RoleType, chatID uint, permission domain.PermissionType) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -86,13 +86,70 @@ func (a *Adapter) GrantChatRolePermission(chatRoleID uint, permission domain.Per
 		return err
 	}
 
+	chatRoleModel := &ChatRole{}
+	err = a.db.WithContext(ctx).
+		Table("chat_roles AS cr").
+		Joins("JOIN roles AS r ON cr.role_id = r.id").
+		Where("cr.chat_id = ? AND r.name = ?", chatID, roleName).
+		First(chatRoleModel).
+		Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.ErrInvalidPermission
+		}
+		return err
+	}
+
 	chatRolePermissionModel := &ChatRolePermission{
-		ChatRoleID:   chatRoleID,
+		ChatRoleID:   chatRoleModel.ID,
 		PermissionID: permissionModel.ID,
 	}
 
 	err = a.db.WithContext(ctx).Save(chatRolePermissionModel).Error
 	return err
+}
+
+func (a *Adapter) RevokeChatRolePermission(
+	roleName domain.RoleType, chatID uint, permission domain.PermissionType,
+) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// get the permission id
+	permissionModel := &Permission{}
+	err := a.db.WithContext(ctx).Where("name = ?", permission).First(permissionModel).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.ErrInvalidPermission
+		}
+		return err
+	}
+
+	chatRoleModel := &ChatRole{}
+	err = a.db.WithContext(ctx).
+		Table("chat_roles AS cr").
+		Joins("JOIN roles AS r ON cr.role_id = r.id").
+		Where("cr.chat_id = ? AND r.name = ?", chatID, roleName).
+		First(chatRoleModel).
+		Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return domain.ErrInvalidPermission
+		}
+		return err
+	}
+
+	res := a.db.WithContext(ctx).
+		Where("chat_role_id = ? AND permission_id = ?", chatRoleModel.ID, permissionModel.ID).
+		Delete(&ChatRolePermission{})
+	if res.Error != nil {
+		return res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return domain.ErrRecordNotFound
+	}
+	return nil
 }
 
 func (a *Adapter) GrantUsersChatRoles(userIDs []uint, chatID uint, roleName domain.RoleType) error {

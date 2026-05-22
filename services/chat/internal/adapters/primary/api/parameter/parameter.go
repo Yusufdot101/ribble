@@ -18,3 +18,7 @@ func GetParameterValueUint(c *gin.Context, key string) (uint, error) {
 	}
 	return uint(value), nil
 }
+
+func GetParameterValue(c *gin.Context, key string) string {
+	return c.Param(key)
+}

@@ -42,10 +42,10 @@ func (a *Adapter) GetUserPermissions(userID, chatID uint) ([]*domain.Permission,
 	permissionModels := []*Permission{}
 
 	err := a.db.WithContext(ctx).
-		Table("permissions").
-		Joins("JOIN chat_role_permissions ON chat_role_permissions.permission_id = permissions.id").
-		Joins("JOIN chat_participants ON chat_participants.chat_role_id = chat_role_permissions.chat_role_id").
-		Where("chat_participants.user_id = ? AND chat_participants.chat_id = ?", userID, chatID).
+		Table("permissions p").
+		Joins("JOIN chat_role_permissions crp ON crp.permission_id = p.id").
+		Joins("JOIN chat_participants cp ON cp.chat_role_id = crp.chat_role_id").
+		Where("cp.user_id = ? AND cp.chat_id = ? AND crp.deleted_at IS NULL", userID, chatID).
 		Find(&permissionModels).
 		Error
 	if err != nil {

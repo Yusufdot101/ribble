@@ -23,7 +23,9 @@ type Repository interface {
 
 	NewRole(role *domain.Role) error
 	NewChatRole(chatRole *domain.ChatRole, roleName domain.RoleType) error
-	GrantChatRolePermission(chatRoleID uint, permission domain.PermissionType) error
+	GrantChatRolePermission(roleName domain.RoleType, chatID uint, permission domain.PermissionType) error
+	RevokeChatRolePermission(roleName domain.RoleType, chatID uint, permission domain.PermissionType) error
+
 	GrantUsersChatRoles(userIDs []uint, chatID uint, roleName domain.RoleType) error
 	GetRoleByChatRoleID(chatRoleID uint) (*domain.Role, error)
 

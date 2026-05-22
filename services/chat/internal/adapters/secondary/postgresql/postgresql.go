@@ -49,6 +49,7 @@ func (a *Adapter) SeedRBAC() error {
 		{Name: domain.SendMessage},
 		{Name: domain.PromoteMembers},
 		{Name: domain.DemoteAdmins},
+		{Name: domain.UpdatePermissions},
 	}
 	for _, p := range perms {
 		if err := a.db.Where("name = ?", p.Name).FirstOrCreate(&p).Error; err != nil {

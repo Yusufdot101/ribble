@@ -30,6 +30,7 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	group.DELETE("/:chatId/users/:userId", middleware.RequireAuthentication(h.removeFromGroup))
 	group.GET("/:chatId/permissions", middleware.RequireAuthentication(h.getUserPermissions))
 	group.PATCH("/:chatId/users/:userId", middleware.RequireAuthentication(h.updateUserRole))
+	group.PATCH("/:chatId/roles/:role/permissions", middleware.RequireAuthentication(h.updateRolePermission))
 
 	group.GET("/:chatId/bans", middleware.RequireAuthentication(h.getBannedUsers))
 	group.POST("/:chatId/bans", middleware.RequireAuthentication(h.banFromGroup))

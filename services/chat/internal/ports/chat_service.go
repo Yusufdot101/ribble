@@ -37,4 +37,7 @@ type ChatService interface {
 	UpdateChatUser(chatID, userID, currentUserID uint, newRole string) error
 
 	GetChatUsersRoles(chatID, currentUserID uint, chatUsers []*domain.ChatParticipant) (map[uint]string, error)
+
+	GrantRolePermission(currentUserID, chatID uint, role, permission string) error
+	RevokeRolePermission(currentUserID, chatID uint, role, permission string) error
 }
