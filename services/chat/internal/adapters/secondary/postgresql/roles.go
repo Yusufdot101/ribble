@@ -95,7 +95,7 @@ func (a *Adapter) GrantChatRolePermission(roleName domain.RoleType, chatID uint,
 		Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return domain.ErrInvalidPermission
+			return domain.ErrInvalidRole
 		}
 		return err
 	}

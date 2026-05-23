@@ -500,7 +500,7 @@ func isValidRole(roleName string) bool {
 func isValidPermission(permissionName string) bool {
 	validPermissions := []domain.PermissionType{
 		domain.SendMessage, domain.AddToGroup, domain.RemoveUserFromGroup, domain.DeleteMessages,
-		domain.BanUsers, domain.PromoteMembers, domain.DemoteAdmins,
+		domain.BanUsers, domain.PromoteMembers, domain.DemoteAdmins, domain.UpdatePermissions,
 	}
 
 	for _, permission := range validPermissions {
@@ -520,7 +520,11 @@ func (csvc *ChatService) GrantRolePermission(
 	if !isValidPermission(permissionName) {
 		return domain.ErrInvalidPermission
 	}
-	if has, err := csvc.UserHasPermission(currentUserID, chatID, domain.UpdatePermissions); !has || err != nil {
+	has, err := csvc.UserHasPermission(currentUserID, chatID, domain.UpdatePermissions)
+	if err != nil {
+		return err
+	}
+	if !has {
 		return domain.ErrNotPermitted
 	}
 	return csvc.repo.GrantChatRolePermission(domain.RoleType(roleName), chatID, domain.PermissionType(permissionName))
@@ -535,7 +539,11 @@ func (csvc *ChatService) RevokeRolePermission(
 	if !isValidPermission(permissionName) {
 		return domain.ErrInvalidPermission
 	}
-	if has, err := csvc.UserHasPermission(currentUserID, chatID, domain.UpdatePermissions); !has || err != nil {
+	has, err := csvc.UserHasPermission(currentUserID, chatID, domain.UpdatePermissions)
+	if err != nil {
+		return err
+	}
+	if !has {
 		return domain.ErrNotPermitted
 	}
 	return csvc.repo.RevokeChatRolePermission(domain.RoleType(roleName), chatID, domain.PermissionType(permissionName))

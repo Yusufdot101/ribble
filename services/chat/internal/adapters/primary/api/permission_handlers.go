@@ -3,7 +3,6 @@ package api
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/primary/api/context"
@@ -50,7 +49,6 @@ func (h *handler) updateRolePermission(c *gin.Context) {
 	}
 
 	if err := c.ShouldBind(&req); err != nil {
-		log.Println("log1: ", err)
 		c.JSON(http.StatusBadRequest, response.Response[any]{
 			Error: "invalid request",
 		})
@@ -58,7 +56,6 @@ func (h *handler) updateRolePermission(c *gin.Context) {
 	}
 
 	chatID, err := parameter.GetParameterValueUint(c, "chatId")
-	log.Println("log2: ", err)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
 			Error: err.Error(),
@@ -69,7 +66,6 @@ func (h *handler) updateRolePermission(c *gin.Context) {
 	role := parameter.GetParameterValue(c, "role")
 
 	if role == "" {
-		log.Println("log3: ", role)
 		c.JSON(http.StatusBadRequest, response.Response[any]{
 			Error: fmt.Sprintf("invalid role: %s", role),
 		})
@@ -79,18 +75,22 @@ func (h *handler) updateRolePermission(c *gin.Context) {
 	currentUserID := context.UserIDFromContext(c)
 
 	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
-	log.Println("log4: ", err)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid chat id",
-		})
+		if errors.Is(err, domain.ErrRecordNotFound) || errors.Is(err, domain.ErrNotPermitted) {
+			c.JSON(http.StatusForbidden, response.Response[any]{
+				Error: "not a participant of this chat",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, response.Response[any]{
+				Error: "error getting chat participants",
+			})
+		}
 		return
 	}
 
 	if !userIsInChat(currentUserID, participants) {
-		log.Println("log5: ")
-		c.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: fmt.Sprintf("invalid chat id: %d", chatID),
+		c.JSON(http.StatusForbidden, response.Response[any]{
+			Error: "not a participant of this chat",
 		})
 		return
 	}
@@ -101,14 +101,12 @@ func (h *handler) updateRolePermission(c *gin.Context) {
 	case "revoke":
 		err = h.csvc.RevokeRolePermission(currentUserID, chatID, role, req.Permission)
 	default:
-		log.Println("log6: ")
 		c.JSON(http.StatusBadRequest, response.Response[any]{
 			Error: fmt.Sprintf("invalid action: %s", req.Action),
 		})
 		return
 	}
 
-	log.Println("log7: ", err)
 	if err != nil {
 		status := http.StatusInternalServerError
 		error := "an error occured"
@@ -138,7 +136,8 @@ func (h *handler) updateRolePermission(c *gin.Context) {
 		"action":     req.Action,
 	}
 	msg := outgoingMsg{
-		Type:    "updatedUserRole",
+		Type:    "message",
+		SubType: "updatedUserRole",
 		Payload: payload,
 	}
 	for _, p := range participants {
