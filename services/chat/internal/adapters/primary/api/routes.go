@@ -31,6 +31,7 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	group.GET("/:chatId/permissions", middleware.RequireAuthentication(h.getUserPermissions))
 	group.PATCH("/:chatId/users/:userId", middleware.RequireAuthentication(h.updateUserRole))
 	group.PATCH("/:chatId/roles/:role/permissions", middleware.RequireAuthentication(h.updateRolePermission))
+	group.POST("/:chatId/roles/permissions", middleware.RequireAuthentication(h.getRolePermissions))
 
 	group.GET("/:chatId/bans", middleware.RequireAuthentication(h.getBannedUsers))
 	group.POST("/:chatId/bans", middleware.RequireAuthentication(h.banFromGroup))

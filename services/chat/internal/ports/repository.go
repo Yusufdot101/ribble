@@ -37,4 +37,6 @@ type Repository interface {
 	DeleteChatBan(chatID, userID uint) error
 
 	GetUserRole(userID, chatID uint) (*domain.Role, error)
+
+	GetRolePermissions(chatID uint, roleName string) ([]*domain.Permission, error)
 }

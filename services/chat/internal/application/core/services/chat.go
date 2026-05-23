@@ -548,3 +548,7 @@ func (csvc *ChatService) RevokeRolePermission(
 	}
 	return csvc.repo.RevokeChatRolePermission(domain.RoleType(roleName), chatID, domain.PermissionType(permissionName))
 }
+
+func (csvc *ChatService) GetRolePermissions(chatID uint, roleName string) ([]*domain.Permission, error) {
+	return csvc.repo.GetRolePermissions(chatID, roleName)
+}

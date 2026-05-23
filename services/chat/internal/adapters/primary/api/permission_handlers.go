@@ -144,3 +144,66 @@ func (h *handler) updateRolePermission(c *gin.Context) {
 		h.hub.SendToUser(p.UserID, msg)
 	}
 }
+
+type GetRolePermissions struct {
+	RolePermissions map[string][]*domain.Permission `json:"rolePermissions"`
+}
+
+func (h *handler) getRolePermissions(c *gin.Context) {
+	var req struct {
+		Roles []string `json:"roles" binding:"required"`
+	}
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid rolse",
+		})
+		return
+	}
+	chatID, err := parameter.GetParameterValueUint(c, "chatId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "invalid chat id",
+		})
+		return
+	}
+
+	currentUserID := context.UserIDFromContext(c)
+	participants, err := h.csvc.GetChatParticipants(chatID, currentUserID)
+	if err != nil {
+		if errors.Is(err, domain.ErrRecordNotFound) || errors.Is(err, domain.ErrNotPermitted) {
+			c.JSON(http.StatusForbidden, response.Response[any]{
+				Error: "not a participant of this chat",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, response.Response[any]{
+				Error: "error getting chat participants",
+			})
+		}
+		return
+	}
+
+	if !userIsInChat(currentUserID, participants) {
+		c.JSON(http.StatusForbidden, response.Response[any]{
+			Error: "not a participant of this chat",
+		})
+		return
+	}
+
+	rolePermissions := make(map[string][]*domain.Permission)
+	for _, role := range req.Roles {
+		permissions, err := h.csvc.GetRolePermissions(chatID, role)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, response.Response[any]{
+				Error: "error getting permissions",
+			})
+			return
+		}
+		rolePermissions[role] = permissions
+	}
+
+	c.JSON(http.StatusOK, response.Response[GetRolePermissions]{
+		Data: GetRolePermissions{
+			RolePermissions: rolePermissions,
+		},
+	})
+}

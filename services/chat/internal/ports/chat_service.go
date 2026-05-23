@@ -40,4 +40,6 @@ type ChatService interface {
 
 	GrantRolePermission(currentUserID, chatID uint, role, permission string) error
 	RevokeRolePermission(currentUserID, chatID uint, role, permission string) error
+
+	GetRolePermissions(chatID uint, roleName string) ([]*domain.Permission, error)
 }
