@@ -45,17 +45,16 @@ func (h *handler) GetOrCreateChat(ctx *gin.Context) {
 	if createChatRequest.RolePermissions == nil {
 		createChatRequest.RolePermissions = make(map[string][]string)
 	}
-	adminPerms, ok := createChatRequest.RolePermissions["admin"]
-	if !ok {
-		ctx.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "admin role permissions are required",
-		})
-		return
-	}
-	createChatRequest.RolePermissions["creator"] = append([]string(nil), adminPerms...)
+
 	createChatRequest.RolePermissions["creator"] = append(
 		createChatRequest.RolePermissions["creator"],
-		string(domain.PromoteMembers), string(domain.DemoteAdmins),
+		string(domain.SendMessage),
+		string(domain.AddToGroup),
+		string(domain.RemoveUserFromGroup),
+		string(domain.DeleteMessages),
+		string(domain.BanUsers),
+		string(domain.PromoteMembers),
+		string(domain.DemoteAdmins),
 		string(domain.UpdatePermissions),
 	)
 
