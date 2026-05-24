@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -71,18 +69,12 @@ func RequireAuthentication(next gin.HandlerFunc) gin.HandlerFunc {
 	return fn
 }
 
-func RecoverPanic(next gin.HandlerFunc) gin.HandlerFunc {
-	fn := func(c *gin.Context) {
-		defer func() {
-			if err := recover(); err != nil {
-				log.Println("error occurred: ", fmt.Errorf("%s", err))
-
-				message := "the server encountered and error and could not resolve your request"
-				c.JSON(http.StatusInternalServerError, gin.H{
-					"error": message,
-				})
-			}
-		}()
+func RecoverPanic(c *gin.Context, err any) gin.HandlerFunc {
+	fn := func(c *gin.Context, err any) {
+		message := "the server encountered and error and could not resolve your request"
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": message,
+		})
 	}
-	return fn
+	return gin.CustomRecovery(fn)
 }
