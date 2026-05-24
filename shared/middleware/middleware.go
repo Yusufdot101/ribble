@@ -69,7 +69,7 @@ func RequireAuthentication(next gin.HandlerFunc) gin.HandlerFunc {
 	return fn
 }
 
-func RecoverPanic(c *gin.Context, err any) gin.HandlerFunc {
+func RecoverPanic() gin.HandlerFunc {
 	fn := func(c *gin.Context, err any) {
 		message := "the server encountered and error and could not resolve your request"
 		c.JSON(http.StatusInternalServerError, gin.H{
