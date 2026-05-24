@@ -75,7 +75,7 @@ func (a *Adapter) GetRolePermissions(chatID uint, roleName string) ([]*domain.Pe
 		Joins("JOIN chat_role_permissions AS crp ON crp.permission_id = p.id").
 		Joins("JOIN chat_roles AS cr ON crp.chat_role_id = cr.id").
 		Joins("JOIN roles AS r ON cr.role_id = r.id").
-		Where("r.name = ? AND cr.chat_id = ?", roleName, chatID).
+		Where("r.name = ? AND cr.chat_id = ? AND crp.deleted_at IS NULL", roleName, chatID).
 		Order("p.id ASC").
 		Find(&permissionModels).
 		Error

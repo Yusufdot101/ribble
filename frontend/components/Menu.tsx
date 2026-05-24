@@ -2,6 +2,7 @@
 import { useState } from "react";
 import AddUsersToGroup from "./AddUsersToGroup";
 import GroupMembers from "./GroupMembers";
+import GroupRolesPermissions from "./GroupRolesPermissions";
 
 type Props = {
     chatId: number;
@@ -15,13 +16,36 @@ const Menu = ({ chatId, hasPermission, reloadPermissions, isGroup }: Props) => {
     const [menuIsOpen, setMenuIsOpen] = useState(false);
 
     const [addToGroupIsOpen, setAddToGroupIsOpen] = useState(false);
-    const handleClose = () => {
+    const handleAddToGroupClose = () => {
         setAddToGroupIsOpen(false);
+    };
+    const handleAddToGroupOpen = () => {
+        setMenuIsOpen(false);
+        setGroupMembersIsOpen(false);
+        setGroupPermissionsIsOpen(false);
+        setAddToGroupIsOpen((prev) => !prev);
     };
 
     const [groupMembersIsOpen, setGroupMembersIsOpen] = useState(false);
     const handleCloseGroupMembers = () => {
         setGroupMembersIsOpen(false);
+    };
+    const handleGroupMembersOpen = () => {
+        setMenuIsOpen(false);
+        setGroupPermissionsIsOpen(false);
+        setAddToGroupIsOpen(false);
+        setGroupMembersIsOpen((prev) => !prev);
+    };
+
+    const [groupPermissionsIsOpen, setGroupPermissionsIsOpen] = useState(false);
+    const handleCloseGroupPermissions = () => {
+        setGroupPermissionsIsOpen(false);
+    };
+    const handleGroupPermissionsOpen = () => {
+        setMenuIsOpen(false);
+        setGroupMembersIsOpen(false);
+        setAddToGroupIsOpen(false);
+        setGroupPermissionsIsOpen((prev) => !prev);
     };
 
     return (
@@ -40,8 +64,7 @@ const Menu = ({ chatId, hasPermission, reloadPermissions, isGroup }: Props) => {
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            setGroupMembersIsOpen(false);
-                            setAddToGroupIsOpen((prev) => !prev);
+                            handleAddToGroupOpen();
                             setMenuIsOpen(false);
                         }}
                         className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300"
@@ -53,13 +76,23 @@ const Menu = ({ chatId, hasPermission, reloadPermissions, isGroup }: Props) => {
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            setAddToGroupIsOpen(false);
-                            setGroupMembersIsOpen((prev) => !prev);
-                            setMenuIsOpen(false);
+                            handleGroupMembersOpen();
                         }}
                         className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300"
                     >
                         Group members
+                    </button>
+                )}
+
+                {isGroup && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleGroupPermissionsOpen();
+                        }}
+                        className="cursor-pointer hover:bg-foreground/20 active:bg-background duration-300"
+                    >
+                        Group Permissions
                     </button>
                 )}
                 <button
@@ -75,13 +108,21 @@ const Menu = ({ chatId, hasPermission, reloadPermissions, isGroup }: Props) => {
 
             <AddUsersToGroup
                 addToGroupIsOpen={addToGroupIsOpen}
-                handleClose={handleClose}
+                handleClose={handleAddToGroupClose}
                 chatId={chatId}
             />
 
             <GroupMembers
                 groupMembersIsOpen={groupMembersIsOpen}
                 handleClose={handleCloseGroupMembers}
+                chatId={chatId}
+                hasPermission={hasPermission}
+                reloadPermissions={reloadPermissions}
+            />
+
+            <GroupRolesPermissions
+                groupPermissionsIsOpen={groupPermissionsIsOpen}
+                handleClose={handleCloseGroupPermissions}
                 chatId={chatId}
                 hasPermission={hasPermission}
                 reloadPermissions={reloadPermissions}

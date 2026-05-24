@@ -132,12 +132,13 @@ func (h *handler) updateRolePermission(c *gin.Context) {
 
 	payload := map[string]any{
 		"message":    "role permission updated",
+		"role":       role,
 		"permission": req.Permission,
 		"action":     req.Action,
 	}
 	msg := outgoingMsg{
 		Type:    "message",
-		SubType: "updatedUserRole",
+		SubType: "updatedRolePermissions",
 		Payload: payload,
 	}
 	for _, p := range participants {
@@ -155,7 +156,7 @@ func (h *handler) getRolePermissions(c *gin.Context) {
 	}
 	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{
-			Error: "invalid rolse",
+			Error: "invalid roles",
 		})
 		return
 	}

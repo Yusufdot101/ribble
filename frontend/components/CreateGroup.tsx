@@ -1,7 +1,7 @@
 "use client";
 import Contacts from "@/components/Contacts";
 import { getUsersByEmail, UserType } from "@/utils/users";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import BackArrowButton from "./BackArrowButton";
 import XButton from "./XButton";
 import { ChatType, getChatByUserIds } from "@/utils/chats";
@@ -38,19 +38,24 @@ const CreateGroup = ({
 
     const loggedInUserId = useAuthStore((state) => state.userId);
     const [users, setUsers] = useState<UserType[]>([]);
-    const searchUsers = async (email: string = "") => {
-        setIsLoading(true);
-        try {
-            const { users } = await getUsersByEmail(email);
-            setUsers(users?.filter((user) => user.id !== loggedInUserId) ?? []);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const searchUsers = useCallback(
+        async (email: string = "") => {
+            setIsLoading(true);
+            try {
+                const { users } = await getUsersByEmail(email);
+                setUsers(
+                    users?.filter((user) => user.id !== loggedInUserId) ?? [],
+                );
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [loggedInUserId],
+    );
 
     useEffect(() => {
         (() => searchUsers())();
-    }, []);
+    }, [loggedInUserId, searchUsers]);
 
     const [showConfigScreen, setShowConfigScreen] = useState(false);
     const [groupName, setGroupName] = useState("");
@@ -60,13 +65,15 @@ const CreateGroup = ({
         "add users to group": true,
     });
 
-    const adminPermissions = {
+    const [adminPermissions, setAdminPermissions] = useState({
         "send message": true,
         "add users to group": true,
         "remove users from group": true,
         "delete messages": true,
         "ban users": true,
-    };
+        "promote members": false,
+        "demote admins": false,
+    });
 
     const router = useRouter();
     const handleCreate = async () => {
@@ -110,7 +117,7 @@ const CreateGroup = ({
                 <div className="flex w-full h-[32px] gap-x-[8px] items-center">
                     <BackArrowButton
                         handleClick={handleClose}
-                        text="Add grop members"
+                        text="Add group members"
                     />
                 </div>
 
@@ -238,6 +245,52 @@ const CreateGroup = ({
                             </div>
                         </div>
                     ))}
+                </div>
+
+                <div className="flex flex-col gap-y-[2px]">
+                    <div className="flex flex-col p-[8px] w-full">
+                        <span className="text-foreground/80">Admins can: </span>
+                        {Object.entries(adminPermissions).map(
+                            ([key, value]) => (
+                                <div
+                                    key={key}
+                                    className="flex px-[8px] items-center justify-between"
+                                >
+                                    <div className="flex items-center w-fit gap-x-[8px] h-[32px]">
+                                        <span>{key}</span>
+                                    </div>
+
+                                    <div className="flex">
+                                        <label className="relative inline-flex cursor-pointer items-center">
+                                            <input
+                                                type="checkbox"
+                                                className="peer sr-only"
+                                                checked={value}
+                                                onChange={(e) => {
+                                                    setAdminPermissions(
+                                                        (prev) => ({
+                                                            ...prev,
+                                                            [key]: e.target
+                                                                .checked,
+                                                        }),
+                                                    );
+                                                }}
+                                            />
+
+                                            <div
+                                                className="relative h-6 w-11 rounded-full bg-foreground 
+                                    transition-colors duration-300 peer-checked:bg-accent 
+                                    after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5
+                                    after:rounded-full after:bg-white after:transition-transform 
+                                    after:duration-300 after:content-[''] 
+                                    peer-checked:after:translate-x-5"
+                                            ></div>
+                                        </label>
+                                    </div>
+                                </div>
+                            ),
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
