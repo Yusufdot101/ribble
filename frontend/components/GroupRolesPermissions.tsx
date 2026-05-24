@@ -50,7 +50,17 @@ const GroupRolesPermissions = ({
 
     const handleMessage = useCallback(
         (event: MessageEvent) => {
-            const data = JSON.parse(event.data);
+            let data: any;
+            try {
+                data =
+                    typeof event.data === "string"
+                        ? JSON.parse(event.data)
+                        : null;
+            } catch (error) {
+                console.error(error);
+                return;
+            }
+            if (!data) return;
 
             if (data.type === "error") {
                 console.error(data.message);
@@ -58,7 +68,7 @@ const GroupRolesPermissions = ({
             }
 
             const payload = data.payload;
-            if (["updatedRolePermissions"].includes(data.subType)) {
+            if (data.subType === "updatedRolePermissions" && payload) {
                 const role = payload.role;
                 const action = payload.action;
                 const permission = payload.permission;
@@ -173,20 +183,30 @@ const GroupRolesPermissions = ({
             const adminPermissions = rolePermissions.admin;
             const memberPermissions = rolePermissions.member;
 
-            for (const permission of adminPermissions) {
-                setAdminPermissions((prev) => {
-                    const newMap = new Map(prev);
-                    newMap.set(permission.name, true);
-                    return newMap;
-                });
-            }
-            for (const permission of memberPermissions) {
-                setMemberPermissions((prev) => {
-                    const newMap = new Map(prev);
-                    newMap.set(permission.name, true);
-                    return newMap;
-                });
-            }
+            const adminSet = new Set(
+                (rolePermissions.admin ?? []).map(
+                    (permission) => permission.name,
+                ),
+            );
+            const memberSet = new Set(
+                (rolePermissions.member ?? []).map(
+                    (permission) => permission.name,
+                ),
+            );
+
+            setAdminPermissions((prev) => {
+                const newMap = new Map<string, boolean>();
+                for (const key of prev.keys())
+                    newMap.set(key, adminSet.has(key));
+                return newMap;
+            });
+
+            setMemberPermissions((prev) => {
+                const newMap = new Map<string, boolean>();
+                for (const key of prev.keys())
+                    newMap.set(key, memberSet.has(key));
+                return newMap;
+            });
         })();
     }, [chatId]);
 
@@ -215,6 +235,7 @@ const GroupRolesPermissions = ({
                             <div className="flex">
                                 <label className="relative inline-flex cursor-pointer items-center">
                                     <input
+                                        aria-label={`Member permission: ${key}`}
                                         type="checkbox"
                                         className="peer sr-only"
                                         checked={value}
@@ -256,6 +277,7 @@ const GroupRolesPermissions = ({
                             <div className="flex">
                                 <label className="relative inline-flex cursor-pointer items-center">
                                     <input
+                                        aria-label={`Admin permission: ${key}`}
                                         type="checkbox"
                                         className="peer sr-only"
                                         checked={value}

@@ -263,6 +263,7 @@ const CreateGroup = ({
                                     <div className="flex">
                                         <label className="relative inline-flex cursor-pointer items-center">
                                             <input
+                                                aria-label={`Admin permission: ${key}`}
                                                 type="checkbox"
                                                 className="peer sr-only"
                                                 checked={value}

@@ -160,6 +160,13 @@ func (h *handler) getRolePermissions(c *gin.Context) {
 		})
 		return
 	}
+	if len(req.Roles) == 0 {
+		c.JSON(http.StatusBadRequest, response.Response[any]{
+			Error: "roles cannot be empty",
+		})
+		return
+	}
+
 	chatID, err := parameter.GetParameterValueUint(c, "chatId")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Response[any]{

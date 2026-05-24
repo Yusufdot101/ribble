@@ -550,5 +550,8 @@ func (csvc *ChatService) RevokeRolePermission(
 }
 
 func (csvc *ChatService) GetRolePermissions(chatID uint, roleName string) ([]*domain.Permission, error) {
+	if !isValidRole(roleName) {
+		return nil, domain.ErrInvalidRole
+	}
 	return csvc.repo.GetRolePermissions(chatID, roleName)
 }
