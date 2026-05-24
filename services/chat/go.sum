@@ -8,8 +8,12 @@ github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERo
 github.com/Microsoft/go-winio v0.6.2/go.mod h1:yd8OoFMLzJbo9gZq8j5qaps8bJ9aShtEA8Ipt1oGCvU=
 github.com/Yusufdot101/ripple-proto/golang/user/v4 v4.0.1 h1:2yrKU4cDix/o73vbImZEVYIeBfB4egZaY1irQehK++Y=
 github.com/Yusufdot101/ripple-proto/golang/user/v4 v4.0.1/go.mod h1:lMCC5RInUUCAcptFjUdLcwp54Jev+xuW+yfVVHP8Bd4=
-github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260422101917-3ee96885b1e3 h1:iIFGf2tEL/mPbIAxfxqewj8XovKeMPkb85kbxUsQcxA=
-github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260422101917-3ee96885b1e3/go.mod h1:EKXnCgqwCKLIdUuSOmg9NZn1+5ldXaIurSIqBmfXRvM=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524160136-01196690ce10 h1:qSJ/HhQ3zOB6W6dPNCXc/a+ya+3zZ3Gr1SxQdgLoLeE=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524160136-01196690ce10/go.mod h1:EKXnCgqwCKLIdUuSOmg9NZn1+5ldXaIurSIqBmfXRvM=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524164657-0d9a5ae21f3c h1:S9n3xOsVjly5+pRzP7OlfBeaGyPHK9w3inOFczxwO0Q=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524164657-0d9a5ae21f3c/go.mod h1:EKXnCgqwCKLIdUuSOmg9NZn1+5ldXaIurSIqBmfXRvM=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524165122-c37fe3e54bcb h1:QZt7qW1i6eyNcTXUKLWhBmCDJNWlFbdAVThNqNON9UI=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524165122-c37fe3e54bcb/go.mod h1:EKXnCgqwCKLIdUuSOmg9NZn1+5ldXaIurSIqBmfXRvM=
 github.com/bytedance/gopkg v0.1.4 h1:oZnQwnX82KAIWb7033bEwtxvTqXcYMxDBaQxo5JJHWM=
 github.com/bytedance/gopkg v0.1.4/go.mod h1:v1zWfPm21Fb+OsyXN2VAHdL6TBb2L88anLQgdyje6R4=
 github.com/bytedance/sonic v1.15.0 h1:/PXeWFaR5ElNcVE84U0dOHjiMHQOwNIx3K4ymzh/uSE=

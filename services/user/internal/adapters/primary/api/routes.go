@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Yusufdot101/ripple/services/user/config"
+	"github.com/Yusufdot101/ripple/shared/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +16,7 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		AllowOrigins:     []string{config.GetFrontendURL()},
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodOptions},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
-	}))
+	}), middleware.RecoverPanic())
 
 	group := r.Group("/auth")
 	group.GET("/google", h.googleBegin)

@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/Yusufdot101/ripple-proto/golang/user/v4 v4.0.1
-	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260422101917-3ee96885b1e3
+	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524165122-c37fe3e54bcb
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v4 v4.5.2

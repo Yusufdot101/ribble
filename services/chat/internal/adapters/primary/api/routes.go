@@ -16,9 +16,14 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		AllowOrigins:     []string{config.GetFrontendURL()},
 		AllowMethods:     []string{http.MethodPost, http.MethodGet, http.MethodDelete, http.MethodPatch},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
-	}))
+	}), middleware.RecoverPanic())
 
 	r.GET("/conversations", middleware.RequireAuthentication(h.getConversations))
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "healthy",
+		})
+	})
 
 	group := r.Group("/chats")
 	group.POST("", middleware.RequireAuthentication(h.GetOrCreateChat))
