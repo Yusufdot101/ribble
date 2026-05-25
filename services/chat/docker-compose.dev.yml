@@ -2,7 +2,7 @@ services:
     chat-api:
         build:
             context: .
-            target: dev
+            dockerfile: Dockerfile.dev
         volumes:
             - .:/app
         ports:
