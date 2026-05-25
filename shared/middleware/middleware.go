@@ -11,12 +11,12 @@ import (
 
 var CtxUserIDKey = "userID"
 
-func RequireAuthentication(next gin.HandlerFunc) gin.HandlerFunc {
-	fn := func(ctx *gin.Context) {
+func RequireAuthentication() gin.HandlerFunc {
+	fn := func(c *gin.Context) {
 		// read the token(jwt) from the request headers
-		header := ctx.Request.Header.Get("Authorization")
+		header := c.Request.Header.Get("Authorization")
 		if len(header) == 0 {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrMissingInvalidToken.Error(),
 			})
 			return
@@ -24,7 +24,7 @@ func RequireAuthentication(next gin.HandlerFunc) gin.HandlerFunc {
 
 		parts := strings.SplitN(header, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrMissingInvalidToken.Error(),
 			})
 			return
@@ -32,7 +32,7 @@ func RequireAuthentication(next gin.HandlerFunc) gin.HandlerFunc {
 		// validate it
 		token, err := ValidateJWT(parts[1])
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrInvalidJWT.Error(),
 			})
 			return
@@ -41,14 +41,14 @@ func RequireAuthentication(next gin.HandlerFunc) gin.HandlerFunc {
 		// exctract the fields from it
 		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrInvalidJWT.Error(),
 			})
 			return
 		}
 		issuer, ok := claims["iss"].(string)
 		if !ok || issuer != config.GetJWTIssuer() {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrInvalidJWT.Error(),
 			})
 			return
@@ -56,15 +56,15 @@ func RequireAuthentication(next gin.HandlerFunc) gin.HandlerFunc {
 
 		userID, ok := claims["sub"].(string)
 		if !ok || userID == "" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{
+			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrInvalidJWT.Error(),
 			})
 			return
 		}
 
 		// add the userID to the request context
-		ctx.Set(CtxUserIDKey, userID)
-		next(ctx)
+		c.Set(CtxUserIDKey, userID)
+		c.Next()
 	}
 	return fn
 }
