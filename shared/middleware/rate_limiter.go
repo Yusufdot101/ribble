@@ -74,9 +74,9 @@ func IdentityRateLimiter() gin.HandlerFunc {
 	go func() {
 		for {
 			mu.Lock()
-			for ip, client := range clients {
+			for id, client := range clients {
 				if time.Since(client.lastActive) > time.Hour {
-					delete(clients, ip)
+					delete(clients, id)
 				}
 			}
 			mu.Unlock()
@@ -98,6 +98,63 @@ func IdentityRateLimiter() gin.HandlerFunc {
 		if !allowed {
 			c.JSON(http.StatusTooManyRequests, gin.H{
 				"error": "too many requests",
+			})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+	return fn
+}
+
+func CredentialRateLimiter() gin.HandlerFunc {
+	limit := config.GetRateLimit()
+	bucketSize := config.GetRateLimitBucketSize()
+	type client struct {
+		lastActive time.Time
+		limiter    *rate.Limiter
+	}
+	var (
+		clients = make(map[string]*client)
+		mu      sync.Mutex
+	)
+	// clean up
+	go func() {
+		for {
+			mu.Lock()
+			for email, client := range clients {
+				if time.Since(client.lastActive) > config.GetRateLimitResetTime() {
+					delete(clients, email)
+				}
+			}
+			mu.Unlock()
+			time.Sleep(3 * time.Minute)
+		}
+	}()
+
+	fn := func(c *gin.Context) {
+		var req struct {
+			Email string `json:"email" binding:"required,email"`
+		}
+		if err := c.ShouldBind(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "invalid request",
+			})
+			c.Abort()
+			return
+		}
+		mu.Lock()
+		if _, exists := clients[req.Email]; !exists {
+			clients[req.Email] = &client{
+				limiter: rate.NewLimiter(rate.Limit(limit), bucketSize),
+			}
+		}
+		clients[req.Email].lastActive = time.Now()
+		allowed := clients[req.Email].limiter.Allow()
+		mu.Unlock()
+		if !allowed {
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"error": ErrTooManyRequests.Error(),
 			})
 			c.Abort()
 			return
