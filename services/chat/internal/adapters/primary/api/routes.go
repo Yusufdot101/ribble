@@ -18,35 +18,38 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 	}), middleware.RecoverPanic(), middleware.IPRateLimiter())
 
-	r.GET("/conversations", middleware.RequireAuthentication(h.getConversations))
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "healthy",
 		})
 	})
 
+	convoGroup := r.Group("/conversations").Use(middleware.RequireAuthentication())
+	convoGroup.GET("", h.getConversations)
+
 	group := r.Group("/chats")
-	group.POST("", middleware.RequireAuthentication(h.GetOrCreateChat))
-	group.GET("/:chatId", middleware.RequireAuthentication(h.getChatByID))
-	group.GET("/:chatId/users", middleware.RequireAuthentication(h.getChatUsers))
+	group.Use(middleware.RequireAuthentication())
+	group.POST("", h.GetOrCreateChat)
+	group.GET("/:chatId", h.getChatByID)
+	group.GET("/:chatId/users", h.getChatUsers)
 
-	group.GET("/:chatId/addable-users", middleware.RequireAuthentication(h.getAddableChatUsers))
-	group.POST("/:chatId/addToGroup", middleware.RequireAuthentication(h.addToGroup))
-	group.DELETE("/:chatId/users/:userId", middleware.RequireAuthentication(h.removeFromGroup))
-	group.GET("/:chatId/permissions", middleware.RequireAuthentication(h.getUserPermissions))
-	group.PATCH("/:chatId/users/:userId", middleware.RequireAuthentication(h.updateUserRole))
-	group.PATCH("/:chatId/roles/:role/permissions", middleware.RequireAuthentication(h.updateRolePermission))
-	group.POST("/:chatId/roles/permissions", middleware.RequireAuthentication(h.getRolePermissions))
+	group.GET("/:chatId/addable-users", h.getAddableChatUsers)
+	group.POST("/:chatId/addToGroup", h.addToGroup)
+	group.DELETE("/:chatId/users/:userId", h.removeFromGroup)
+	group.GET("/:chatId/permissions", h.getUserPermissions)
+	group.PATCH("/:chatId/users/:userId", h.updateUserRole)
+	group.PATCH("/:chatId/roles/:role/permissions", h.updateRolePermission)
+	group.POST("/:chatId/roles/permissions", h.getRolePermissions)
 
-	group.GET("/:chatId/bans", middleware.RequireAuthentication(h.getBannedUsers))
-	group.POST("/:chatId/bans", middleware.RequireAuthentication(h.banFromGroup))
-	group.DELETE("/:chatId/bans/:userId", middleware.RequireAuthentication(h.unbanFromGroup))
+	group.GET("/:chatId/bans", h.getBannedUsers)
+	group.POST("/:chatId/bans", h.banFromGroup)
+	group.DELETE("/:chatId/bans/:userId", h.unbanFromGroup)
 
 	messageGroup := group.Group("/:chatId/messages")
-	messageGroup.GET("", middleware.RequireAuthentication(h.getMessages))
-	messageGroup.GET("/sync", middleware.RequireAuthentication(h.syncMessages))
-	messageGroup.DELETE(":messageId", middleware.RequireAuthentication(h.deleteMessage))
-	messageGroup.PATCH(":messageId", middleware.RequireAuthentication(h.editMessage))
+	messageGroup.GET("", h.getMessages)
+	messageGroup.GET("/sync", h.syncMessages)
+	messageGroup.DELETE(":messageId", h.deleteMessage)
+	messageGroup.PATCH(":messageId", h.editMessage)
 
 	r.GET("/ws", h.newWebsocket)
 	return r

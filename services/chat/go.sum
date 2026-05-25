@@ -18,6 +18,10 @@ github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525073224-b7ca736351
 github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525073224-b7ca736351e3/go.mod h1:EKXnCgqwCKLIdUuSOmg9NZn1+5ldXaIurSIqBmfXRvM=
 github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525111207-52a1c15db3de h1:fpKXAtqJaVmC7hV0omF1hu1m/ZFIzsTufVjHcSAjiu4=
 github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525111207-52a1c15db3de/go.mod h1:efaYOpF3dy3cjcD0bcPZJ8FdP/30zoSo5OvTK93vCYU=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525144227-34403f6c9127 h1:3OBqp6GF/yrZcCn+9/OBn6APFvaiQu0xnQAxN5Gu5+4=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525144227-34403f6c9127/go.mod h1:efaYOpF3dy3cjcD0bcPZJ8FdP/30zoSo5OvTK93vCYU=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525145332-ef137018f54e h1:cMdNsQhdIIzK71hRWqoJzg9cIL9YtdabH8nJPRVGqe8=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525145332-ef137018f54e/go.mod h1:efaYOpF3dy3cjcD0bcPZJ8FdP/30zoSo5OvTK93vCYU=
 github.com/bytedance/gopkg v0.1.4 h1:oZnQwnX82KAIWb7033bEwtxvTqXcYMxDBaQxo5JJHWM=
 github.com/bytedance/gopkg v0.1.4/go.mod h1:v1zWfPm21Fb+OsyXN2VAHdL6TBb2L88anLQgdyje6R4=
 github.com/bytedance/sonic v1.15.0 h1:/PXeWFaR5ElNcVE84U0dOHjiMHQOwNIx3K4ymzh/uSE=
