@@ -24,7 +24,8 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		})
 	})
 
-	convoGroup := r.Group("/conversations").Use(middleware.RequireAuthentication())
+	convoGroup := r.Group("/conversations")
+	convoGroup.Use(middleware.RequireAuthentication())
 	convoGroup.GET("", h.getConversations)
 
 	group := r.Group("/chats")
