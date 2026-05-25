@@ -64,6 +64,41 @@ func GetRateLimitResetTime() time.Duration {
 	return duration
 }
 
+func GetRateLimitCredentials() float64 {
+	limit, err := strconv.ParseFloat(getEnvVariable("RATE_LIMIT_CREDENTIALS"), 64)
+	if err != nil {
+		log.Fatalf("RATE_LIMIT variable not found: %v", err)
+	}
+
+	if limit <= 0 {
+		log.Fatal("RATE_LIMIT must be > 0")
+	}
+	return limit
+}
+
+func GetRateLimitBucketSizeCredentials() int {
+	bucketSize, err := strconv.Atoi(getEnvVariable("RATE_LIMIT_BUCKET_SIZE_CREDENTIALS"))
+	if err != nil {
+		panic(fmt.Sprintf("error: bucket size not found: %v", err))
+	}
+	if bucketSize <= 0 {
+		log.Fatal("RATE_LIMIT_BUCKET_SIZE must be > 0")
+	}
+	return bucketSize
+}
+
+func GetRateLimitResetTimeCredentials() time.Duration {
+	duration, err := time.ParseDuration(getEnvVariable("RATE_LIMIT_RESET_TIME_CREDENTIALS"))
+	if err != nil {
+		log.Fatalf("invalid RATE_LIMIT_RESET_TIME: %v", err)
+	}
+	if duration <= 0 {
+		log.Fatal("RATE_LIMIT_RESET_TIME must be > 0")
+	}
+
+	return duration
+}
+
 func getEnvVariable(key string) string {
 	val := os.Getenv(key)
 	if val == "" {

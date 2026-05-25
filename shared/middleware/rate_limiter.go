@@ -108,8 +108,8 @@ func IdentityRateLimiter() gin.HandlerFunc {
 }
 
 func CredentialRateLimiter() gin.HandlerFunc {
-	limit := config.GetRateLimit()
-	bucketSize := config.GetRateLimitBucketSize()
+	limit := config.GetRateLimitCredentials()
+	bucketSize := config.GetRateLimitBucketSizeCredentials()
 	type client struct {
 		lastActive time.Time
 		limiter    *rate.Limiter
@@ -123,7 +123,7 @@ func CredentialRateLimiter() gin.HandlerFunc {
 		for {
 			mu.Lock()
 			for email, client := range clients {
-				if time.Since(client.lastActive) > config.GetRateLimitResetTime() {
+				if time.Since(client.lastActive) > config.GetRateLimitResetTimeCredentials() {
 					delete(clients, email)
 				}
 			}
