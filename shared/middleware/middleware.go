@@ -19,6 +19,7 @@ func RequireAuthentication() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrMissingInvalidToken.Error(),
 			})
+			c.Abort()
 			return
 		}
 
@@ -27,6 +28,7 @@ func RequireAuthentication() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrMissingInvalidToken.Error(),
 			})
+			c.Abort()
 			return
 		}
 		// validate it
@@ -35,6 +37,7 @@ func RequireAuthentication() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrInvalidJWT.Error(),
 			})
+			c.Abort()
 			return
 		}
 
@@ -44,6 +47,7 @@ func RequireAuthentication() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrInvalidJWT.Error(),
 			})
+			c.Abort()
 			return
 		}
 		issuer, ok := claims["iss"].(string)
@@ -51,6 +55,7 @@ func RequireAuthentication() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrInvalidJWT.Error(),
 			})
+			c.Abort()
 			return
 		}
 
@@ -59,6 +64,7 @@ func RequireAuthentication() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": ErrInvalidJWT.Error(),
 			})
+			c.Abort()
 			return
 		}
 
