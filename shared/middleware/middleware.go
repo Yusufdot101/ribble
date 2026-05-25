@@ -3,10 +3,13 @@ package middleware
 import (
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/Yusufdot101/ripple/shared/middleware/config"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/time/rate"
 )
 
 var CtxUserIDKey = "userID"
@@ -77,4 +80,52 @@ func RecoverPanic() gin.HandlerFunc {
 		})
 	}
 	return gin.CustomRecovery(fn)
+}
+
+func IPRateLimiter() gin.HandlerFunc {
+	limit := config.GetRateLimit()
+	bucketSize := config.GetRateLimitBucketSize()
+	type client struct {
+		lastActive time.Time
+		limiter    *rate.Limiter
+		mu         *sync.Mutex
+	}
+	var (
+		clients = make(map[string]*client)
+		mu      sync.Mutex
+	)
+	// clean up
+	go func() {
+		for {
+			mu.Lock()
+			for ip, client := range clients {
+				if time.Since(client.lastActive) > config.GetRateLimitResetTime() {
+					delete(clients, ip)
+				}
+			}
+			mu.Unlock()
+			time.Sleep(3 * time.Minute)
+		}
+	}()
+
+	fn := func(c *gin.Context) {
+		ipAddr := c.ClientIP()
+		mu.Lock()
+		defer mu.Unlock()
+		if _, exists := clients[ipAddr]; !exists {
+			clients[ipAddr] = &client{
+				limiter: rate.NewLimiter(rate.Limit(limit), bucketSize),
+			}
+		}
+		clients[ipAddr].lastActive = time.Now()
+		if !clients[ipAddr].limiter.Allow() {
+			c.JSON(http.StatusTooManyRequests, gin.H{
+				"error": ErrTooManyRequests,
+			})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+	return fn
 }
