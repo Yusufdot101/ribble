@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/Yusufdot101/ripple/services/user/config"
 	"github.com/Yusufdot101/ripple/shared/middleware"
@@ -17,6 +18,13 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodOptions},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 	}), middleware.RecoverPanic())
+
+	r.GET("/ping", func(c *gin.Context) {
+		time.Sleep(5 * time.Second)
+		c.JSON(http.StatusOK, gin.H{
+			"status": "healthy",
+		})
+	})
 
 	group := r.Group("/auth")
 	group.GET("/google", h.googleBegin)

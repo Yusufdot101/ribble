@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"os/signal"
+	"syscall"
 
 	userpb "github.com/Yusufdot101/ripple-proto/golang/user/v4"
 	"github.com/Yusufdot101/ripple/services/user/config"
@@ -34,15 +37,29 @@ func (a *Adapter) Run() error {
 	}
 
 	grpcServer := grpc.NewServer()
+
 	userpb.RegisterUserServiceServer(grpcServer, a)
 	if config.GetEnv() == "development" {
 		reflection.Register(grpcServer)
 	}
 
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+		sig := <-quit
+
+		log.Println("grpc server shutting down", map[string]string{
+			"signal": sig.String(),
+		})
+		grpcServer.GracefulStop()
+	}()
+
 	log.Printf("grpc server listening on port :%d\n", a.port)
 	if err := grpcServer.Serve(lis); err != nil {
 		return fmt.Errorf("failed to server grpc server: %v", err)
 	}
+
+	log.Println("grpc server stopped")
 
 	return nil
 }
