@@ -4,7 +4,7 @@ go 1.26.2
 
 require (
 	github.com/Yusufdot101/ripple-proto/golang/user/v4 v4.0.1
-	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524165122-c37fe3e54bcb
+	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525111207-52a1c15db3de
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang-jwt/jwt/v4 v4.5.2
@@ -103,6 +103,7 @@ require (
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/time v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260209200024-4cfbd4190f57 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

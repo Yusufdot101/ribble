@@ -16,7 +16,7 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		AllowOrigins:     []string{config.GetFrontendURL()},
 		AllowMethods:     []string{http.MethodPost, http.MethodGet, http.MethodDelete, http.MethodPatch},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
-	}), middleware.RecoverPanic())
+	}), middleware.RecoverPanic(), middleware.IPRateLimiter())
 
 	r.GET("/conversations", middleware.RequireAuthentication(h.getConversations))
 	r.GET("/ping", func(c *gin.Context) {

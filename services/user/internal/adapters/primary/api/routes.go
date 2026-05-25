@@ -17,7 +17,7 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		AllowOrigins:     []string{config.GetFrontendURL()},
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodOptions},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
-	}), middleware.RecoverPanic())
+	}), middleware.RecoverPanic(), middleware.IPRateLimiter())
 
 	r.GET("/ping", func(c *gin.Context) {
 		time.Sleep(5 * time.Second)
