@@ -31,7 +31,11 @@ func GetJWTSecret() []byte {
 func GetRateLimit() float64 {
 	limit, err := strconv.ParseFloat(getEnvVariable("RATE_LIMIT"), 64)
 	if err != nil {
-		panic(fmt.Sprintf("error: rate limit not found: %v", err))
+		log.Fatalf("RATE_LIMIT variable not found: %v", err)
+	}
+
+	if limit <= 0 {
+		log.Fatal("RATE_LIMIT must be > 0")
 	}
 	return limit
 }
@@ -41,6 +45,9 @@ func GetRateLimitBucketSize() int {
 	if err != nil {
 		panic(fmt.Sprintf("error: bucket size not found: %v", err))
 	}
+	if bucketSize <= 0 {
+		log.Fatal("RATE_LIMIT_BUCKET_SIZE must be > 0")
+	}
 	return bucketSize
 }
 
@@ -48,7 +55,10 @@ func GetRateLimitBucketSize() int {
 func GetRateLimitResetTime() time.Duration {
 	duration, err := time.ParseDuration(getEnvVariable("RATE_LIMIT_RESET_TIME"))
 	if err != nil {
-		log.Fatalf("invalid refresh token ttl")
+		log.Fatalf("invalid RATE_LIMIT_RESET_TIME: %v", err)
+	}
+	if duration <= 0 {
+		log.Fatal("RATE_LIMIT_RESET_TIME must be > 0")
 	}
 
 	return duration

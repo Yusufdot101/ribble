@@ -111,16 +111,17 @@ func IPRateLimiter() gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		ipAddr := c.ClientIP()
 		mu.Lock()
-		defer mu.Unlock()
 		if _, exists := clients[ipAddr]; !exists {
 			clients[ipAddr] = &client{
 				limiter: rate.NewLimiter(rate.Limit(limit), bucketSize),
 			}
 		}
 		clients[ipAddr].lastActive = time.Now()
-		if !clients[ipAddr].limiter.Allow() {
+		allowed := clients[ipAddr].limiter.Allow()
+		mu.Unlock()
+		if !allowed {
 			c.JSON(http.StatusTooManyRequests, gin.H{
-				"error": ErrTooManyRequests,
+				"error": ErrTooManyRequests.Error(),
 			})
 			c.Abort()
 			return
