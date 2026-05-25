@@ -31,9 +31,11 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	group.GET("/google/callback", h.googleCallback)
 	group.GET("/refreshtoken", h.RefreshToken)
 
-	group.POST("/signup", h.register)
 	group.GET("/verify", h.verify)
-	group.POST("/login", h.login)
+	loginGroup := group.Group("")
+	loginGroup.Use(middleware.CredentialRateLimiter())
+	loginGroup.POST("/signup", h.register)
+	loginGroup.POST("/login", h.login)
 
 	group.Match([]string{http.MethodPost, http.MethodOptions}, "/logout", h.logout)
 

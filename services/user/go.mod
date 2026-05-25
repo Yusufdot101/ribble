@@ -23,7 +23,7 @@ require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525111207-52a1c15db3de // indirect
+	github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525160353-32cf8c6ca21d // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect

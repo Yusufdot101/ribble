@@ -14,6 +14,8 @@ github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524165122-c37fe3e54b
 github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260524165122-c37fe3e54bcb/go.mod h1:EKXnCgqwCKLIdUuSOmg9NZn1+5ldXaIurSIqBmfXRvM=
 github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525111207-52a1c15db3de h1:fpKXAtqJaVmC7hV0omF1hu1m/ZFIzsTufVjHcSAjiu4=
 github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525111207-52a1c15db3de/go.mod h1:efaYOpF3dy3cjcD0bcPZJ8FdP/30zoSo5OvTK93vCYU=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525160353-32cf8c6ca21d h1:BZY0NAAAPtvFKybFsf9fED4xotbhoQfdXWRgcpC2KTU=
+github.com/Yusufdot101/ripple/shared/middleware v0.0.0-20260525160353-32cf8c6ca21d/go.mod h1:efaYOpF3dy3cjcD0bcPZJ8FdP/30zoSo5OvTK93vCYU=
 github.com/bytedance/gopkg v0.1.3 h1:TPBSwH8RsouGCBcMBktLt1AymVo2TVsBVCY4b6TnZ/M=
 github.com/bytedance/gopkg v0.1.3/go.mod h1:576VvJ+eJgyCzdjS+c4+77QF3p7ubbtiKARP3TxducM=
 github.com/bytedance/sonic v1.15.0 h1:/PXeWFaR5ElNcVE84U0dOHjiMHQOwNIx3K4ymzh/uSE=
