@@ -11,6 +11,18 @@ func GetServiceURL() string {
 	return getEnvVariable("SERVICE_URL")
 }
 
+func GetPort(defaultValue int) int {
+	port := getEnvVariable("PORT")
+	if port == "" {
+		return defaultValue
+	}
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		log.Fatalf("invalid port number")
+	}
+	return portInt
+}
+
 func GetDatabaseURL() string {
 	return getEnvVariable("DATABASE_URL")
 }
@@ -98,6 +110,10 @@ func GetSMTPPassword() string {
 
 func GetEnv() string {
 	return getEnvVariable("ENV")
+}
+
+func GetRedirectURL() string {
+	return getEnvVariable("REDIRECT_URL")
 }
 
 func getEnvVariable(key string) string {

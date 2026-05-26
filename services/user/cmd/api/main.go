@@ -54,7 +54,7 @@ func main() {
 	usvc := services.NewUserService(repo)
 
 	// make server listen
-	server := api.NewServer(8080, asvc, tsvc, usvc)
+	server := api.NewServer(config.GetPort(8080), asvc, tsvc, usvc)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatalf("error starting server: %v\n", err)
 	}

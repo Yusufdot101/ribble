@@ -1,5 +1,7 @@
-config/.env
-config/docker.env
+config/.api.env
+config/.grpc.env
+config/docker.api.env
+config/docker.grpc.env
 coverage.out
 tmp/*
 bin/*

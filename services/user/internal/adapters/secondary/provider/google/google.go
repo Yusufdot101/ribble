@@ -11,9 +11,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var CallbackURL = config.GetRedirectURL()
+
 const (
 	issuerURL          = "https://accounts.google.com"
-	CallbackURL        = "http://localhost:8080/auth/google/callback"
 	GoogleProviderName = "google"
 )
 

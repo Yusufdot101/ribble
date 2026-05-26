@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/Yusufdot101/ripple/services/user/config"
 	"github.com/Yusufdot101/ripple/shared/middleware"
@@ -20,7 +19,6 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 	}), middleware.RecoverPanic(), middleware.IPRateLimiter())
 
 	r.GET("/ping", func(c *gin.Context) {
-		time.Sleep(5 * time.Second)
 		c.JSON(http.StatusOK, gin.H{
 			"status": "healthy",
 		})

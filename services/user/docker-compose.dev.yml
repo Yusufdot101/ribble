@@ -2,16 +2,13 @@ services:
     user-api:
         build:
             context: .
-            target: dev
-            args:
-                APP: api
-        command: air -c .air.api.toml
+            dockerfile: Dockerfile.api.dev
         volumes:
             - .:/app
         ports:
             - "8080:8080"
         env_file:
-            - ./config/docker.env
+            - ./config/docker.api.env
         depends_on:
             user-postgres:
                 condition: service_healthy
@@ -21,16 +18,13 @@ services:
     user-grpc:
         build:
             context: .
-            target: dev
-            args:
-                APP: grpc
-        command: air -c .air.grpc.toml
+            dockerfile: Dockerfile.grpc.dev
         volumes:
             - .:/app
         ports:
             - "9001:9001"
         env_file:
-            - ./config/docker.env
+            - ./config/docker.grpc.env
         depends_on:
             user-postgres:
                 condition: service_healthy

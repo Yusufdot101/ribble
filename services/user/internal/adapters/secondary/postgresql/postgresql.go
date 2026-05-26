@@ -2,7 +2,6 @@ package postgresql
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
 	"gorm.io/driver/postgres"
@@ -17,9 +16,6 @@ func NewAdapter(databaseURL string) (*Adapter, error) {
 	DB, err := gorm.Open(postgres.Open(databaseURL))
 	if err != nil {
 		return nil, fmt.Errorf("db connection error: %v", err)
-	}
-	if err := DB.AutoMigrate(&User{}, &Token{}, &UserIdentity{}); err != nil {
-		log.Printf("db migration error: %v\n", err)
 	}
 
 	return &Adapter{

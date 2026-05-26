@@ -2,12 +2,11 @@ services:
     user-api:
         build:
             context: .
-            args:
-                APP: api
+            dockerfile: Dockerfile.api
         ports:
             - "8080:8080"
         env_file:
-            - ./config/docker.env
+            - ./config/docker.api.env
         depends_on:
             user-postgres:
                 condition: service_healthy
@@ -17,12 +16,11 @@ services:
     user-grpc:
         build:
             context: .
-            args:
-                APP: grpc
+            dockerfile: Dockerfile.grpc
         ports:
             - "9001:9001"
         env_file:
-            - ./config/docker.env
+            - ./config/docker.grpc.env
         depends_on:
             user-postgres:
                 condition: service_healthy
