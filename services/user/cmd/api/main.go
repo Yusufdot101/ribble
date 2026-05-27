@@ -14,9 +14,15 @@ import (
 	"github.com/Yusufdot101/ripple/services/user/internal/adapters/secondary/provider/local"
 	"github.com/Yusufdot101/ripple/services/user/internal/application/core/services"
 	"github.com/Yusufdot101/ripple/services/user/internal/ports"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	env := config.GetEnv()
+	if env == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	// get repo
 	repo, err := postgresql.NewAdapter(config.GetDatabaseURL())
 	if err != nil {

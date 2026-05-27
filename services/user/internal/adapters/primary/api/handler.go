@@ -82,7 +82,7 @@ func (h *handler) googleCallback(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("refreshToken", refreshToken, int(config.GetRefreshTokenTTL().Seconds()), "/", "", config.RefreshTokenIsSecure(), true)
 	c.SetSameSite(config.GetCookieSameSite())
+	c.SetCookie("refreshToken", refreshToken, int(config.GetRefreshTokenTTL().Seconds()), "/", "", config.RefreshTokenIsSecure(), true)
 	c.Redirect(http.StatusFound, config.GetFrontendURL())
 }
