@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -128,6 +129,16 @@ func GetCookieSameSite() http.SameSite {
 		return http.SameSiteStrictMode
 	default:
 		return http.SameSiteDefaultMode
+	}
+}
+
+func GetRateLimitState() bool {
+	state := getEnvVariable("RATE_LIMIT")
+	switch strings.ToLower(state) {
+	case "true":
+		return true
+	default:
+		return false
 	}
 }
 
