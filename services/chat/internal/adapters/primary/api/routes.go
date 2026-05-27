@@ -16,7 +16,12 @@ func (h *handler) RegisterRoutes() *gin.Engine {
 		AllowOrigins:     []string{config.GetFrontendURL()},
 		AllowMethods:     []string{http.MethodPost, http.MethodGet, http.MethodDelete, http.MethodPatch},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
-	}), middleware.RecoverPanic(), middleware.IPRateLimiter())
+	}), middleware.RecoverPanic())
+
+	rateLimitOn := config.GetRateLimitState()
+	if rateLimitOn {
+		r.Use(middleware.IPRateLimiter())
+	}
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

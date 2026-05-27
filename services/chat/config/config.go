@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strings"
 )
 
 func GetDatabaseURL() string {
@@ -28,6 +29,16 @@ func GetFrontendURL() string {
 
 func GetGRPCUrl() string {
 	return getEnvVariable("GRPC_URL")
+}
+
+func GetRateLimitState() bool {
+	state := getEnvVariable("RATE_LIMIT_ON")
+	switch strings.ToLower(state) {
+	case "true":
+		return true
+	default:
+		return false
+	}
 }
 
 func getEnvVariable(key string) string {
