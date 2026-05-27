@@ -8,9 +8,15 @@ import (
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/secondary/grpc"
 	"github.com/Yusufdot101/ripple/services/chat/internal/adapters/secondary/postgresql"
 	"github.com/Yusufdot101/ripple/services/chat/internal/application/core/services"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	env := config.GetEnv()
+	if env == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	repo, err := postgresql.NewAdapter(config.GetDatabaseURL())
 	if err != nil {
 		log.Fatalf("error : %v", err)

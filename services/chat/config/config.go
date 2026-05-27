@@ -41,6 +41,10 @@ func GetRateLimitState() bool {
 	}
 }
 
+func GetEnv() string {
+	return getEnvVariable("ENV")
+}
+
 func getEnvVariable(key string) string {
 	val := os.Getenv(key)
 	if val == "" {
