@@ -133,7 +133,7 @@ func GetCookieSameSite() http.SameSite {
 }
 
 func GetRateLimitState() bool {
-	state := getEnvVariable("RATE_LIMIT")
+	state := getEnvVariable("RATE_LIMIT_ON")
 	switch strings.ToLower(state) {
 	case "true":
 		return true
