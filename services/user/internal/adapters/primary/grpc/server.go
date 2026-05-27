@@ -31,7 +31,8 @@ func NewAdapter(port int, asvc ports.AuthService, usvc ports.UserService) *Adapt
 }
 
 func (a *Adapter) Run() error {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
+	address := fmt.Sprintf("0.0.0.0:%d", a.port)
+	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return fmt.Errorf("failed to listen on port %d: %v", a.port, err)
 	}
@@ -54,7 +55,7 @@ func (a *Adapter) Run() error {
 		grpcServer.GracefulStop()
 	}()
 
-	log.Printf("grpc server listening on port :%d\n", a.port)
+	log.Printf("grpc server listening on :%s\n", address)
 	if err := grpcServer.Serve(lis); err != nil {
 		return fmt.Errorf("failed to server grpc server: %v", err)
 	}
