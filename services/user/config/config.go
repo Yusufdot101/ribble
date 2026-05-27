@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -114,6 +115,20 @@ func GetEnv() string {
 
 func GetRedirectURL() string {
 	return getEnvVariable("REDIRECT_URL")
+}
+
+func GetCookieSameSite() http.SameSite {
+	sameSite := getEnvVariable("COOKIE_SAME_SITE")
+	switch sameSite {
+	case "none":
+		return http.SameSiteNoneMode
+	case "lax":
+		return http.SameSiteLaxMode
+	case "strict":
+		return http.SameSiteStrictMode
+	default:
+		return http.SameSiteDefaultMode
+	}
 }
 
 func getEnvVariable(key string) string {
